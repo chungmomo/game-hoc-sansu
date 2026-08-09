@@ -89,10 +89,10 @@ test('buildProblemSet avoids back-to-back duplicate problems', () => {
   }
 });
 
-test('placeLabel returns the right Vietnamese place-value name', () => {
-  assert.strictEqual(placeLabel(0), 'Đơn Vị');
-  assert.strictEqual(placeLabel(1), 'Chục');
-  assert.strictEqual(placeLabel(2), 'Trăm');
+test('placeLabel returns the right Japanese place-value name', () => {
+  assert.strictEqual(placeLabel(0), 'いちのくらい');
+  assert.strictEqual(placeLabel(1), 'じゅうのくらい');
+  assert.strictEqual(placeLabel(2), 'ひゃくのくらい');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

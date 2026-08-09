@@ -59,13 +59,19 @@ Vừa luôn nhớ ở hàng đơn vị và tổng vẫn dưới 100, và kế ho
 
 ## Cơ chế dạy cộng theo cột
 
-Mỗi bài toán được giải theo từng cột một, từ hàng đơn vị lên hàng chục
-(rồi hàng trăm nếu có nhớ). Ví dụ 36 + 58:
+Giao diện hiện tại dùng tiếng Nhật (hiragana) vì bé học tiểu học ở Nhật.
+Mỗi bài toán được giải theo từng cột một, từ hàng đơn vị (いちのくらい) lên
+hàng chục (じゅうのくらい), rồi hàng trăm (ひゃくのくらい) nếu có nhớ
+(くりあがり). Bên trái thẻ bài toán luôn hiển thị tổng quan (vd "もんだい：
+36 + 58 = ?") để bé biết đang làm phép tính nào. Ví dụ 36 + 58:
 
-1. "Hàng Đơn Vị: 6 + 8 = ?" → bé nhập **14** → hệ thống tách thành
-   "viết 4, nhớ 1", chip **nhớ 1** hiện lên trên cột Chục.
-2. "Hàng Chục: 3 + 5 + nhớ 1 = ?" → bé nhập **9** → đáp số cuối **94**.
+1. "いちのくらい：6 + 8 = ?" → bé nhập **14** → hệ thống tách thành
+   "viết 4, nhớ 1"; số nhớ **1** bay theo mũi tên từ cột Đơn Vị sang và
+   đậu xuống *dưới* hai chữ số của cột Chục (thể hiện thứ tự 2+3 rồi
+   mới +1).
+2. "じゅうのくらい：3 + 5 + くりあがり1 = ?" → bé nhập **9** → đáp số
+   cuối **94**.
 
 Nếu số nhớ tràn ra khỏi cả hai số ban đầu (ví dụ 85 + 90 = 175), thêm một
-bước "mang nhớ xuống" ở hàng trăm để bé hiểu số nhớ cuối cùng cũng phải
-được viết xuống.
+bước "くりあがりの 1 を したに かいてね" (mang số nhớ xuống viết) ở hàng
+trăm để bé hiểu số nhớ cuối cùng cũng phải được viết xuống.

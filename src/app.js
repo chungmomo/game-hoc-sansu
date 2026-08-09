@@ -34,6 +34,7 @@
     els.lives = document.getElementById('lives');
     els.mascot = document.getElementById('mascot');
     els.speechBubble = document.getElementById('speech-bubble');
+    els.problemOverview = document.getElementById('problem-overview');
     els.columnTable = document.getElementById('column-table');
     els.stepPrompt = document.getElementById('step-prompt');
     els.keypad = document.getElementById('keypad');
@@ -60,7 +61,7 @@
     els.soundToggles.forEach(btn => {
       btn.textContent = state.soundOn ? '🔊' : '🔇';
       btn.setAttribute('aria-pressed', String(state.soundOn));
-      btn.setAttribute('aria-label', state.soundOn ? 'Tắt âm thanh' : 'Bật âm thanh');
+      btn.setAttribute('aria-label', state.soundOn ? 'おとを けす' : 'おとを だす');
     });
   }
 
@@ -106,7 +107,7 @@
         <div class="princess-name">${p.name}</div>
         ${unlocked ? '' : `<div class="princess-lock">🔒 ${p.unlockStars}⭐</div>`}
       `;
-      const card = makeSelectableCard(className, html, unlocked, `Cần ${p.unlockStars} sao để mở khóa ${p.name}! Bé cố lên nhé!`, () => {
+      const card = makeSelectableCard(className, html, unlocked, `${p.name}を つかうには ほしが ${p.unlockStars}こ ひつようだよ！がんばってね！`, () => {
         state.selectedPrincessId = p.id;
         saveState();
         renderHome();
@@ -123,7 +124,7 @@
         <div class="level-name">${lv.name}${unlocked ? '' : ' 🔒'}</div>
         <div class="level-desc">${lv.desc}</div>
       `;
-      const card = makeSelectableCard(className, html, unlocked, 'Bé hoàn thành cấp độ trước để mở khóa nhé!', () => {
+      const card = makeSelectableCard(className, html, unlocked, 'まえの むずかしさを おわらせてから えらんでね！', () => {
         state.selectedLevel = lv.id;
         saveState();
         renderHome();
@@ -170,6 +171,7 @@
 
     renderProgress();
     els.speechBubble.textContent = M.pick(D.STARTER_MESSAGES);
+    els.problemOverview.textContent = `もんだい：${prob.a} + ${prob.b} = ?`;
     renderColumnTable();
     renderStepPrompt();
   }
@@ -187,9 +189,9 @@
     let html = `
       <div class="place-col plus-col">
         <div class="place-label">&nbsp;</div>
-        <div class="carry-slot">&nbsp;</div>
         <div class="digit-a">&nbsp;</div>
         <div class="digit-b">+</div>
+        <div class="carry-slot">&nbsp;</div>
         <div class="line"></div>
         <div class="digit-result">&nbsp;</div>
       </div>`;
@@ -198,7 +200,7 @@
       const isActive = step.index === current;
       const isDone = step.index < current;
       const known = step.index <= current;
-      const carryHtml = (known && step.carryIn > 0) ? `nhớ ${step.carryIn}` : '&nbsp;';
+      const carryHtml = (known && step.carryIn > 0) ? `くり${step.carryIn}` : '&nbsp;';
       const digitA = step.synthetic ? '&nbsp;' : step.x;
       const digitB = step.synthetic ? '&nbsp;' : step.y;
 
@@ -220,9 +222,9 @@
       html += `
         <div class="place-col${stateClass}" data-step-index="${step.index}">
           <div class="place-label">${M.placeLabel(step.index)}</div>
-          <div class="carry-slot${carrySlotClass}">${carryHtml}</div>
           <div class="digit-a">${digitA}</div>
           <div class="digit-b">${digitB}</div>
+          <div class="carry-slot${carrySlotClass}">${carryHtml}</div>
           <div class="line"></div>
           <div class="${resultClass}">${resultHtml}</div>
         </div>`;
@@ -274,7 +276,7 @@
   function submitAnswer() {
     if (!game || game.locked) return;
     if (game.buffer.length === 0) {
-      E.showToast('Bé nhập kết quả trước nhé!');
+      E.showToast('すうじを いれてね！');
       return;
     }
     const step = game.columnPlan[game.currentStep];
@@ -354,12 +356,12 @@
     const p = D.getSelectedPrincess(state);
     els.resultMascot.textContent = leveledUp ? '🎊' : p.avatar;
     els.resultTitle.textContent =
-      correct === D.PROBLEMS_PER_SET ? 'Hoàn Hảo! Bé Là Công Chúa Toán Học!' :
-      passed ? 'Bé Làm Rất Tốt!' : 'Bé Đã Cố Gắng Rồi!';
+      correct === D.PROBLEMS_PER_SET ? 'かんぺき！さんすう おひめさまだね！' :
+      passed ? 'よく できました！' : 'よく がんばったね！';
     els.resultStars.textContent = '⭐'.repeat(correct) + '☆'.repeat(D.PROBLEMS_PER_SET - correct);
     els.resultDetail.textContent =
-      `Đúng ${correct}/${D.PROBLEMS_PER_SET} câu — Tổng cộng ${state.totalStars} sao` +
-      (leveledUp ? ' — 🎉 Mở khóa cấp độ mới!' : '');
+      `${D.PROBLEMS_PER_SET}もんちゅう ${correct}もん せいかい — ほし ${state.totalStars}こ` +
+      (leveledUp ? ' — 🎉 あたらしい むずかしさが あいたよ！' : '');
 
     els.btnNextLevel.style.display = (game.level < D.LEVELS.length && (game.level + 1) <= state.maxUnlockedLevel) ? 'inline-block' : 'none';
 
@@ -375,7 +377,7 @@
     els.btnStart.addEventListener('click', () => startGame(state.selectedLevel));
 
     els.btnReset.addEventListener('click', () => {
-      if (confirm('Xóa toàn bộ tiến trình và sao đã thu thập?')) {
+      if (confirm('いままでの きろくと ほしを ぜんぶ けしますか？')) {
         const keepSound = state.soundOn;
         state = D.defaultState();
         state.soundOn = keepSound;

@@ -97,16 +97,16 @@
   }
 
   function placeLabel(index) {
-    return index === 0 ? 'Đơn Vị' : index === 1 ? 'Chục' : 'Trăm';
+    return index === 0 ? 'いちのくらい' : index === 1 ? 'じゅうのくらい' : 'ひゃくのくらい';
   }
 
   function stepPromptText(step) {
     const label = placeLabel(step.index);
     if (step.synthetic) {
-      return `Hàng ${label}: mang nhớ ${step.carryIn} xuống, viết mấy? ✍️`;
+      return `${label}：くりあがりの ${step.carryIn} を したに かいてね ✍️`;
     }
-    let text = `Hàng ${label}: ${step.x} + ${step.y}`;
-    if (step.carryIn > 0) text += ` + nhớ ${step.carryIn}`;
+    let text = `${label}：${step.x} + ${step.y}`;
+    if (step.carryIn > 0) text += ` + くりあがり${step.carryIn}`;
     text += ' = ?';
     return text;
   }
