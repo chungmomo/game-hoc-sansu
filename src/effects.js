@@ -87,6 +87,52 @@
     }
   }
 
+  /** Flies a spell/attack emoji from one element to another (mascot →
+      monster on a correct answer, monster → mascot on a wrong one),
+      then pops a small sparkle burst on arrival and calls onArrive —
+      the actual "casting a spell" visual the battle framing needs,
+      rather than just a character wiggling in place. */
+  function spawnProjectile(fromEl, toEl, emoji, onArrive) {
+    if (!fromEl || !toEl) { if (onArrive) onArrive(); return; }
+    try {
+      const fromRect = fromEl.getBoundingClientRect();
+      const toRect = toEl.getBoundingClientRect();
+      const from = { x: fromRect.left + fromRect.width / 2, y: fromRect.top + fromRect.height / 2 };
+      const to = { x: toRect.left + toRect.width / 2, y: toRect.top + toRect.height / 2 };
+      const duration = REDUCED_MOTION ? 200 : 450;
+      const control = { x: (from.x + to.x) / 2, y: Math.min(from.y, to.y) - 40 };
+
+      const proj = document.createElement('div');
+      proj.className = 'spell-projectile';
+      proj.textContent = emoji;
+      proj.style.transform = `translate(${from.x}px, ${from.y}px) translate(-50%, -50%)`;
+      document.body.appendChild(proj);
+
+      const start = performance.now();
+      function tick(now) {
+        const t = Math.min(1, (now - start) / duration);
+        const mt = 1 - t;
+        const x = mt * mt * from.x + 2 * mt * t * control.x + t * t * to.x;
+        const y = mt * mt * from.y + 2 * mt * t * control.y + t * t * to.y;
+        const spin = REDUCED_MOTION ? 0 : t * 300;
+        proj.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) rotate(${spin}deg)`;
+        if (t < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          proj.remove();
+          spawnSticker(to.x, to.y, '✨');
+          if (onArrive) onArrive();
+        }
+      }
+      requestAnimationFrame(tick);
+    } catch (e) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('spawnProjectile failed:', e);
+      }
+      if (onArrive) onArrive();
+    }
+  }
+
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
   function getCarryFlightLayer() {
@@ -147,18 +193,22 @@
       path.setAttribute('marker-end', 'url(#carry-arrowhead)');
       layer.appendChild(path);
 
-      const len = path.getTotalLength();
-      path.style.strokeDasharray = String(len);
-      path.style.strokeDashoffset = String(len);
-      path.style.transition = `stroke-dashoffset ${duration}ms ease`;
+      // Show the whole connecting line as a quick fade-in rather than
+      // "drawing it on" over the badge's full travel time — a
+      // progressive draw meant only the last, short segment near the
+      // destination was ever visible by the time anyone looked (or
+      // screenshotted) partway through the flight, which read as the
+      // arrow starting from nowhere instead of clearly spanning from
+      // the source column to the destination column.
+      path.style.opacity = '0';
+      path.style.transition = 'opacity 120ms ease';
+      requestAnimationFrame(() => { path.style.opacity = '1'; });
 
       const badge = document.createElement('div');
       badge.className = 'carry-flight-badge';
       badge.textContent = digit;
       badge.style.transform = `translate(${from.x}px, ${from.y}px) translate(-50%, -50%)`;
       document.body.appendChild(badge);
-
-      requestAnimationFrame(() => { path.style.strokeDashoffset = '0'; });
 
       const start = performance.now();
       function tick(now) {
@@ -192,5 +242,6 @@
     stickerAtElement,
     spawnStickerBurst,
     flyCarry,
+    spawnProjectile,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

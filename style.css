@@ -266,11 +266,52 @@ html,body{
   font-size:.62rem; font-weight:700; color:#9a86ab;
   max-width:74px; text-align:center; line-height:1.15;
 }
+/* battle HP bars — まいひめ's drains on a wrong answer, the monster's
+   drains on every full problem solved correctly */
+.hp-bar{
+  width:100%; max-width:70px; height:8px;
+  background: rgba(0,0,0,.12); border-radius:999px; overflow:hidden;
+  margin-top:.25rem; border:1px solid rgba(255,255,255,.6);
+}
+.hp-fill{
+  height:100%; width:100%;
+  background: linear-gradient(90deg, #4caf50, #8bc34a);
+  border-radius:999px;
+  transition: width .4s ease, background .3s ease;
+}
+.hp-fill.low{ background: linear-gradient(90deg, #ff6b6b, var(--pink-dark)); }
 @keyframes monsterShake{
   0%, 88%, 100%{ transform: rotate(0deg); }
   90%{ transform: rotate(-6deg); }
   93%{ transform: rotate(6deg); }
   96%{ transform: rotate(-4deg); }
+}
+
+/* battle feedback: まいひめ casts a spell at the monster on a correct
+   answer; the monster counter-attacks her on a wrong one */
+.mascot.attacking{ animation: mascotAttack .55s ease; }
+@keyframes mascotAttack{
+  0%{ transform: translateX(0) scale(1); }
+  35%{ transform: translateX(14px) scale(1.18); filter: drop-shadow(0 0 12px var(--pink-dark)); }
+  100%{ transform: translateX(0) scale(1); filter: drop-shadow(0 4px 6px rgba(0,0,0,.15)); }
+}
+.monster.attacking{ animation: monsterAttack .55s ease; }
+@keyframes monsterAttack{
+  0%{ transform: translateX(0) scale(1); }
+  35%{ transform: translateX(-14px) scale(1.18); }
+  100%{ transform: translateX(0) scale(1); }
+}
+.mascot.hit, .monster.hit{ animation: charHit .5s ease, hitFlash .5s ease; }
+@keyframes charHit{
+  0%, 100%{ transform: translateX(0) rotate(0deg); }
+  20%{ transform: translateX(-6px) rotate(-8deg); }
+  40%{ transform: translateX(6px) rotate(8deg); }
+  60%{ transform: translateX(-4px) rotate(-5deg); }
+  80%{ transform: translateX(4px) rotate(5deg); }
+}
+@keyframes hitFlash{
+  0%, 100%{ filter: drop-shadow(0 4px 6px rgba(0,0,0,.15)); }
+  50%{ filter: brightness(1.8) saturate(.3); }
 }
 
 /* home-screen adventure recap: puzzle-piece album + item bag */
@@ -436,6 +477,13 @@ html,body{
   box-shadow: 0 4px 10px rgba(0,0,0,.3);
   border: 3px solid #fff;
   pointer-events:none;
+}
+/* the 🪄/💥 that flies between まいひめ and the monster on each battle exchange */
+.spell-projectile{
+  position: fixed; left:0; top:0; z-index:72;
+  font-size:1.9rem;
+  pointer-events:none;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,.9));
 }
 .place-col .digit-a, .place-col .digit-b{
   font-size: clamp(1.6rem, 6vw, 2.2rem); font-weight:800; line-height:1.2;
