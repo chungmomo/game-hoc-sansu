@@ -200,7 +200,7 @@
       const isActive = step.index === current;
       const isDone = step.index < current;
       const known = step.index <= current;
-      const carryHtml = (known && step.carryIn > 0) ? `くり${step.carryIn}` : '&nbsp;';
+      const carryHtml = (known && step.carryIn > 0) ? `${step.carryIn}` : '&nbsp;';
       const digitA = step.synthetic ? '&nbsp;' : step.x;
       const digitB = step.synthetic ? '&nbsp;' : step.y;
 
