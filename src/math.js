@@ -100,6 +100,13 @@
     return index === 0 ? 'いちのくらい' : index === 1 ? 'じゅうのくらい' : 'ひゃくのくらい';
   }
 
+  /** Compact column-header form of placeLabel(), short enough to never
+      wrap inside the narrow per-column layout (the full term is still
+      used in stepPromptText()). */
+  function placeLabelShort(index) {
+    return index === 0 ? 'いちの' : index === 1 ? 'じゅうの' : 'ひゃくの';
+  }
+
   function stepPromptText(step) {
     const label = placeLabel(step.index);
     if (step.synthetic) {
@@ -119,6 +126,7 @@
     digitsLSB,
     buildColumnPlan,
     placeLabel,
+    placeLabelShort,
     stepPromptText,
   };
 });

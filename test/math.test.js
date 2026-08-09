@@ -2,7 +2,7 @@
 /* Plain-Node test runner for src/math.js — no test framework or
    dependencies required. Run with: npm test */
 const assert = require('assert');
-const { randInt, generateProblem, buildProblemSet, buildColumnPlan, placeLabel } = require('../src/math.js');
+const { randInt, generateProblem, buildProblemSet, buildColumnPlan, placeLabel, placeLabelShort } = require('../src/math.js');
 
 let passed = 0;
 let failed = 0;
@@ -93,6 +93,15 @@ test('placeLabel returns the right Japanese place-value name', () => {
   assert.strictEqual(placeLabel(0), 'いちのくらい');
   assert.strictEqual(placeLabel(1), 'じゅうのくらい');
   assert.strictEqual(placeLabel(2), 'ひゃくのくらい');
+});
+
+test('placeLabelShort stays short enough to never wrap in the narrow column header', () => {
+  for (let i = 0; i <= 2; i++) {
+    assert.ok(placeLabelShort(i).length <= 4, `placeLabelShort(${i}) is too long: ${placeLabelShort(i)}`);
+  }
+  assert.strictEqual(placeLabelShort(0), 'いちの');
+  assert.strictEqual(placeLabelShort(1), 'じゅうの');
+  assert.strictEqual(placeLabelShort(2), 'ひゃくの');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

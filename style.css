@@ -279,9 +279,13 @@ html,body{
   box-shadow: 0 0 0 3px var(--gold) inset;
 }
 .place-col.done{ opacity:.72; }
-.place-col .place-label{ font-size:.62rem; font-weight:700; color:#9a86ab; min-height:2.3em; line-height:1.15; }
+.place-col .place-label{
+  font-size:.68rem; font-weight:700; color:#9a86ab;
+  min-height:1.2em; line-height:1.2;
+  white-space:nowrap;
+}
 .place-col .carry-slot{
-  min-height:1.3rem; font-size:1.05rem; font-weight:800; color:var(--pink-dark);
+  min-height:1.3em; font-size: clamp(1.6rem, 6vw, 2.2rem); font-weight:800; color:var(--pink-dark);
 }
 .place-col .carry-slot.pop-in{ animation: carryPop .5s ease; }
 .place-col .carry-slot.carry-pending{ opacity:0; }
@@ -311,7 +315,7 @@ html,body{
   min-height:1.3em;
   font-size: clamp(1.6rem, 6vw, 2.2rem); font-weight:800; color:var(--pink-dark);
 }
-.place-col .digit-result.placeholder{ color:#d8c8e6; font-size:1.4rem; }
+.place-col .digit-result.placeholder{ color:#d8c8e6; }
 .place-col .digit-result.entering{ color:#b388ff; }
 .place-col.wrong-shake .digit-result{ animation: shake .4s ease; color: var(--red); }
 .place-col.correct-pop .digit-result{ animation: pop .5s ease; color: var(--green); }

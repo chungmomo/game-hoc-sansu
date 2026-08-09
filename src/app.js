@@ -227,7 +227,7 @@
       const stateClass = isActive ? ' active' : isDone ? ' done' : '';
       html += `
         <div class="place-col${stateClass}" data-step-index="${step.index}">
-          <div class="place-label">${M.placeLabel(step.index)}</div>
+          <div class="place-label">${M.placeLabelShort(step.index)}</div>
           <div class="digit-a">${digitA}</div>
           <div class="digit-b">${digitB}</div>
           <div class="carry-slot${carrySlotClass}">${carryHtml}</div>
