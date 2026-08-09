@@ -38,19 +38,36 @@
   const PASS_THRESHOLD = 6;          // correct answers needed to unlock the next level
   const CELEBRATE_STARS_THRESHOLD = 8; // correct answers needed for the big confetti finale
 
+  const STREAK_MILESTONES = [3, 5, 8]; // consecutive perfect problems that trigger a streak bonus
+  const STREAK_BONUS_STARS = 1;        // extra stars awarded at each milestone
+
   const PRAISE_MESSAGES = [
     'すごいね！🎉', 'せいかい！✨', 'おひめさまも よろこんでるよ！👑',
     'すばらしい！せいかいだよ！💖', 'わあ、けいさん はやいね！', 'せいかい！じょうずだね！',
+    'かんぺき！さすがだね！🌟', 'やったね！だいせいかい！', 'ぴったり あってるよ！😊',
+    'その ちょうし！すごい じょうずだよ！',
   ];
-  const COLUMN_PRAISE = ['せいかい！✨', 'ばっちり！', 'じょうず！', 'そのとおり！', 'けいさん じょうずだね！'];
+  const COLUMN_PRAISE = [
+    'せいかい！✨', 'ばっちり！', 'じょうず！', 'そのとおり！', 'けいさん じょうずだね！',
+    'いいね！', 'かんぺき！', 'ナイス けいさん！', 'そう、それ！', 'すごいぞ！',
+  ];
   const ENCOURAGE_MESSAGES = [
     'だいじょうぶ、もういちど やってみよう！💪', 'おひめさまは できると しんじてるよ！',
     'もういちど けいさんを みてみよう！', 'がんばれ、もうすこしだよ！', 'あわてずに もういちど けいさんしてみよう！',
+    'だれでも まちがえるよ、つぎ いこう！', 'ゆっくりで だいじょうぶだよ！',
+    'もうすこし！ふぁいと！', 'いっしょに もういちど かんがえよう！',
   ];
   const STARTER_MESSAGES = [
     'ひとつずつ くらいを けいさんしよう！', 'まず いちのくらいから けいさんしよう！',
     'おひめさまと いっしょに といてみよう！', 'ひとつずつ すすめば だいじょうぶ！',
+    'つぎの もんだいだよ、がんばろう！', 'あたらしい もんだいが きたよ！',
+    'この もんだい、といてみよう！', 'よし、つぎ いってみよう！',
   ];
+  const STREAK_MESSAGES = [
+    'れんぞく せいかい！🔥 すごい！', 'ノリノリだね！🔥 その ちょうしで！',
+    'つぎつぎ せいかい！🔥 かっこいい！', '🔥 だいこうちょう！ とまらないね！',
+  ];
+  const LUCKY_PROBLEM_MESSAGE = '✨ラッキーもんだい！せいかいで ほしが 2こ もらえるよ！✨';
   const STICKER_POOL = ['🦋', '🌸', '🍭', '🎈', '🦄', '🍬', '🧁', '🌟', '💫', '🎀', '🐬', '🌈', '🍓', '🐣'];
   const CONFETTI_EMOJI = ['🎉', '✨', '💖', '⭐', '🌸', '👑', '🎊'];
 
@@ -93,10 +110,14 @@
     PROBLEMS_PER_SET,
     PASS_THRESHOLD,
     CELEBRATE_STARS_THRESHOLD,
+    STREAK_MILESTONES,
+    STREAK_BONUS_STARS,
     PRAISE_MESSAGES,
     COLUMN_PRAISE,
     ENCOURAGE_MESSAGES,
     STARTER_MESSAGES,
+    STREAK_MESSAGES,
+    LUCKY_PROBLEM_MESSAGE,
     STICKER_POOL,
     CONFETTI_EMOJI,
     defaultState,

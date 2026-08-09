@@ -34,6 +34,8 @@
     els.lives = document.getElementById('lives');
     els.mascot = document.getElementById('mascot');
     els.speechBubble = document.getElementById('speech-bubble');
+    els.streakBadge = document.getElementById('streak-badge');
+    els.problemCard = document.querySelector('.problem-card');
     els.problemOverview = document.getElementById('problem-overview');
     els.columnTable = document.getElementById('column-table');
     els.stepPrompt = document.getElementById('step-prompt');
@@ -141,12 +143,17 @@
       problems: M.buildProblemSet(level, D.PROBLEMS_PER_SET),
       index: 0,
       correctCount: 0,
+      starsEarned: 0,
+      streak: 0,
+      problemHadMistake: false,
+      luckyIndex: M.randInt(1, D.PROBLEMS_PER_SET - 2),
       livesIcons: ['💖', '💖', '💖'],
       buffer: '',
       locked: false,
     };
     showScreen('game');
     renderMascotHeader();
+    renderStreakBadge();
     renderProblem();
   }
 
@@ -154,6 +161,17 @@
     const p = D.getSelectedPrincess(state);
     els.mascot.textContent = p.mascot;
     els.lives.textContent = game.livesIcons.join('');
+  }
+
+  function renderStreakBadge() {
+    if (!els.streakBadge) return;
+    if (game.streak >= 2) {
+      els.streakBadge.textContent = `🔥${game.streak}`;
+      els.streakBadge.classList.add('visible');
+    } else {
+      els.streakBadge.textContent = '';
+      els.streakBadge.classList.remove('visible');
+    }
   }
 
   function renderProgress() {
@@ -168,9 +186,13 @@
     game.currentStep = 0;
     game.buffer = '';
     game.locked = false;
+    game.problemHadMistake = false;
 
     renderProgress();
-    els.speechBubble.textContent = M.pick(D.STARTER_MESSAGES);
+    const isLucky = game.index === game.luckyIndex;
+    els.problemCard.classList.toggle('lucky', isLucky);
+    els.speechBubble.textContent = isLucky ? D.LUCKY_PROBLEM_MESSAGE : M.pick(D.STARTER_MESSAGES);
+    if (isLucky) E.showToast(D.LUCKY_PROBLEM_MESSAGE);
     els.problemOverview.innerHTML = `
       <span class="overview-label">もんだい</span>
       <div class="overview-numbers">
@@ -298,11 +320,33 @@
 
       const isLastStep = game.currentStep === game.columnPlan.length - 1;
       if (isLastStep) {
+        const wasPerfect = !game.problemHadMistake;
+        const isLucky = game.index === game.luckyIndex;
+        let starsForProblem = 1;
+        let bonusMessage = null;
+
+        if (isLucky && wasPerfect) {
+          starsForProblem += 1;
+          bonusMessage = D.LUCKY_PROBLEM_MESSAGE;
+        }
+        if (wasPerfect) {
+          game.streak++;
+          if (D.STREAK_MILESTONES.includes(game.streak)) {
+            starsForProblem += D.STREAK_BONUS_STARS;
+            bonusMessage = M.pick(D.STREAK_MESSAGES);
+          }
+        } else {
+          game.streak = 0;
+        }
+        renderStreakBadge();
+
         game.correctCount++;
-        els.speechBubble.textContent = M.pick(D.PRAISE_MESSAGES);
+        game.starsEarned += starsForProblem;
+        const isBonusRound = starsForProblem > 1;
+        els.speechBubble.textContent = bonusMessage || M.pick(D.PRAISE_MESSAGES);
         A.playCorrectSound();
-        E.spawnConfetti(16, rewardEmoji);
-        E.spawnStickerBurst(5, rewardEmoji);
+        E.spawnConfetti(isBonusRound ? 30 : 16, rewardEmoji);
+        E.spawnStickerBurst(isBonusRound ? 9 : 5, rewardEmoji);
         setTimeout(nextProblem, 1150);
       } else {
         els.speechBubble.textContent = M.pick(D.COLUMN_PRAISE);
@@ -329,6 +373,7 @@
       colEl.classList.add('wrong-shake');
       els.speechBubble.textContent = M.pick(D.ENCOURAGE_MESSAGES);
       A.playWrongSound();
+      game.problemHadMistake = true;
       loseHeart();
       game.buffer = '';
       setTimeout(() => {
@@ -350,7 +395,8 @@
   /* ================= SCREEN: RESULT ================= */
   function finishSet() {
     const correct = game.correctCount;
-    state.totalStars += correct;
+    const earned = game.starsEarned;
+    state.totalStars += earned;
 
     const passed = correct >= D.PASS_THRESHOLD;
     let leveledUp = false;
@@ -366,8 +412,9 @@
       correct === D.PROBLEMS_PER_SET ? 'かんぺき！さんすう おひめさまだね！' :
       passed ? 'よく できました！' : 'よく がんばったね！';
     els.resultStars.textContent = '⭐'.repeat(correct) + '☆'.repeat(D.PROBLEMS_PER_SET - correct);
+    const bonusNote = earned > correct ? `（おまけで +${earned - correct}こ！）` : '';
     els.resultDetail.textContent =
-      `${D.PROBLEMS_PER_SET}もんちゅう ${correct}もん せいかい — ほし ${state.totalStars}こ` +
+      `${D.PROBLEMS_PER_SET}もんちゅう ${correct}もん せいかい — ほし +${earned}こ${bonusNote} — ぜんぶで ${state.totalStars}こ` +
       (leveledUp ? ' — 🎉 あたらしい むずかしさが あいたよ！' : '');
 
     els.btnNextLevel.style.display = (game.level < D.LEVELS.length && (game.level + 1) <= state.maxUnlockedLevel) ? 'inline-block' : 'none';
