@@ -113,59 +113,68 @@
    * from*, not just have it appear. `fromRect`/`toRect` are plain
    * DOMRect-like objects ({left, top, width, height}) so callers can
    * capture the origin before re-rendering the column table replaces
-   * the destination element. Calls `onComplete` once the badge lands
-   * (immediately, with no animation, when reduced motion is requested).
+   * the destination element. Calls `onComplete` once the badge lands.
+   *
+   * Under prefers-reduced-motion this still moves the badge (a child
+   * relies on it to understand where the carry came from) but does it
+   * quickly and without the bounce/arc, rather than skipping it — for
+   * this cue, invisible would teach the wrong thing.
    */
   function flyCarry(fromRect, toRect, digit, onComplete) {
-    if (REDUCED_MOTION) {
-      if (onComplete) onComplete();
-      return;
-    }
-    const duration = 700;
-    const from = { x: fromRect.left + fromRect.width / 2, y: fromRect.top + fromRect.height / 2 };
-    const to = { x: toRect.left + toRect.width / 2, y: toRect.top + toRect.height / 2 };
-    const control = { x: (from.x + to.x) / 2, y: Math.min(from.y, to.y) - 50 };
+    try {
+      const duration = REDUCED_MOTION ? 300 : 900;
+      const from = { x: fromRect.left + fromRect.width / 2, y: fromRect.top + fromRect.height / 2 };
+      const to = { x: toRect.left + toRect.width / 2, y: toRect.top + toRect.height / 2 };
+      const control = REDUCED_MOTION
+        ? { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 }
+        : { x: (from.x + to.x) / 2, y: Math.min(from.y, to.y) - 60 };
 
-    const layer = getCarryFlightLayer();
-    const path = document.createElementNS(SVG_NS, 'path');
-    path.setAttribute('d', `M${from.x},${from.y} Q${control.x},${control.y} ${to.x},${to.y}`);
-    path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', '#ff5fa8');
-    path.setAttribute('stroke-width', '3');
-    path.setAttribute('stroke-linecap', 'round');
-    path.setAttribute('marker-end', 'url(#carry-arrowhead)');
-    layer.appendChild(path);
+      const layer = getCarryFlightLayer();
+      const path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('d', `M${from.x},${from.y} Q${control.x},${control.y} ${to.x},${to.y}`);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', '#ff5fa8');
+      path.setAttribute('stroke-width', '4');
+      path.setAttribute('stroke-linecap', 'round');
+      path.setAttribute('marker-end', 'url(#carry-arrowhead)');
+      layer.appendChild(path);
 
-    const len = path.getTotalLength();
-    path.style.strokeDasharray = String(len);
-    path.style.strokeDashoffset = String(len);
-    path.style.transition = `stroke-dashoffset ${duration}ms ease`;
+      const len = path.getTotalLength();
+      path.style.strokeDasharray = String(len);
+      path.style.strokeDashoffset = String(len);
+      path.style.transition = `stroke-dashoffset ${duration}ms ease`;
 
-    const badge = document.createElement('div');
-    badge.className = 'carry-flight-badge';
-    badge.textContent = digit;
-    badge.style.transform = `translate(${from.x}px, ${from.y}px) translate(-50%, -50%)`;
-    document.body.appendChild(badge);
+      const badge = document.createElement('div');
+      badge.className = 'carry-flight-badge';
+      badge.textContent = digit;
+      badge.style.transform = `translate(${from.x}px, ${from.y}px) translate(-50%, -50%)`;
+      document.body.appendChild(badge);
 
-    requestAnimationFrame(() => { path.style.strokeDashoffset = '0'; });
+      requestAnimationFrame(() => { path.style.strokeDashoffset = '0'; });
 
-    const start = performance.now();
-    function tick(now) {
-      const t = Math.min(1, (now - start) / duration);
-      const mt = 1 - t;
-      const x = mt * mt * from.x + 2 * mt * t * control.x + t * t * to.x;
-      const y = mt * mt * from.y + 2 * mt * t * control.y + t * t * to.y;
-      const bump = 1 + 0.3 * Math.sin(Math.PI * t);
-      badge.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${bump})`;
-      if (t < 1) {
-        requestAnimationFrame(tick);
-      } else {
-        badge.remove();
-        setTimeout(() => path.remove(), 200);
-        if (onComplete) onComplete();
+      const start = performance.now();
+      function tick(now) {
+        const t = Math.min(1, (now - start) / duration);
+        const mt = 1 - t;
+        const x = mt * mt * from.x + 2 * mt * t * control.x + t * t * to.x;
+        const y = mt * mt * from.y + 2 * mt * t * control.y + t * t * to.y;
+        const bump = REDUCED_MOTION ? 1 : 1 + 0.3 * Math.sin(Math.PI * t);
+        badge.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${bump})`;
+        if (t < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          badge.remove();
+          setTimeout(() => path.remove(), 200);
+          if (onComplete) onComplete();
+        }
       }
+      requestAnimationFrame(tick);
+    } catch (e) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('flyCarry animation failed, showing the carry instantly instead:', e);
+      }
+      if (onComplete) onComplete();
     }
-    requestAnimationFrame(tick);
   }
 
   root.PM.Effects = {
