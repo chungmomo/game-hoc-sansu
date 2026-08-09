@@ -14,7 +14,7 @@
      Each has its own rewardEmoji pool used for confetti/stickers when
      that princess is the one selected. */
   const PRINCESSES = [
-    { id: 'rose',    name: 'ばらの おひめさま',    avatar: '👸🏻', mascot: '🧚', unlockStars: 0,
+    { id: 'rose',    name: 'まいひめ',             avatar: '👸🏻', mascot: '🧚', unlockStars: 0,
       rewardEmoji: ['🌹', '🌸', '💐', '🦋', '🍓', '💕'] },
     { id: 'buddy',   name: 'げんきな おひめさま',  avatar: '👧',   mascot: '✌️', unlockStars: 0,
       rewardEmoji: ['✌️', '😝', '🎀', '🍭', '💚', '🧡'] },
@@ -81,6 +81,40 @@
      for "7 + 3" — so the child can visually count before calculating. */
   const ANIMAL_POOL = ['🐮', '🐒', '🐰', '🐶', '🐱', '🐭', '🐹', '🐷', '🐸', '🦁', '🐯', '🐻', '🐼', '🐨', '🦊', '🐔', '🐧', '🐤'];
 
+  /* Story mode: まいひめ was captured by monsters and uses her math
+     "spells" (each 10-problem set) to fight her way free — she is
+     always the active hero, never a passive character waiting to be
+     rescued. All monsters/items are original, generic fantasy-folklore
+     creatures (oni, wolves, dragons, ghosts...), not tied to any
+     copyrighted franchise. */
+  const MONSTERS = [
+    { name: 'こわもての おおかみ',   emoji: '🐺' },
+    { name: 'ものかげの こうもり',   emoji: '🦇' },
+    { name: 'どろんこの りゅうのこ', emoji: '🐉' },
+    { name: 'とげとげの さそり',     emoji: '🦂' },
+    { name: 'くらやみの くも',       emoji: '🕷️' },
+    { name: 'わらう おばけ',         emoji: '👻' },
+    { name: 'おおきな おに',         emoji: '👹' },
+    { name: 'いばりんぼうの とかげ', emoji: '🦎' },
+  ];
+  const MONSTER_APPEAR_MESSAGE = (monster) => `${monster.emoji} ${monster.name}が あらわれた！まほうで たたかおう！`;
+  const MONSTER_DEFEATED_MESSAGE = (monster) => `${monster.emoji} ${monster.name}は にげていったよ！やったね！`;
+
+  const ITEMS = [
+    { name: 'ひかりの つえ',   emoji: '🪄' },
+    { name: 'まもりの たて',   emoji: '🛡️' },
+    { name: 'かぜの くつ',     emoji: '👢' },
+    { name: 'ゆうきの ぼうし', emoji: '🧢' },
+    { name: 'ほしの ゆびわ',   emoji: '💍' },
+    { name: 'まほうの がいとう', emoji: '🧥' },
+    { name: 'たからの かぎ',   emoji: '🗝️' },
+    { name: 'いのちの くすり', emoji: '🧪' },
+  ];
+
+  /* Awarded one at a time, in order, on every defeated monster — once
+     all are collected the escape-journey "album" is complete. */
+  const PUZZLE_PIECES = ['🌳', '🏰', '🌙', '⭐', '🦋', '🌸', '🍄', '🌈', '🔑'];
+
   function defaultState() {
     return {
       totalStars: 0,
@@ -88,6 +122,9 @@
       selectedLevel: 1,
       maxUnlockedLevel: 1,
       soundOn: true,
+      monstersDefeated: 0,
+      itemsCollected: [],
+      puzzlePiecesCollected: 0,
     };
   }
 
@@ -113,6 +150,14 @@
     return PRINCESSES.find(p => p.id === state.selectedPrincessId) || PRINCESSES[0];
   }
 
+  function getCurrentMonster(state) {
+    return MONSTERS[state.monstersDefeated % MONSTERS.length];
+  }
+
+  function isAlbumComplete(state) {
+    return state.puzzlePiecesCollected >= PUZZLE_PIECES.length;
+  }
+
   root.PM.Data = {
     STORAGE_KEY,
     PRINCESSES,
@@ -131,6 +176,13 @@
     STICKER_POOL,
     CONFETTI_EMOJI,
     ANIMAL_POOL,
+    MONSTERS,
+    MONSTER_APPEAR_MESSAGE,
+    MONSTER_DEFEATED_MESSAGE,
+    ITEMS,
+    PUZZLE_PIECES,
+    getCurrentMonster,
+    isAlbumComplete,
     defaultState,
     loadState,
     saveState,

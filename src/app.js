@@ -24,6 +24,8 @@
     els.starTotalText = document.getElementById('star-total-text');
     els.princessRow = document.getElementById('princess-row');
     els.levelRow = document.getElementById('level-row');
+    els.puzzleGrid = document.getElementById('puzzle-grid');
+    els.itemRow = document.getElementById('item-row');
     els.btnStart = document.getElementById('btn-start');
     els.btnReset = document.getElementById('btn-reset');
 
@@ -35,6 +37,8 @@
     els.mascot = document.getElementById('mascot');
     els.speechBubble = document.getElementById('speech-bubble');
     els.streakBadge = document.getElementById('streak-badge');
+    els.monsterDisplay = document.getElementById('monster-display');
+    els.monsterName = document.getElementById('monster-name');
     els.problemCard = document.querySelector('.problem-card');
     els.problemOverview = document.getElementById('problem-overview');
     els.columnTable = document.getElementById('column-table');
@@ -46,6 +50,7 @@
     els.resultTitle = document.getElementById('result-title');
     els.resultStars = document.getElementById('result-stars');
     els.resultDetail = document.getElementById('result-detail');
+    els.resultStory = document.getElementById('result-story');
     els.btnPlayAgain = document.getElementById('btn-play-again');
     els.btnNextLevel = document.getElementById('btn-next-level');
     els.btnGoHome = document.getElementById('btn-go-home');
@@ -135,12 +140,39 @@
       card.style.opacity = unlocked ? '1' : '.55';
       els.levelRow.appendChild(card);
     });
+
+    renderCollection();
+  }
+
+  /** Home-screen recap of the adventure so far: which pieces of the
+      escape-journey album have been collected (one per defeated
+      monster, in a fixed order) and which items are in the bag. */
+  function renderCollection() {
+    if (!els.puzzleGrid || !els.itemRow) return;
+
+    els.puzzleGrid.innerHTML = D.PUZZLE_PIECES.map((piece, i) => {
+      const collected = i < state.puzzlePiecesCollected;
+      return `<div class="puzzle-slot${collected ? ' collected' : ''}">${collected ? piece : '?'}</div>`;
+    }).join('');
+
+    if (state.itemsCollected.length === 0) {
+      els.itemRow.innerHTML = `<div class="item-row-empty">まだ アイテムは ないよ</div>`;
+      return;
+    }
+    const counts = new Map();
+    state.itemsCollected.forEach(i => counts.set(i, (counts.get(i) || 0) + 1));
+    els.itemRow.innerHTML = Array.from(counts.entries()).map(([i, count]) => {
+      const item = D.ITEMS[i];
+      return `<div class="item-badge" title="${item.name}">${item.emoji}${count > 1 ? `<span class="item-count">×${count}</span>` : ''}</div>`;
+    }).join('');
   }
 
   /* ================= SCREEN: GAME ================= */
   function startGame(level) {
+    const monster = D.getCurrentMonster(state);
     game = {
       level,
+      monster,
       problems: M.buildProblemSet(level, D.PROBLEMS_PER_SET),
       index: 0,
       correctCount: 0,
@@ -154,7 +186,9 @@
     };
     showScreen('game');
     renderMascotHeader();
+    renderMonster();
     renderStreakBadge();
+    E.showToast(D.MONSTER_APPEAR_MESSAGE(monster));
     renderProblem();
   }
 
@@ -162,6 +196,12 @@
     const p = D.getSelectedPrincess(state);
     els.mascot.textContent = p.mascot;
     els.lives.textContent = game.livesIcons.join('');
+  }
+
+  function renderMonster() {
+    if (!els.monsterDisplay) return;
+    els.monsterDisplay.textContent = game.monster.emoji;
+    els.monsterName.textContent = game.monster.name;
   }
 
   function renderStreakBadge() {
@@ -452,6 +492,25 @@
       state.maxUnlockedLevel++;
       leveledUp = true;
     }
+
+    let storyLine = `${game.monster.emoji} ${game.monster.name}は まだ ちかくに いるよ…もういちど たたかおう！`;
+    if (passed) {
+      const defeatedMonster = game.monster;
+      state.monstersDefeated++;
+      let pieceNote = '';
+      if (state.puzzlePiecesCollected < D.PUZZLE_PIECES.length) {
+        const piece = D.PUZZLE_PIECES[state.puzzlePiecesCollected];
+        state.puzzlePiecesCollected++;
+        pieceNote = ` ${piece}の かけらを ひろった！`;
+        if (D.isAlbumComplete(state)) pieceNote += ' 🎉 ぼうけんの アルバムが かんせいしたよ！';
+      }
+      const itemIndex = M.randInt(0, D.ITEMS.length - 1);
+      state.itemsCollected.push(itemIndex);
+      const item = D.ITEMS[itemIndex];
+      storyLine = `${D.MONSTER_DEFEATED_MESSAGE(defeatedMonster)}${pieceNote} ${item.emoji}${item.name}を てにいれた！`;
+    }
+    els.resultStory.textContent = storyLine;
+
     saveState();
 
     const p = D.getSelectedPrincess(state);
