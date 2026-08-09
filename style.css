@@ -223,25 +223,72 @@ html,body{
   margin-bottom: 1rem;
   border: 3px solid #fff;
 }
-.problem-column{ font-family:'Baloo 2',monospace; }
-.col-row{
-  display:flex; justify-content:flex-end; gap:.35rem;
-  font-size: clamp(2rem, 9vw, 3rem);
-  font-weight:800;
-  min-width: 6ch;
+/* column-by-column addition table (teaches carrying) */
+.column-table{
+  display:flex; flex-direction:row; justify-content:center; align-items:flex-end;
+  font-family:'Baloo 2',monospace;
+  gap:.4rem;
 }
-.plus-row{ position:relative; }
-.plus-sign{ position:absolute; left:-1.6ch; font-size:inherit; color:var(--pink-dark); }
-.digit-box{
-  width:1.3ch; text-align:center; display:inline-block;
+.place-col{
+  display:flex; flex-direction:column; align-items:center;
+  width: 3.4rem;
+  padding: .2rem 0;
+  border-radius: 14px;
+  transition: background .2s ease, box-shadow .2s ease;
 }
-.col-line{ border-bottom: 5px solid var(--purple-dark); border-radius:3px; margin:.15rem 0; }
-.answer-row{ min-height:1.3em; color:var(--pink-dark); letter-spacing:.05em; }
-.answer-row .digit-box.placeholder{ color:#d8c8e6; }
-.answer-row.wrong-shake{ animation: shake .4s ease; color: var(--red); }
-.answer-row.correct-pop{ animation: pop .5s ease; color: var(--green); }
+.place-col.active{
+  background: rgba(255,213,79,.25);
+  box-shadow: 0 0 0 3px var(--gold) inset;
+}
+.place-col.done{ opacity:.72; }
+.place-col .place-label{ font-size:.68rem; font-weight:700; color:#9a86ab; min-height:1.1em; }
+.place-col .carry-slot{
+  min-height:1.3rem; font-size:1.05rem; font-weight:800; color:var(--pink-dark);
+}
+.place-col .carry-slot.pop-in{ animation: carryPop .5s ease; }
+@keyframes carryPop{
+  0%{ transform: translateY(10px) scale(.4); opacity:0; }
+  60%{ transform: translateY(-2px) scale(1.2); opacity:1; }
+  100%{ transform: translateY(0) scale(1); opacity:1; }
+}
+.place-col .digit-a, .place-col .digit-b{
+  font-size: clamp(1.6rem, 6vw, 2.2rem); font-weight:800; line-height:1.2;
+}
+.place-col .line{ border-bottom: 4px solid var(--purple-dark); border-radius:3px; width:100%; margin:.15rem 0; }
+.place-col .digit-result{
+  min-height:1.3em;
+  font-size: clamp(1.6rem, 6vw, 2.2rem); font-weight:800; color:var(--pink-dark);
+}
+.place-col .digit-result.placeholder{ color:#d8c8e6; font-size:1.4rem; }
+.place-col .digit-result.entering{ color:#b388ff; }
+.place-col.wrong-shake .digit-result{ animation: shake .4s ease; color: var(--red); }
+.place-col.correct-pop .digit-result{ animation: pop .5s ease; color: var(--green); }
 @keyframes shake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
 @keyframes pop{ 0%{transform:scale(1);} 40%{transform:scale(1.25);} 100%{transform:scale(1);} }
+
+.step-prompt{
+  max-width: 640px; width:100%;
+  text-align:center;
+  background: rgba(255,255,255,.85);
+  border-radius: 16px;
+  padding: .55rem 1rem;
+  font-weight:800; font-size: 1rem; color: var(--purple-dark);
+  margin-bottom: .8rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,.06);
+}
+
+/* sticker rewards */
+#sticker-layer{ position:fixed; inset:0; pointer-events:none; z-index:60; overflow:hidden; }
+.sticker-pop{
+  position:absolute; transform:translate(-50%,-50%);
+  animation: stickerPop .9s ease forwards;
+}
+@keyframes stickerPop{
+  0%{ transform: translate(-50%,-50%) scale(.2) rotate(-15deg); opacity:0; }
+  35%{ transform: translate(-50%,-50%) scale(1.3) rotate(8deg); opacity:1; }
+  70%{ transform: translate(-50%,-50%) scale(1) rotate(-4deg); opacity:1; }
+  100%{ transform: translate(-50%,-60%) scale(.9) rotate(0deg); opacity:0; }
+}
 
 .keypad{
   display:grid; grid-template-columns: repeat(3, 1fr); gap:.6rem;
