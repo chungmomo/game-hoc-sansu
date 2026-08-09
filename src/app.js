@@ -171,7 +171,13 @@
 
     renderProgress();
     els.speechBubble.textContent = M.pick(D.STARTER_MESSAGES);
-    els.problemOverview.textContent = `もんだい：${prob.a} + ${prob.b} = ?`;
+    els.problemOverview.innerHTML = `
+      <span class="overview-label">もんだい</span>
+      <div class="overview-numbers">
+        <div>${prob.a}</div>
+        <div>+ ${prob.b}</div>
+      </div>
+    `;
     renderColumnTable();
     renderStepPrompt();
   }
