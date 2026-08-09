@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Công Chúa Toán Học — Học Phép Cộng Cùng Công Chúa</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👑</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="sky" id="sky"></div>
+
+<!-- ============ HOME SCREEN ============ -->
+<section id="screen-home" class="screen active">
+  <div class="castle-top" aria-hidden="true">🏰</div>
+  <h1 class="title">
+    <span class="title-crown">👑</span>
+    Công Chúa Toán Học
+    <span class="title-crown">👑</span>
+  </h1>
+  <p class="subtitle">Cùng các Công Chúa luyện phép cộng thật giỏi nhé!</p>
+
+  <div class="star-total-badge" id="star-total-badge">
+    <span class="star-ico">⭐</span> <span id="star-total-text">0</span> sao
+  </div>
+
+  <div class="panel">
+    <h2 class="panel-title">1. Chọn Công Chúa của bé</h2>
+    <div class="princess-row" id="princess-row"></div>
+  </div>
+
+  <div class="panel">
+    <h2 class="panel-title">2. Chọn độ khó</h2>
+    <div class="level-row" id="level-row"></div>
+  </div>
+
+  <button class="btn-start" id="btn-start">
+    Bắt Đầu Học ✨
+  </button>
+
+  <button class="btn-mini" id="btn-reset">Chơi lại từ đầu (xóa tiến trình)</button>
+</section>
+
+<!-- ============ GAME SCREEN ============ -->
+<section id="screen-game" class="screen">
+  <div class="game-top-bar">
+    <button class="btn-back" id="btn-back-home">🏠</button>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-text"><span id="progress-current">1</span> / <span id="progress-total">10</span></div>
+    </div>
+    <div class="lives" id="lives">💖💖💖</div>
+  </div>
+
+  <div class="mascot-zone">
+    <div class="mascot" id="mascot">🧚</div>
+    <div class="speech-bubble" id="speech-bubble">Bé giỏi lắm, thử phép tính này nhé!</div>
+  </div>
+
+  <div class="problem-card">
+    <div class="problem-column" id="problem-column">
+      <div class="col-row num-row" id="row-a"></div>
+      <div class="col-row num-row plus-row" id="row-b">
+        <span class="plus-sign">+</span>
+      </div>
+      <div class="col-line"></div>
+      <div class="col-row num-row answer-row" id="row-answer"></div>
+    </div>
+  </div>
+
+  <div class="keypad" id="keypad">
+    <button class="key" data-key="1">1</button>
+    <button class="key" data-key="2">2</button>
+    <button class="key" data-key="3">3</button>
+    <button class="key" data-key="4">4</button>
+    <button class="key" data-key="5">5</button>
+    <button class="key" data-key="6">6</button>
+    <button class="key" data-key="7">7</button>
+    <button class="key" data-key="8">8</button>
+    <button class="key" data-key="9">9</button>
+    <button class="key key-clear" data-key="clear">⌫</button>
+    <button class="key" data-key="0">0</button>
+    <button class="key key-submit" data-key="submit">✓</button>
+  </div>
+</section>
+
+<!-- ============ RESULT SCREEN ============ -->
+<section id="screen-result" class="screen">
+  <div class="result-card">
+    <div class="result-mascot" id="result-mascot">👑</div>
+    <h2 class="result-title" id="result-title">Bé Đã Hoàn Thành!</h2>
+    <div class="result-stars" id="result-stars"></div>
+    <p class="result-detail" id="result-detail">Đúng 10/10 câu</p>
+    <div class="result-buttons">
+      <button class="btn-start" id="btn-play-again">Luyện Thêm 🔁</button>
+      <button class="btn-start btn-secondary" id="btn-next-level">Cấp Độ Tiếp Theo ➡️</button>
+      <button class="btn-mini" id="btn-go-home">Về Trang Chủ 🏠</button>
+    </div>
+  </div>
+</section>
+
+<div id="confetti-layer"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
