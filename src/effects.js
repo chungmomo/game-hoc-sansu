@@ -40,13 +40,14 @@
     }, 1700);
   }
 
-  function spawnConfetti(count) {
+  function spawnConfetti(count, emojiPool) {
+    const pool = emojiPool || Data.CONFETTI_EMOJI;
     const layer = document.getElementById('confetti-layer');
     const n = scaleCount(count);
     for (let i = 0; i < n; i++) {
       const piece = document.createElement('div');
       piece.className = 'confetti-piece';
-      piece.textContent = Data.CONFETTI_EMOJI[Math.floor(Math.random() * Data.CONFETTI_EMOJI.length)];
+      piece.textContent = pool[Math.floor(Math.random() * pool.length)];
       const duration = 1.4 + Math.random() * 1.2;
       piece.style.left = Math.random() * 100 + 'vw';
       piece.style.animationDuration = duration + 's';
@@ -56,11 +57,12 @@
     }
   }
 
-  function spawnSticker(x, y, emoji) {
+  function spawnSticker(x, y, emoji, emojiPool) {
+    const pool = emojiPool || Data.STICKER_POOL;
     const layer = document.getElementById('sticker-layer');
     const el = document.createElement('div');
     el.className = 'sticker-pop';
-    el.textContent = emoji || Data.STICKER_POOL[Math.floor(Math.random() * Data.STICKER_POOL.length)];
+    el.textContent = emoji || pool[Math.floor(Math.random() * pool.length)];
     el.style.left = x + 'px';
     el.style.top = y + 'px';
     el.style.fontSize = (1.6 + Math.random() * 1.3) + 'rem';
@@ -68,12 +70,12 @@
     setTimeout(() => el.remove(), 950);
   }
 
-  function stickerAtElement(el) {
+  function stickerAtElement(el, emojiPool) {
     const rect = el.getBoundingClientRect();
-    spawnSticker(rect.left + rect.width / 2, rect.top + rect.height * 0.25);
+    spawnSticker(rect.left + rect.width / 2, rect.top + rect.height * 0.25, null, emojiPool);
   }
 
-  function spawnStickerBurst(count) {
+  function spawnStickerBurst(count, emojiPool) {
     const card = document.querySelector('.problem-card');
     if (!card) return;
     const rect = card.getBoundingClientRect();
@@ -81,7 +83,7 @@
     for (let i = 0; i < n; i++) {
       const x = rect.left + rect.width / 2 + (Math.random() - 0.5) * rect.width * 0.9;
       const y = rect.top + rect.height / 2 + (Math.random() - 0.5) * rect.height * 0.9;
-      setTimeout(() => spawnSticker(x, y), i * 90);
+      setTimeout(() => spawnSticker(x, y, null, emojiPool), i * 90);
     }
   }
 
