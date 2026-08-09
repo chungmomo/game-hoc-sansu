@@ -72,6 +72,10 @@
   const LUCKY_PROBLEM_MESSAGE = '✨ラッキーもんだい！せいかいで ほしが 2こ もらえるよ！✨';
   const STICKER_POOL = ['🦋', '🌸', '🍭', '🎈', '🦄', '🍬', '🧁', '🌟', '💫', '🎀', '🐬', '🌈', '🍓', '🐣'];
   const CONFETTI_EMOJI = ['🎉', '✨', '💖', '⭐', '🌸', '👑', '🎊'];
+  /* Two of these (never the same one twice at once) are shown as a
+     counting aid next to the active column — e.g. 7 cows + 3 monkeys
+     for "7 + 3" — so the child can visually count before calculating. */
+  const ANIMAL_POOL = ['🐮', '🐒', '🐰', '🐶', '🐱', '🐭', '🐹', '🐷', '🐸', '🦁', '🐯', '🐻', '🐼', '🐨', '🦊', '🐔', '🐧', '🐤'];
 
   function defaultState() {
     return {
@@ -122,6 +126,7 @@
     LUCKY_PROBLEM_MESSAGE,
     STICKER_POOL,
     CONFETTI_EMOJI,
+    ANIMAL_POOL,
     defaultState,
     loadState,
     saveState,
