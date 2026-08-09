@@ -261,10 +261,23 @@ html,body{
   min-height:1.3rem; font-size:1.05rem; font-weight:800; color:var(--pink-dark);
 }
 .place-col .carry-slot.pop-in{ animation: carryPop .5s ease; }
+.place-col .carry-slot.carry-pending{ opacity:0; }
 @keyframes carryPop{
   0%{ transform: translateY(10px) scale(.4); opacity:0; }
   60%{ transform: translateY(-2px) scale(1.2); opacity:1; }
   100%{ transform: translateY(0) scale(1); opacity:1; }
+}
+
+/* the little digit that visibly hops from where it was written over to
+   the next column's carry slot, tracing the arrow drawn in effects.js */
+.carry-flight-badge{
+  position: fixed; left:0; top:0; z-index:71;
+  width:2rem; height:2rem; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Baloo 2',sans-serif; font-weight:800; font-size:1.2rem;
+  color:#fff; background: var(--pink-dark);
+  box-shadow: 0 3px 8px rgba(0,0,0,.25);
+  pointer-events:none;
 }
 .place-col .digit-a, .place-col .digit-b{
   font-size: clamp(1.6rem, 6vw, 2.2rem); font-weight:800; line-height:1.2;

@@ -179,7 +179,8 @@
     els.stepPrompt.textContent = M.stepPromptText(step);
   }
 
-  function renderColumnTable() {
+  function renderColumnTable(opts) {
+    const pendingCarryFlight = !!(opts && opts.pendingCarryFlight);
     const current = game.currentStep;
     const cols = [...game.columnPlan].reverse();
 
@@ -213,11 +214,13 @@
         resultClass = 'digit-result placeholder';
       }
 
+      const carryFlightPending = isActive && pendingCarryFlight && step.carryIn > 0;
+      const carrySlotClass = carryFlightPending ? ' carry-pending' : (isActive && step.carryIn > 0 ? ' pop-in' : '');
       const stateClass = isActive ? ' active' : isDone ? ' done' : '';
       html += `
         <div class="place-col${stateClass}" data-step-index="${step.index}">
           <div class="place-label">${M.placeLabel(step.index)}</div>
-          <div class="carry-slot${isActive && step.carryIn > 0 ? ' pop-in' : ''}">${carryHtml}</div>
+          <div class="carry-slot${carrySlotClass}">${carryHtml}</div>
           <div class="digit-a">${digitA}</div>
           <div class="digit-b">${digitB}</div>
           <div class="line"></div>
@@ -294,12 +297,21 @@
         setTimeout(nextProblem, 1150);
       } else {
         els.speechBubble.textContent = M.pick(D.COLUMN_PRAISE);
+        const carryDigit = step.carryOut;
+        const carryFromRect = carryDigit > 0 ? colEl.querySelector('.digit-result').getBoundingClientRect() : null;
         setTimeout(() => {
           game.currentStep++;
           game.buffer = '';
           game.locked = false;
-          renderColumnTable();
+          renderColumnTable({ pendingCarryFlight: carryDigit > 0 });
           renderStepPrompt();
+          if (carryFromRect) {
+            const carrySlotEl = els.columnTable.querySelector('.place-col.active .carry-slot');
+            E.flyCarry(carryFromRect, carrySlotEl.getBoundingClientRect(), carryDigit, () => {
+              carrySlotEl.classList.remove('carry-pending');
+              carrySlotEl.classList.add('pop-in');
+            });
+          }
         }, 650);
       }
     } else {
