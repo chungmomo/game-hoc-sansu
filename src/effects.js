@@ -85,11 +85,95 @@
     }
   }
 
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+
+  function getCarryFlightLayer() {
+    let layer = document.getElementById('carry-flight-layer');
+    if (!layer) {
+      layer = document.createElementNS(SVG_NS, 'svg');
+      layer.id = 'carry-flight-layer';
+      Object.assign(layer.style, {
+        position: 'fixed', inset: '0', width: '100%', height: '100%',
+        zIndex: '70', pointerEvents: 'none', overflow: 'visible',
+      });
+      const defs = document.createElementNS(SVG_NS, 'defs');
+      defs.innerHTML =
+        '<marker id="carry-arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">' +
+        '<path d="M0,0 L8,4 L0,8 Z" fill="#ff5fa8"></path></marker>';
+      layer.appendChild(defs);
+      document.body.appendChild(layer);
+    }
+    return layer;
+  }
+
+  /**
+   * Animates a carried digit visibly hopping from where it was written
+   * (e.g. the "1" in "14") to the carry slot above the next column,
+   * along a curved arrow — so a child can see *where the number came
+   * from*, not just have it appear. `fromRect`/`toRect` are plain
+   * DOMRect-like objects ({left, top, width, height}) so callers can
+   * capture the origin before re-rendering the column table replaces
+   * the destination element. Calls `onComplete` once the badge lands
+   * (immediately, with no animation, when reduced motion is requested).
+   */
+  function flyCarry(fromRect, toRect, digit, onComplete) {
+    if (REDUCED_MOTION) {
+      if (onComplete) onComplete();
+      return;
+    }
+    const duration = 700;
+    const from = { x: fromRect.left + fromRect.width / 2, y: fromRect.top + fromRect.height / 2 };
+    const to = { x: toRect.left + toRect.width / 2, y: toRect.top + toRect.height / 2 };
+    const control = { x: (from.x + to.x) / 2, y: Math.min(from.y, to.y) - 50 };
+
+    const layer = getCarryFlightLayer();
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', `M${from.x},${from.y} Q${control.x},${control.y} ${to.x},${to.y}`);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', '#ff5fa8');
+    path.setAttribute('stroke-width', '3');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('marker-end', 'url(#carry-arrowhead)');
+    layer.appendChild(path);
+
+    const len = path.getTotalLength();
+    path.style.strokeDasharray = String(len);
+    path.style.strokeDashoffset = String(len);
+    path.style.transition = `stroke-dashoffset ${duration}ms ease`;
+
+    const badge = document.createElement('div');
+    badge.className = 'carry-flight-badge';
+    badge.textContent = digit;
+    badge.style.transform = `translate(${from.x}px, ${from.y}px) translate(-50%, -50%)`;
+    document.body.appendChild(badge);
+
+    requestAnimationFrame(() => { path.style.strokeDashoffset = '0'; });
+
+    const start = performance.now();
+    function tick(now) {
+      const t = Math.min(1, (now - start) / duration);
+      const mt = 1 - t;
+      const x = mt * mt * from.x + 2 * mt * t * control.x + t * t * to.x;
+      const y = mt * mt * from.y + 2 * mt * t * control.y + t * t * to.y;
+      const bump = 1 + 0.3 * Math.sin(Math.PI * t);
+      badge.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${bump})`;
+      if (t < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        badge.remove();
+        setTimeout(() => path.remove(), 200);
+        if (onComplete) onComplete();
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
   root.PM.Effects = {
     showToast,
     spawnConfetti,
     spawnSticker,
     stickerAtElement,
     spawnStickerBurst,
+    flyCarry,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
