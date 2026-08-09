@@ -363,7 +363,12 @@ html,body{
   margin: .2rem 0;
 }
 .problem-overview .overview-answer{
+  display: inline-block;
   color: var(--pink-dark);
+  border: 3px solid var(--pink-dark);
+  border-radius: 12px;
+  padding: .05rem .7rem;
+  margin-top: .15rem;
   animation: pop .5s ease;
 }
 .problem-body{

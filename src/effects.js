@@ -127,9 +127,15 @@
       const duration = REDUCED_MOTION ? 300 : 900;
       const from = { x: fromRect.left + fromRect.width / 2, y: fromRect.top + fromRect.height / 2 };
       const to = { x: toRect.left + toRect.width / 2, y: toRect.top + toRect.height / 2 };
+      // Scale the arc's height to the hop distance — a fixed 60px bulge
+      // looks fine flying across several columns but makes a short
+      // adjacent-column hop (e.g. into the synthetic hundreds column)
+      // loop back on itself and look broken.
+      const hopDistance = Math.hypot(to.x - from.x, to.y - from.y);
+      const bulge = Math.min(60, Math.max(18, hopDistance * 0.35));
       const control = REDUCED_MOTION
         ? { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 }
-        : { x: (from.x + to.x) / 2, y: Math.min(from.y, to.y) - 60 };
+        : { x: (from.x + to.x) / 2, y: Math.min(from.y, to.y) - bulge };
 
       const layer = getCarryFlightLayer();
       const path = document.createElementNS(SVG_NS, 'path');
