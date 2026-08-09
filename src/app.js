@@ -291,6 +291,7 @@
     if (!game || game.locked) return;
     if (game.buffer.length < currentExpectedLen()) {
       game.buffer += digit;
+      A.playKeyClick(digit);
       updateActiveResultDisplay();
     }
   }
@@ -298,6 +299,7 @@
   function pressClear() {
     if (!game || game.locked) return;
     game.buffer = game.buffer.slice(0, -1);
+    A.playKeyClear();
     updateActiveResultDisplay();
   }
 

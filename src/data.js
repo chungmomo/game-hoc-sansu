@@ -16,6 +16,8 @@
   const PRINCESSES = [
     { id: 'rose',    name: 'ばらの おひめさま',    avatar: '👸🏻', mascot: '🧚', unlockStars: 0,
       rewardEmoji: ['🌹', '🌸', '💐', '🦋', '🍓', '💕'] },
+    { id: 'buddy',   name: 'げんきな おひめさま',  avatar: '👧',   mascot: '✌️', unlockStars: 0,
+      rewardEmoji: ['✌️', '😝', '🎀', '🍭', '💚', '🧡'] },
     { id: 'snow',    name: 'こおりの じょおうさま', avatar: '👸🏼', mascot: '❄️', unlockStars: 10,
       rewardEmoji: ['❄️', '⛄', '🧊', '💎', '✨', '🤍'] },
     { id: 'mermaid', name: 'うみの おひめさま',    avatar: '🧜‍♀️', mascot: '🐚', unlockStars: 25,
