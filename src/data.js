@@ -28,6 +28,10 @@
       rewardEmoji: ['🌟', '💫', '⭐', '🌠', '✨', '🔭'] },
     { id: 'rainbow', name: 'にじの じょおう',      avatar: '🦄',   mascot: '🌈', unlockStars: 100,
       rewardEmoji: ['🌈', '🎊', '🦄', '💛', '🧡', '💜'] },
+    { id: 'sun',     name: 'たいようの じょおう',  avatar: '👸🏽', mascot: '☀️', unlockStars: 150,
+      rewardEmoji: ['☀️', '🌻', '🍯', '🐝', '🧡', '🌾'] },
+    { id: 'cosmos',  name: 'うちゅうの じょおう',  avatar: '🧞‍♀️', mascot: '🌌', unlockStars: 220,
+      rewardEmoji: ['🌌', '🪐', '☄️', '🌠', '💫', '🔮'] },
   ];
 
   const LEVELS = [
