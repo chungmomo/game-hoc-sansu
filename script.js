@@ -27,15 +27,16 @@ const PRAISE_MESSAGES = [
   'Giỏi quá đi mất! 🎉', 'Chính xác luôn nè! ✨', 'Công chúa tự hào về bé! 👑',
   'Xuất sắc! Bé làm đúng rồi! 💖', 'Wao, bé tính nhanh ghê!', 'Đúng rồi đó, bé giỏi lắm!',
 ];
+const COLUMN_PRAISE = ['Đúng rồi! ✨', 'Chuẩn luôn!', 'Giỏi ghê!', 'Chính xác!', 'Tính hay lắm!'];
 const ENCOURAGE_MESSAGES = [
   'Không sao đâu, bé thử lại nha! 💪', 'Công chúa tin bé làm được!',
   'Xem kỹ lại phép cộng nhé!', 'Cố lên bé ơi, sắp đúng rồi!', 'Bình tĩnh tính lại nhé công chúa nhỏ!',
 ];
-const START_HINTS = {
-  1: ['Cộng hàng đơn vị trước, rồi đến hàng chục nhé!', 'Phép tính này dễ lắm, bé thử xem nào!'],
-  2: ['Nhớ để ý hàng đơn vị, có thể phải nhớ 1 sang hàng chục đó!', 'Cộng đơn vị trước, nếu lớn hơn 9 thì nhớ 1 nhé!'],
-  3: ['Phép tính này khó hơn chút, bé cố lên nhé!', 'Cộng cẩn thận từng hàng một nha công chúa!'],
-};
+const STARTER_MESSAGES = [
+  'Mình cùng tính từng hàng một nhé!', 'Cộng hàng đơn vị trước nha bé!',
+  'Bé cùng công chúa giải phép tính này nào!', 'Từng bước một, bé sẽ làm được!',
+];
+const STICKER_POOL = ['🦋', '🌸', '🍭', '🎈', '🦄', '🍬', '🧁', '🌟', '💫', '🎀', '🐬', '🌈', '🍓', '🐣'];
 
 /* ---------------- state ---------------- */
 let state = loadState();
@@ -106,6 +107,45 @@ function buildProblemSet(level, count) {
   return list;
 }
 
+/* ---------------- column-by-column addition plan (teaches carrying) ---------------- */
+function digitsLSB(n) {
+  return String(n).split('').reverse().map(Number);
+}
+
+function buildColumnPlan(a, b) {
+  const da = digitsLSB(a);
+  const db = digitsLSB(b);
+  const len = Math.max(da.length, db.length);
+  const steps = [];
+  let carry = 0;
+  for (let i = 0; i < len; i++) {
+    const x = da[i] || 0;
+    const y = db[i] || 0;
+    const sum = x + y + carry;
+    steps.push({ index: i, x, y, carryIn: carry, sum, digit: sum % 10, carryOut: Math.floor(sum / 10), synthetic: false });
+    carry = Math.floor(sum / 10);
+  }
+  if (carry > 0) {
+    steps.push({ index: len, x: 0, y: 0, carryIn: carry, sum: carry, digit: carry, carryOut: 0, synthetic: true });
+  }
+  return steps;
+}
+
+function placeLabel(index) {
+  return index === 0 ? 'Đơn Vị' : index === 1 ? 'Chục' : 'Trăm';
+}
+
+function stepPromptText(step) {
+  const label = placeLabel(step.index);
+  if (step.synthetic) {
+    return `Hàng ${label}: mang nhớ ${step.carryIn} xuống, viết mấy? ✍️`;
+  }
+  let text = `Hàng ${label}: ${step.x} + ${step.y}`;
+  if (step.carryIn > 0) text += ` + nhớ ${step.carryIn}`;
+  text += ' = ?';
+  return text;
+}
+
 /* ---------------- toast ---------------- */
 let toastTimer = null;
 function showToast(msg) {
@@ -151,6 +191,34 @@ function spawnConfetti(count) {
   }
 }
 
+/* ---------------- sticker rewards (extra cute images on correct answers) ---------------- */
+function spawnSticker(x, y, emoji) {
+  const layer = document.getElementById('sticker-layer');
+  const el = document.createElement('div');
+  el.className = 'sticker-pop';
+  el.textContent = emoji || pick(STICKER_POOL);
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.fontSize = (1.6 + Math.random() * 1.3) + 'rem';
+  layer.appendChild(el);
+  setTimeout(() => el.remove(), 950);
+}
+
+function stickerAtElement(el) {
+  const rect = el.getBoundingClientRect();
+  spawnSticker(rect.left + rect.width / 2, rect.top + rect.height * 0.25);
+}
+
+function spawnStickerBurst(count) {
+  const card = document.querySelector('.problem-card');
+  const rect = card.getBoundingClientRect();
+  for (let i = 0; i < count; i++) {
+    const x = rect.left + rect.width / 2 + (Math.random() - 0.5) * rect.width * 0.9;
+    const y = rect.top + rect.height / 2 + (Math.random() - 0.5) * rect.height * 0.9;
+    setTimeout(() => spawnSticker(x, y), i * 90);
+  }
+}
+
 /* ---------------- sound (WebAudio, no assets needed) ---------------- */
 let audioCtx = null;
 function getAudioCtx() {
@@ -180,6 +248,9 @@ function playCorrectSound() {
 }
 function playWrongSound() {
   try { playTone(220, 0, 0.18, 'sawtooth', 0.05); } catch (e) {}
+}
+function playStepDing() {
+  try { playTone(659, 0, 0.14); } catch (e) {}
 }
 function playCelebrateSound() {
   try {
@@ -293,49 +364,108 @@ function renderProgress() {
 
 function renderProblem() {
   const prob = game.problems[game.index];
+  game.columnPlan = buildColumnPlan(prob.a, prob.b);
+  game.currentStep = 0;
   game.buffer = '';
-  game.expectedLen = String(prob.answer).length;
   game.locked = false;
 
   renderProgress();
-
-  document.getElementById('row-a').innerHTML = `<span>${prob.a}</span>`;
-  document.getElementById('row-b').innerHTML = `<span class="plus-sign">+</span><span>${prob.b}</span>`;
-
-  const hints = START_HINTS[game.level];
-  document.getElementById('speech-bubble').textContent = pick(hints);
-
-  renderAnswerBoxes();
+  document.getElementById('speech-bubble').textContent = pick(STARTER_MESSAGES);
+  renderColumnTable();
+  renderStepPrompt();
 }
 
-function renderAnswerBoxes() {
-  const row = document.getElementById('row-answer');
-  row.className = 'col-row num-row answer-row';
-  let html = '';
-  for (let i = 0; i < game.expectedLen; i++) {
-    const digit = game.buffer[i];
-    html += `<span class="digit-box${digit === undefined ? ' placeholder' : ''}">${digit === undefined ? '_' : digit}</span>`;
+function renderStepPrompt() {
+  const step = game.columnPlan[game.currentStep];
+  document.getElementById('step-prompt').textContent = stepPromptText(step);
+}
+
+function renderColumnTable() {
+  const table = document.getElementById('column-table');
+  const current = game.currentStep;
+  const cols = [...game.columnPlan].reverse();
+
+  let html = `
+    <div class="place-col plus-col">
+      <div class="place-label">&nbsp;</div>
+      <div class="carry-slot">&nbsp;</div>
+      <div class="digit-a">&nbsp;</div>
+      <div class="digit-b">+</div>
+      <div class="line"></div>
+      <div class="digit-result">&nbsp;</div>
+    </div>`;
+
+  cols.forEach(step => {
+    const isActive = step.index === current;
+    const isDone = step.index < current;
+    const known = step.index <= current;
+    const carryHtml = (known && step.carryIn > 0) ? `nhớ ${step.carryIn}` : '&nbsp;';
+    const digitA = step.synthetic ? '&nbsp;' : step.x;
+    const digitB = step.synthetic ? '&nbsp;' : step.y;
+
+    let resultHtml, resultClass;
+    if (isDone) {
+      resultHtml = String(step.digit);
+      resultClass = 'digit-result';
+    } else if (isActive) {
+      resultHtml = game.buffer.length ? game.buffer : '?';
+      resultClass = 'digit-result' + (game.buffer.length ? ' entering' : ' placeholder');
+    } else {
+      resultHtml = '&nbsp;';
+      resultClass = 'digit-result placeholder';
+    }
+
+    const stateClass = isActive ? ' active' : isDone ? ' done' : '';
+    html += `
+      <div class="place-col${stateClass}" data-step-index="${step.index}">
+        <div class="place-label">${placeLabel(step.index)}</div>
+        <div class="carry-slot${isActive && step.carryIn > 0 ? ' pop-in' : ''}">${carryHtml}</div>
+        <div class="digit-a">${digitA}</div>
+        <div class="digit-b">${digitB}</div>
+        <div class="line"></div>
+        <div class="${resultClass}">${resultHtml}</div>
+      </div>`;
+  });
+
+  table.innerHTML = html;
+}
+
+function updateActiveResultDisplay() {
+  const step = game.columnPlan[game.currentStep];
+  const el = document.querySelector(`.place-col[data-step-index="${step.index}"] .digit-result`);
+  if (!el) return;
+  el.textContent = game.buffer.length ? game.buffer : '?';
+  el.className = 'digit-result' + (game.buffer.length ? ' entering' : ' placeholder');
+}
+
+function loseHeart() {
+  let brokeOne = false;
+  for (let i = game.livesIcons.length - 1; i >= 0; i--) {
+    if (game.livesIcons[i] === '💖') { game.livesIcons[i] = '💔'; brokeOne = true; break; }
   }
-  row.innerHTML = html;
+  if (!brokeOne) game.livesIcons = ['💖', '💖', '💖'];
+  document.getElementById('lives').textContent = game.livesIcons.join('');
 }
 
 document.getElementById('keypad').addEventListener('click', (e) => {
   const btn = e.target.closest('.key');
   if (!btn || !game || game.locked) return;
   const key = btn.dataset.key;
+  const step = game.columnPlan[game.currentStep];
+  const expectedLen = String(step.sum).length;
 
   if (key === 'clear') {
     game.buffer = game.buffer.slice(0, -1);
-    renderAnswerBoxes();
+    updateActiveResultDisplay();
     return;
   }
   if (key === 'submit') {
     submitAnswer();
     return;
   }
-  if (game.buffer.length < game.expectedLen) {
+  if (game.buffer.length < expectedLen) {
     game.buffer += key;
-    renderAnswerBoxes();
+    updateActiveResultDisplay();
   }
 });
 
@@ -344,43 +474,50 @@ function submitAnswer() {
     showToast('Bé nhập kết quả trước nhé!');
     return;
   }
-  const prob = game.problems[game.index];
-  const userAnswer = Number(game.buffer);
-  const row = document.getElementById('row-answer');
+  const step = game.columnPlan[game.currentStep];
+  const userSum = Number(game.buffer);
+  const colEl = document.querySelector(`.place-col[data-step-index="${step.index}"]`);
 
-  if (userAnswer === prob.answer) {
+  if (userSum === step.sum) {
     game.locked = true;
-    row.classList.add('correct-pop');
-    game.correctCount++;
-    document.getElementById('speech-bubble').textContent = pick(PRAISE_MESSAGES);
-    playCorrectSound();
-    spawnConfetti(14);
-    setTimeout(nextProblem, 950);
+    colEl.classList.add('correct-pop');
+    playStepDing();
+    stickerAtElement(colEl);
+
+    const isLastStep = game.currentStep === game.columnPlan.length - 1;
+    if (isLastStep) {
+      game.correctCount++;
+      document.getElementById('speech-bubble').textContent = pick(PRAISE_MESSAGES);
+      playCorrectSound();
+      spawnConfetti(16);
+      spawnStickerBurst(5);
+      setTimeout(nextProblem, 1150);
+    } else {
+      document.getElementById('speech-bubble').textContent = pick(COLUMN_PRAISE);
+      setTimeout(() => {
+        game.currentStep++;
+        game.buffer = '';
+        game.locked = false;
+        renderColumnTable();
+        renderStepPrompt();
+      }, 650);
+    }
   } else {
-    row.classList.remove('correct-pop');
-    void row.offsetWidth;
-    row.classList.add('wrong-shake');
+    colEl.classList.remove('correct-pop');
+    void colEl.offsetWidth;
+    colEl.classList.add('wrong-shake');
     document.getElementById('speech-bubble').textContent = pick(ENCOURAGE_MESSAGES);
     playWrongSound();
-    let brokeOne = false;
-    for (let i = game.livesIcons.length - 1; i >= 0; i--) {
-      if (game.livesIcons[i] === '💖') { game.livesIcons[i] = '💔'; brokeOne = true; break; }
-    }
-    if (!brokeOne) {
-      game.livesIcons = ['💖', '💖', '💖'];
-    }
-    document.getElementById('lives').textContent = game.livesIcons.join('');
+    loseHeart();
     game.buffer = '';
     setTimeout(() => {
-      row.classList.remove('wrong-shake');
-      renderAnswerBoxes();
+      colEl.classList.remove('wrong-shake');
+      updateActiveResultDisplay();
     }, 420);
   }
 }
 
 function nextProblem() {
-  const row = document.getElementById('row-answer');
-  row.classList.remove('correct-pop');
   game.index++;
   if (game.index >= PROBLEMS_PER_SET) {
     finishSet();
