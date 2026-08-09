@@ -39,6 +39,8 @@
     els.streakBadge = document.getElementById('streak-badge');
     els.monsterDisplay = document.getElementById('monster-display');
     els.monsterName = document.getElementById('monster-name');
+    els.mascotHpFill = document.getElementById('mascot-hp-fill');
+    els.monsterHpFill = document.getElementById('monster-hp-fill');
     els.problemCard = document.querySelector('.problem-card');
     els.problemOverview = document.getElementById('problem-overview');
     els.columnTable = document.getElementById('column-table');
@@ -181,6 +183,8 @@
       problemHadMistake: false,
       luckyIndex: M.randInt(1, D.PROBLEMS_PER_SET - 2),
       livesIcons: ['💖', '💖', '💖'],
+      princessHp: 100,
+      monsterHp: 100,
       buffer: '',
       locked: false,
     };
@@ -188,6 +192,7 @@
     renderMascotHeader();
     renderMonster();
     renderStreakBadge();
+    renderHpBars();
     E.showToast(D.MONSTER_APPEAR_MESSAGE(monster));
     renderProblem();
   }
@@ -202,6 +207,17 @@
     if (!els.monsterDisplay) return;
     els.monsterDisplay.textContent = game.monster.emoji;
     els.monsterName.textContent = game.monster.name;
+  }
+
+  function renderHpBars() {
+    if (els.mascotHpFill) {
+      els.mascotHpFill.style.width = game.princessHp + '%';
+      els.mascotHpFill.classList.toggle('low', game.princessHp <= 30);
+    }
+    if (els.monsterHpFill) {
+      els.monsterHpFill.style.width = game.monsterHp + '%';
+      els.monsterHpFill.classList.toggle('low', game.monsterHp <= 30);
+    }
   }
 
   function renderStreakBadge() {
@@ -359,6 +375,16 @@
     resultEl.className = 'digit-result' + (game.buffer.length ? ' entering' : ' placeholder');
   }
 
+  /** Briefly applies an animation class (e.g. "attacking"/"hit") to an
+      element, restarting it even if it's already mid-play. */
+  function flashClass(el, className, duration) {
+    if (!el) return;
+    el.classList.remove(className);
+    void el.offsetWidth; // reflow, so re-adding the class restarts the animation
+    el.classList.add(className);
+    setTimeout(() => el.classList.remove(className), duration);
+  }
+
   function loseHeart() {
     let brokeOne = false;
     for (let i = game.livesIcons.length - 1; i >= 0; i--) {
@@ -434,8 +460,14 @@
         A.playCorrectSound();
         E.spawnConfetti(isBonusRound ? 30 : 16, rewardEmoji);
         E.spawnStickerBurst(isBonusRound ? 9 : 5, rewardEmoji);
+        flashClass(els.mascot, 'attacking', 550);
+        E.spawnProjectile(els.mascot, els.monsterDisplay, '🪄', () => {
+          flashClass(els.monsterDisplay, 'hit', 500);
+          game.monsterHp = Math.max(0, game.monsterHp - 100 / D.PROBLEMS_PER_SET);
+          renderHpBars();
+        });
         revealFinalAnswer();
-        setTimeout(nextProblem, 1100);
+        setTimeout(nextProblem, 3000);
       } else {
         els.speechBubble.textContent = M.pick(D.COLUMN_PRAISE);
         const carryDigit = step.carryOut;
@@ -461,6 +493,12 @@
       colEl.classList.add('wrong-shake');
       els.speechBubble.textContent = M.pick(D.ENCOURAGE_MESSAGES);
       A.playWrongSound();
+      flashClass(els.monsterDisplay, 'attacking', 550);
+      E.spawnProjectile(els.monsterDisplay, els.mascot, '💥', () => {
+        flashClass(els.mascot, 'hit', 500);
+        game.princessHp = Math.max(0, game.princessHp - 20);
+        renderHpBars();
+      });
       game.problemHadMistake = true;
       loseHeart();
       game.buffer = '';
