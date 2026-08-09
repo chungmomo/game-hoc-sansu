@@ -395,7 +395,7 @@
         E.spawnConfetti(isBonusRound ? 30 : 16, rewardEmoji);
         E.spawnStickerBurst(isBonusRound ? 9 : 5, rewardEmoji);
         revealFinalAnswer();
-        setTimeout(nextProblem, 2000);
+        setTimeout(nextProblem, 1100);
       } else {
         els.speechBubble.textContent = M.pick(D.COLUMN_PRAISE);
         const carryDigit = step.carryOut;

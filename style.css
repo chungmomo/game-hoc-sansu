@@ -307,17 +307,20 @@ html,body{
   gap:.6rem;
 }
 /* counting aid: N of one animal + M of another next to the active
-   column, so a child can count the addends before calculating them */
+   column, so a child can count the addends before calculating them.
+   Each row stays on one line (no wrap) so the count reads left to
+   right like objects laid out on a table; .problem-body wraps the
+   whole block below the column table instead if there isn't room. */
 .animal-counters{
   display:flex; flex-direction:column; gap:.5rem;
-  max-width: 108px;
   padding-top: 1.9rem;
 }
 .animal-row{
-  display:flex; flex-wrap:wrap; gap:1px;
+  display:flex; flex-wrap:nowrap; gap:1px;
   font-size:1.15rem;
   line-height:1.15;
   min-height:1.3em;
+  white-space:nowrap;
 }
 /* column-by-column addition table (teaches carrying) */
 .column-table{
