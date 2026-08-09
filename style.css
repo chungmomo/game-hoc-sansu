@@ -24,7 +24,7 @@
 html,body{
   margin:0; padding:0; width:100%; height:100%;
   overflow-x:hidden;
-  font-family:'Baloo 2','Quicksand',-apple-system,sans-serif;
+  font-family:'Baloo 2','M PLUS Rounded 1c','Quicksand',-apple-system,sans-serif;
   color:var(--ink);
   background: linear-gradient(160deg, var(--sky1) 0%, var(--sky2) 55%, var(--sky3) 100%);
   min-height:100vh;
@@ -238,10 +238,17 @@ html,body{
   margin-bottom: 1rem;
   border: 3px solid #fff;
 }
+.problem-overview{
+  text-align:left;
+  font-size:.9rem;
+  font-weight:700;
+  color:#9a86ab;
+  margin-bottom:.6rem;
+}
 /* column-by-column addition table (teaches carrying) */
 .column-table{
   display:flex; flex-direction:row; justify-content:center; align-items:flex-end;
-  font-family:'Baloo 2',monospace;
+  font-family:'Baloo 2','M PLUS Rounded 1c',monospace;
   gap:.4rem;
 }
 .place-col{
@@ -256,7 +263,7 @@ html,body{
   box-shadow: 0 0 0 3px var(--gold) inset;
 }
 .place-col.done{ opacity:.72; }
-.place-col .place-label{ font-size:.68rem; font-weight:700; color:#9a86ab; min-height:1.1em; }
+.place-col .place-label{ font-size:.62rem; font-weight:700; color:#9a86ab; min-height:2.3em; line-height:1.15; }
 .place-col .carry-slot{
   min-height:1.3rem; font-size:1.05rem; font-weight:800; color:var(--pink-dark);
 }

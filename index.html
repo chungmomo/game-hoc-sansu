@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
-<title>Công Chúa Toán Học — Học Phép Cộng Cùng Công Chúa</title>
+<title>おひめさまの さんすう</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👑</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Quicksand:wght@500;700&family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,57 +18,58 @@
   <div class="castle-top" aria-hidden="true">🏰</div>
   <h1 class="title">
     <span class="title-crown">👑</span>
-    Công Chúa Toán Học
+    おひめさまの さんすう
     <span class="title-crown">👑</span>
   </h1>
-  <p class="subtitle">Cùng các Công Chúa luyện phép cộng thật giỏi nhé!</p>
+  <p class="subtitle">おひめさまと いっしょに たしざんの れんしゅうを しよう！</p>
 
   <div class="top-actions">
     <div class="star-total-badge" id="star-total-badge">
-      <span class="star-ico">⭐</span> <span id="star-total-text">0</span> sao
+      <span class="star-ico">⭐</span> <span id="star-total-text">0</span> こ
     </div>
-    <button class="sound-toggle" aria-label="Tắt âm thanh" aria-pressed="true">🔊</button>
+    <button class="sound-toggle" aria-label="おとを けす" aria-pressed="true">🔊</button>
   </div>
 
   <div class="panel">
-    <h2 class="panel-title">1. Chọn Công Chúa của bé</h2>
+    <h2 class="panel-title">1. おひめさまを えらんでね</h2>
     <div class="princess-row" id="princess-row"></div>
   </div>
 
   <div class="panel">
-    <h2 class="panel-title">2. Chọn độ khó</h2>
+    <h2 class="panel-title">2. むずかしさを えらんでね</h2>
     <div class="level-row" id="level-row"></div>
   </div>
 
   <button class="btn-start" id="btn-start">
-    Bắt Đầu Học ✨
+    はじめる ✨
   </button>
 
-  <button class="btn-mini" id="btn-reset">Chơi lại từ đầu (xóa tiến trình)</button>
+  <button class="btn-mini" id="btn-reset">さいしょから やりなおす（きろくを けす）</button>
 </section>
 
 <!-- ============ GAME SCREEN ============ -->
 <section id="screen-game" class="screen">
   <div class="game-top-bar">
-    <button class="btn-back" id="btn-back-home" aria-label="Về trang chủ">🏠</button>
+    <button class="btn-back" id="btn-back-home" aria-label="さいしょの がめんに もどる">🏠</button>
     <div class="progress-wrap">
       <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
       <div class="progress-text"><span id="progress-current">1</span> / <span id="progress-total">10</span></div>
     </div>
     <div class="lives" id="lives" aria-hidden="true">💖💖💖</div>
-    <button class="sound-toggle" aria-label="Tắt âm thanh" aria-pressed="true">🔊</button>
+    <button class="sound-toggle" aria-label="おとを けす" aria-pressed="true">🔊</button>
   </div>
 
   <div class="mascot-zone">
     <div class="mascot" id="mascot">🧚</div>
-    <div class="speech-bubble" id="speech-bubble">Bé giỏi lắm, thử phép tính này nhé!</div>
+    <div class="speech-bubble" id="speech-bubble">がんばって といてみよう！</div>
   </div>
 
   <div class="problem-card">
+    <div class="problem-overview" id="problem-overview">もんだい：6 + 8 = ?</div>
     <div class="column-table" id="column-table"></div>
   </div>
 
-  <div class="step-prompt" id="step-prompt">Hàng đơn vị: 6 + 8 = ?</div>
+  <div class="step-prompt" id="step-prompt">いちのくらい：6 + 8 = ?</div>
 
   <div class="keypad" id="keypad">
     <button class="key" data-key="1">1</button>
@@ -80,9 +81,9 @@
     <button class="key" data-key="7">7</button>
     <button class="key" data-key="8">8</button>
     <button class="key" data-key="9">9</button>
-    <button class="key key-clear" data-key="clear" aria-label="Xóa">⌫</button>
+    <button class="key key-clear" data-key="clear" aria-label="けす">⌫</button>
     <button class="key" data-key="0">0</button>
-    <button class="key key-submit" data-key="submit" aria-label="Nộp đáp án">✓</button>
+    <button class="key key-submit" data-key="submit" aria-label="こたえを だす">✓</button>
   </div>
 </section>
 
@@ -90,13 +91,13 @@
 <section id="screen-result" class="screen">
   <div class="result-card">
     <div class="result-mascot" id="result-mascot">👑</div>
-    <h2 class="result-title" id="result-title">Bé Đã Hoàn Thành!</h2>
+    <h2 class="result-title" id="result-title">できたよ！</h2>
     <div class="result-stars" id="result-stars"></div>
-    <p class="result-detail" id="result-detail">Đúng 10/10 câu</p>
+    <p class="result-detail" id="result-detail">10もんちゅう 10もん せいかい</p>
     <div class="result-buttons">
-      <button class="btn-start" id="btn-play-again">Luyện Thêm 🔁</button>
-      <button class="btn-start btn-secondary" id="btn-next-level">Cấp Độ Tiếp Theo ➡️</button>
-      <button class="btn-mini" id="btn-go-home">Về Trang Chủ 🏠</button>
+      <button class="btn-start" id="btn-play-again">もういちど れんしゅう 🔁</button>
+      <button class="btn-start btn-secondary" id="btn-next-level">つぎの むずかしさへ ➡️</button>
+      <button class="btn-mini" id="btn-go-home">さいしょの がめんに もどる 🏠</button>
     </div>
   </div>
 </section>
