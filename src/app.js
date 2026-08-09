@@ -38,6 +38,7 @@
     els.problemCard = document.querySelector('.problem-card');
     els.problemOverview = document.getElementById('problem-overview');
     els.columnTable = document.getElementById('column-table');
+    els.animalCounters = document.getElementById('animal-counters');
     els.stepPrompt = document.getElementById('step-prompt');
     els.keypad = document.getElementById('keypad');
 
@@ -204,9 +205,53 @@
     renderStepPrompt();
   }
 
+  /** Once every column is solved, assemble the digits into the whole
+      final number and show it under a line beneath the two addends —
+      the classic written-addition finish — so the child sees and has
+      a moment to register the complete answer, not just the separate
+      per-column digits. */
+  function revealFinalAnswer() {
+    const answer = game.columnPlan.map(s => s.digit).reverse().join('');
+    const numbersEl = els.problemOverview.querySelector('.overview-numbers');
+    if (!numbersEl) return;
+    const line = document.createElement('div');
+    line.className = 'overview-line';
+    const answerEl = document.createElement('div');
+    answerEl.className = 'overview-answer';
+    answerEl.textContent = answer;
+    numbersEl.appendChild(line);
+    numbersEl.appendChild(answerEl);
+  }
+
   function renderStepPrompt() {
     const step = game.columnPlan[game.currentStep];
     els.stepPrompt.textContent = M.stepPromptText(step);
+    renderAnimalCounters(step);
+  }
+
+  function pickTwoDistinctAnimals() {
+    const pool = D.ANIMAL_POOL;
+    const i = M.randInt(0, pool.length - 1);
+    let j = M.randInt(0, pool.length - 1);
+    while (j === i) j = M.randInt(0, pool.length - 1);
+    return [pool[i], pool[j]];
+  }
+
+  /** Shows step.x copies of one animal and step.y copies of another
+      next to the active column, as a counting aid before the child
+      does the addition — skipped for the synthetic "write the carry
+      down" step, which has nothing to count. */
+  function renderAnimalCounters(step) {
+    if (!els.animalCounters) return;
+    if (step.synthetic) {
+      els.animalCounters.innerHTML = '';
+      return;
+    }
+    const [animalA, animalB] = pickTwoDistinctAnimals();
+    els.animalCounters.innerHTML = `
+      <div class="animal-row">${animalA.repeat(step.x)}</div>
+      <div class="animal-row">${animalB.repeat(step.y)}</div>
+    `;
   }
 
   function renderColumnTable(opts) {
@@ -349,7 +394,8 @@
         A.playCorrectSound();
         E.spawnConfetti(isBonusRound ? 30 : 16, rewardEmoji);
         E.spawnStickerBurst(isBonusRound ? 9 : 5, rewardEmoji);
-        setTimeout(nextProblem, 1150);
+        revealFinalAnswer();
+        setTimeout(nextProblem, 2000);
       } else {
         els.speechBubble.textContent = M.pick(D.COLUMN_PRAISE);
         const carryDigit = step.carryOut;
