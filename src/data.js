@@ -32,6 +32,12 @@
       rewardEmoji: ['☀️', '🌻', '🍯', '🐝', '🧡', '🌾'] },
     { id: 'cosmos',  name: 'うちゅうの じょおう',  avatar: '🧞‍♀️', mascot: '🌌', unlockStars: 220,
       rewardEmoji: ['🌌', '🪐', '☄️', '🌠', '💫', '🔮'] },
+    { id: 'thunder',   name: 'かみなりの じょおう', avatar: '🧙‍♀️', mascot: '⚡', unlockStars: 300,
+      rewardEmoji: ['⚡', '🌩️', '💜', '✨', '🔮', '🦋'] },
+    { id: 'fireworks', name: 'はなびの じょおう',   avatar: '👸🏿', mascot: '🎆', unlockStars: 400,
+      rewardEmoji: ['🎆', '🎇', '✨', '🎊', '💖', '🌟'] },
+    { id: 'legend',    name: 'でんせつの じょおう', avatar: '👑',   mascot: '🏆', unlockStars: 550,
+      rewardEmoji: ['👑', '💎', '🏆', '✨', '🌟', '💫'] },
   ];
 
   const LEVELS = [
