@@ -16,6 +16,11 @@
 
 *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; user-select:none; }
 
+:focus-visible{
+  outline: 3px solid var(--purple-dark);
+  outline-offset: 2px;
+}
+
 html,body{
   margin:0; padding:0; width:100%; height:100%;
   overflow-x:hidden;
@@ -71,6 +76,9 @@ html,body{
 
 .subtitle{ font-size:1.05rem; color:var(--purple-dark); font-weight:700; margin:0 0 .8rem; text-align:center; }
 
+.top-actions{
+  display:flex; align-items:center; gap:.6rem; margin-bottom:1rem;
+}
 .star-total-badge{
   background: var(--white);
   border: 3px solid var(--gold);
@@ -79,9 +87,16 @@ html,body{
   font-weight:800; font-size:1.1rem;
   color:#a8710a;
   box-shadow: 0 4px 10px rgba(0,0,0,.08);
-  margin-bottom: 1rem;
 }
 .star-ico{ filter:drop-shadow(0 1px 1px rgba(0,0,0,.2)); }
+
+.sound-toggle{
+  background: var(--white); border:none; border-radius:50%;
+  width:44px; height:44px; font-size:1.3rem; cursor:pointer;
+  box-shadow: 0 3px 8px rgba(0,0,0,.12);
+  flex:0 0 auto;
+}
+.sound-toggle:active{ transform: scale(.92); }
 
 .panel{
   width:100%; max-width: 640px;
@@ -246,10 +261,23 @@ html,body{
   min-height:1.3rem; font-size:1.05rem; font-weight:800; color:var(--pink-dark);
 }
 .place-col .carry-slot.pop-in{ animation: carryPop .5s ease; }
+.place-col .carry-slot.carry-pending{ opacity:0; }
 @keyframes carryPop{
   0%{ transform: translateY(10px) scale(.4); opacity:0; }
   60%{ transform: translateY(-2px) scale(1.2); opacity:1; }
   100%{ transform: translateY(0) scale(1); opacity:1; }
+}
+
+/* the little digit that visibly hops from where it was written over to
+   the next column's carry slot, tracing the arrow drawn in effects.js */
+.carry-flight-badge{
+  position: fixed; left:0; top:0; z-index:71;
+  width:2rem; height:2rem; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Baloo 2',sans-serif; font-weight:800; font-size:1.2rem;
+  color:#fff; background: var(--pink-dark);
+  box-shadow: 0 3px 8px rgba(0,0,0,.25);
+  pointer-events:none;
 }
 .place-col .digit-a, .place-col .digit-b{
   font-size: clamp(1.6rem, 6vw, 2.2rem); font-weight:800; line-height:1.2;

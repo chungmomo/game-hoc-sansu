@@ -23,8 +23,11 @@
   </h1>
   <p class="subtitle">Cùng các Công Chúa luyện phép cộng thật giỏi nhé!</p>
 
-  <div class="star-total-badge" id="star-total-badge">
-    <span class="star-ico">⭐</span> <span id="star-total-text">0</span> sao
+  <div class="top-actions">
+    <div class="star-total-badge" id="star-total-badge">
+      <span class="star-ico">⭐</span> <span id="star-total-text">0</span> sao
+    </div>
+    <button class="sound-toggle" aria-label="Tắt âm thanh" aria-pressed="true">🔊</button>
   </div>
 
   <div class="panel">
@@ -47,12 +50,13 @@
 <!-- ============ GAME SCREEN ============ -->
 <section id="screen-game" class="screen">
   <div class="game-top-bar">
-    <button class="btn-back" id="btn-back-home">🏠</button>
+    <button class="btn-back" id="btn-back-home" aria-label="Về trang chủ">🏠</button>
     <div class="progress-wrap">
       <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
       <div class="progress-text"><span id="progress-current">1</span> / <span id="progress-total">10</span></div>
     </div>
-    <div class="lives" id="lives">💖💖💖</div>
+    <div class="lives" id="lives" aria-hidden="true">💖💖💖</div>
+    <button class="sound-toggle" aria-label="Tắt âm thanh" aria-pressed="true">🔊</button>
   </div>
 
   <div class="mascot-zone">
@@ -76,9 +80,9 @@
     <button class="key" data-key="7">7</button>
     <button class="key" data-key="8">8</button>
     <button class="key" data-key="9">9</button>
-    <button class="key key-clear" data-key="clear">⌫</button>
+    <button class="key key-clear" data-key="clear" aria-label="Xóa">⌫</button>
     <button class="key" data-key="0">0</button>
-    <button class="key key-submit" data-key="submit">✓</button>
+    <button class="key key-submit" data-key="submit" aria-label="Nộp đáp án">✓</button>
   </div>
 </section>
 
@@ -100,6 +104,10 @@
 <div id="confetti-layer"></div>
 <div id="sticker-layer"></div>
 
-<script src="script.js"></script>
+<script src="src/math.js"></script>
+<script src="src/data.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/effects.js"></script>
+<script src="src/app.js"></script>
 </body>
 </html>

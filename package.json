@@ -1,0 +1,9 @@
+{
+  "name": "cong-chua-toan-hoc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Web app luyện phép cộng 2 chữ số kiểu Kumon cho bé, chủ đề công chúa.",
+  "scripts": {
+    "test": "node test/math.test.js"
+  }
+}
