@@ -272,11 +272,12 @@ html,body{
    the next column's carry slot, tracing the arrow drawn in effects.js */
 .carry-flight-badge{
   position: fixed; left:0; top:0; z-index:71;
-  width:2rem; height:2rem; border-radius:50%;
+  width:2.4rem; height:2.4rem; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
-  font-family:'Baloo 2',sans-serif; font-weight:800; font-size:1.2rem;
+  font-family:'Baloo 2',sans-serif; font-weight:800; font-size:1.4rem;
   color:#fff; background: var(--pink-dark);
-  box-shadow: 0 3px 8px rgba(0,0,0,.25);
+  box-shadow: 0 4px 10px rgba(0,0,0,.3);
+  border: 3px solid #fff;
   pointer-events:none;
 }
 .place-col .digit-a, .place-col .digit-b{
