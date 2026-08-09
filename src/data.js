@@ -8,14 +8,24 @@
   const STORAGE_KEY = 'princessMathState_v1';
 
   /* Princess mascots are an original design (custom icon + name) —
-     no Disney (or other) character names or artwork are used. */
+     no Disney (or other) character names or artwork are used. The
+     "Ice Queen" is inspired by Andersen's public-domain fairy tale
+     "The Snow Queen" (1844), not any studio's copyrighted character.
+     Each has its own rewardEmoji pool used for confetti/stickers when
+     that princess is the one selected. */
   const PRINCESSES = [
-    { id: 'rose',    name: 'ばらの おひめさま',   avatar: '👸🏻', mascot: '🧚', unlockStars: 0   },
-    { id: 'snow',    name: 'ゆきの おひめさま',   avatar: '👸🏼', mascot: '❄️', unlockStars: 10  },
-    { id: 'mermaid', name: 'うみの おひめさま',   avatar: '🧜‍♀️', mascot: '🐚', unlockStars: 25  },
-    { id: 'forest',  name: 'もりの おひめさま',   avatar: '🧝‍♀️', mascot: '🌿', unlockStars: 45  },
-    { id: 'star',    name: 'ほしの おひめさま',   avatar: '🧚‍♀️', mascot: '🌟', unlockStars: 70  },
-    { id: 'rainbow', name: 'にじの じょおう',     avatar: '🦄',   mascot: '🌈', unlockStars: 100 },
+    { id: 'rose',    name: 'ばらの おひめさま',    avatar: '👸🏻', mascot: '🧚', unlockStars: 0,
+      rewardEmoji: ['🌹', '🌸', '💐', '🦋', '🍓', '💕'] },
+    { id: 'snow',    name: 'こおりの じょおうさま', avatar: '👸🏼', mascot: '❄️', unlockStars: 10,
+      rewardEmoji: ['❄️', '⛄', '🧊', '💎', '✨', '🤍'] },
+    { id: 'mermaid', name: 'うみの おひめさま',    avatar: '🧜‍♀️', mascot: '🐚', unlockStars: 25,
+      rewardEmoji: ['🐚', '🐬', '🌊', '🫧', '🦪', '💙'] },
+    { id: 'forest',  name: 'もりの おひめさま',    avatar: '🧝‍♀️', mascot: '🌿', unlockStars: 45,
+      rewardEmoji: ['🌿', '🍃', '🦋', '🐿️', '🌼', '🍄'] },
+    { id: 'star',    name: 'ほしの おひめさま',    avatar: '🧚‍♀️', mascot: '🌟', unlockStars: 70,
+      rewardEmoji: ['🌟', '💫', '⭐', '🌠', '✨', '🔭'] },
+    { id: 'rainbow', name: 'にじの じょおう',      avatar: '🦄',   mascot: '🌈', unlockStars: 100,
+      rewardEmoji: ['🌈', '🎊', '🦄', '💛', '🧡', '💜'] },
   ];
 
   const LEVELS = [

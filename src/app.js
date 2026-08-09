@@ -285,17 +285,18 @@
 
     if (userSum === step.sum) {
       game.locked = true;
+      const rewardEmoji = D.getSelectedPrincess(state).rewardEmoji;
       colEl.classList.add('correct-pop');
       A.playStepDing();
-      E.stickerAtElement(colEl);
+      E.stickerAtElement(colEl, rewardEmoji);
 
       const isLastStep = game.currentStep === game.columnPlan.length - 1;
       if (isLastStep) {
         game.correctCount++;
         els.speechBubble.textContent = M.pick(D.PRAISE_MESSAGES);
         A.playCorrectSound();
-        E.spawnConfetti(16);
-        E.spawnStickerBurst(5);
+        E.spawnConfetti(16, rewardEmoji);
+        E.spawnStickerBurst(5, rewardEmoji);
         setTimeout(nextProblem, 1150);
       } else {
         els.speechBubble.textContent = M.pick(D.COLUMN_PRAISE);
@@ -367,7 +368,7 @@
 
     showScreen('result');
     if (correct >= D.CELEBRATE_STARS_THRESHOLD) {
-      E.spawnConfetti(40);
+      E.spawnConfetti(40, p.rewardEmoji);
       A.playCelebrateSound();
     }
   }
