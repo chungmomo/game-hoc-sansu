@@ -38,22 +38,54 @@
     } catch (e) { /* audio glitch — non-critical, ignore */ }
   }
 
+  /* Victory fanfare (full problem solved): a short ascending run into
+     a bright two-note chord, instead of three flat notes. */
   function playCorrectSound() {
-    playTone(523, 0, 0.12);
-    playTone(659, 0.1, 0.12);
-    playTone(784, 0.2, 0.2);
+    playTone(523.25, 0, 0.12);
+    playTone(659.25, 0.11, 0.12);
+    playTone(783.99, 0.22, 0.12);
+    playTone(1046.5, 0.34, 0.38);
+    playTone(1318.5, 0.34, 0.38, 'sine', 0.05);
   }
 
   function playWrongSound() {
     playTone(220, 0, 0.18, 'sawtooth', 0.05);
   }
 
+  /* Light two-note "ding-dong" for a single correct column, kept
+     brief and distinct from the full victory fanfare. */
   function playStepDing() {
-    playTone(659, 0, 0.14);
+    playTone(659, 0, 0.1);
+    playTone(880, 0.08, 0.12);
   }
 
+  /* Finale for finishing a full 10-problem set well: the same rising
+     scale as before, finishing in a full major chord. */
   function playCelebrateSound() {
-    [523, 587, 659, 784, 880].forEach((f, i) => playTone(f, i * 0.12, 0.18));
+    const scale = [523.25, 587.33, 659.25, 783.99, 880.00];
+    scale.forEach((f, i) => playTone(f, i * 0.11, 0.18));
+    const chordStart = scale.length * 0.11 + 0.05;
+    playTone(1046.5, chordStart, 0.42);
+    playTone(1318.5, chordStart, 0.42, 'sine', 0.05);
+    playTone(1568.0, chordStart, 0.42, 'sine', 0.04);
+  }
+
+  /* Digits 0-9 mapped onto a two-octave C major pentatonic scale, so
+     mashing the keypad sounds like playing a toy xylophone instead of
+     one repeated click — and since every note in a pentatonic scale
+     sounds pleasant against every other, no key combination the child
+     presses can sound "wrong". */
+  const KEY_CLICK_NOTES = [
+    261.63, 293.66, 329.63, 392.00, 440.00,   // C4 D4 E4 G4 A4
+    523.25, 587.33, 659.25, 783.99, 880.00,   // C5 D5 E5 G5 A5
+  ];
+  function playKeyClick(digit) {
+    const note = KEY_CLICK_NOTES[Number(digit) % KEY_CLICK_NOTES.length];
+    playTone(note, 0, 0.13, 'sine', 0.06);
+  }
+
+  function playKeyClear() {
+    playTone(392, 0, 0.09, 'triangle', 0.05);
   }
 
   function setEnabled(value) { enabled = !!value; }
@@ -64,6 +96,8 @@
     playWrongSound,
     playStepDing,
     playCelebrateSound,
+    playKeyClick,
+    playKeyClear,
     setEnabled,
     isEnabled,
   };
