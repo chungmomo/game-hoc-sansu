@@ -471,7 +471,9 @@ html,body{
 }
 
 /* the little digit that visibly hops from where it was written over to
-   the next column's carry slot, tracing the arrow drawn in effects.js */
+   the next column's carry slot — no drawn arrow, just the ring-pulse
+   at its start point and the fading trail behind it (both below) to
+   show where it came from. */
 .carry-flight-badge{
   position: fixed; left:0; top:0; z-index:71;
   width:2.4rem; height:2.4rem; border-radius:50%;
@@ -481,6 +483,33 @@ html,body{
   box-shadow: 0 4px 10px rgba(0,0,0,.3);
   border: 3px solid #fff;
   pointer-events:none;
+}
+/* brief ring that pulses outward from the spot the carried digit is
+   leaving, marking its origin the instant the flight starts */
+.carry-origin-ping{
+  position: fixed; left:0; top:0; z-index:69;
+  border-radius:50%;
+  border: 3px solid var(--pink-dark);
+  transform: translate(-50%,-50%) scale(.5);
+  pointer-events:none;
+  animation: carryOriginPing .65s ease-out forwards;
+}
+@keyframes carryOriginPing{
+  0%{ opacity:.9; transform: translate(-50%,-50%) scale(.5); }
+  100%{ opacity:0; transform: translate(-50%,-50%) scale(1.7); }
+}
+/* the fading "comet tail" of ghost copies left behind as the digit flies */
+.carry-trail-dot{
+  position: fixed; left:0; top:0; z-index:70;
+  transform: translate(-50%,-50%);
+  font-family:'Baloo 2',sans-serif; font-weight:800; font-size:1.1rem;
+  color: var(--pink-dark);
+  pointer-events:none;
+  animation: carryTrailFade .42s ease-out forwards;
+}
+@keyframes carryTrailFade{
+  0%{ opacity:.5; transform: translate(-50%,-50%) scale(.9); }
+  100%{ opacity:0; transform: translate(-50%,-50%) scale(.45); }
 }
 /* the 🪄/💥 that flies between まいひめ and the monster on each battle exchange */
 .spell-projectile{

@@ -467,7 +467,7 @@
           renderHpBars();
         });
         revealFinalAnswer();
-        setTimeout(nextProblem, 3000);
+        setTimeout(nextProblem, 2000);
       } else {
         els.speechBubble.textContent = M.pick(D.COLUMN_PRAISE);
         const carryDigit = step.carryOut;

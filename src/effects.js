@@ -133,40 +133,34 @@
     }
   }
 
-  const SVG_NS = 'http://www.w3.org/2000/svg';
-
-  function getCarryFlightLayer() {
-    let layer = document.getElementById('carry-flight-layer');
-    if (!layer) {
-      layer = document.createElementNS(SVG_NS, 'svg');
-      layer.id = 'carry-flight-layer';
-      Object.assign(layer.style, {
-        position: 'fixed', inset: '0', width: '100%', height: '100%',
-        zIndex: '70', pointerEvents: 'none', overflow: 'visible',
-      });
-      const defs = document.createElementNS(SVG_NS, 'defs');
-      defs.innerHTML =
-        '<marker id="carry-arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">' +
-        '<path d="M0,0 L8,4 L0,8 Z" fill="#ff5fa8"></path></marker>';
-      layer.appendChild(defs);
-      document.body.appendChild(layer);
-    }
-    return layer;
+  /** A small fading duplicate of the flying digit, dropped periodically
+      along the flight path — the "comet tail" that shows the route the
+      number travelled without needing a drawn arrow. */
+  function spawnCarryTrailDot(x, y, digit) {
+    const dot = document.createElement('div');
+    dot.className = 'carry-trail-dot';
+    dot.textContent = digit;
+    dot.style.left = x + 'px';
+    dot.style.top = y + 'px';
+    document.body.appendChild(dot);
+    setTimeout(() => dot.remove(), 420);
   }
 
   /**
    * Animates a carried digit visibly hopping from where it was written
-   * (e.g. the "1" in "14") to the carry slot above the next column,
-   * along a curved arrow — so a child can see *where the number came
-   * from*, not just have it appear. `fromRect`/`toRect` are plain
-   * DOMRect-like objects ({left, top, width, height}) so callers can
-   * capture the origin before re-rendering the column table replaces
-   * the destination element. Calls `onComplete` once the badge lands.
+   * (e.g. the "1" in "14") to the carry slot above the next column —
+   * so a child can see *where the number came from*, not just have it
+   * appear. A quick ring-pulse marks the spot it's leaving, and a
+   * fading trail of ghost copies traces the path it travels, instead
+   * of a drawn arrow. `fromRect`/`toRect` are plain DOMRect-like
+   * objects ({left, top, width, height}) so callers can capture the
+   * origin before re-rendering the column table replaces the
+   * destination element. Calls `onComplete` once the badge lands.
    *
    * Under prefers-reduced-motion this still moves the badge (a child
    * relies on it to understand where the carry came from) but does it
-   * quickly and without the bounce/arc, rather than skipping it — for
-   * this cue, invisible would teach the wrong thing.
+   * quickly and without the bounce/arc/trail, rather than skipping it
+   * — for this cue, invisible would teach the wrong thing.
    */
   function flyCarry(fromRect, toRect, digit, onComplete) {
     try {
@@ -183,26 +177,15 @@
         ? { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 }
         : { x: (from.x + to.x) / 2, y: Math.min(from.y, to.y) - bulge };
 
-      const layer = getCarryFlightLayer();
-      const path = document.createElementNS(SVG_NS, 'path');
-      path.setAttribute('d', `M${from.x},${from.y} Q${control.x},${control.y} ${to.x},${to.y}`);
-      path.setAttribute('fill', 'none');
-      path.setAttribute('stroke', '#ff5fa8');
-      path.setAttribute('stroke-width', '4');
-      path.setAttribute('stroke-linecap', 'round');
-      path.setAttribute('marker-end', 'url(#carry-arrowhead)');
-      layer.appendChild(path);
-
-      // Show the whole connecting line as a quick fade-in rather than
-      // "drawing it on" over the badge's full travel time — a
-      // progressive draw meant only the last, short segment near the
-      // destination was ever visible by the time anyone looked (or
-      // screenshotted) partway through the flight, which read as the
-      // arrow starting from nowhere instead of clearly spanning from
-      // the source column to the destination column.
-      path.style.opacity = '0';
-      path.style.transition = 'opacity 120ms ease';
-      requestAnimationFrame(() => { path.style.opacity = '1'; });
+      const origin = document.createElement('div');
+      origin.className = 'carry-origin-ping';
+      const originSize = Math.max(fromRect.width, fromRect.height);
+      Object.assign(origin.style, {
+        left: from.x + 'px', top: from.y + 'px',
+        width: originSize + 'px', height: originSize + 'px',
+      });
+      document.body.appendChild(origin);
+      setTimeout(() => origin.remove(), 650);
 
       const badge = document.createElement('div');
       badge.className = 'carry-flight-badge';
@@ -210,6 +193,7 @@
       badge.style.transform = `translate(${from.x}px, ${from.y}px) translate(-50%, -50%)`;
       document.body.appendChild(badge);
 
+      let lastTrailAt = 0;
       const start = performance.now();
       function tick(now) {
         const t = Math.min(1, (now - start) / duration);
@@ -218,11 +202,14 @@
         const y = mt * mt * from.y + 2 * mt * t * control.y + t * t * to.y;
         const bump = REDUCED_MOTION ? 1 : 1 + 0.3 * Math.sin(Math.PI * t);
         badge.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${bump})`;
+        if (!REDUCED_MOTION && t < 0.92 && now - lastTrailAt > 55) {
+          lastTrailAt = now;
+          spawnCarryTrailDot(x, y, digit);
+        }
         if (t < 1) {
           requestAnimationFrame(tick);
         } else {
           badge.remove();
-          setTimeout(() => path.remove(), 200);
           if (onComplete) onComplete();
         }
       }
