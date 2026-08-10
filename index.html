@@ -15,19 +15,27 @@
 
 <!-- ============ HOME SCREEN ============ -->
 <section id="screen-home" class="screen active">
-  <div class="castle-top" aria-hidden="true">🏰</div>
-  <h1 class="title">
-    <span class="title-crown">👑</span>
-    おひめさまの さんすう
-    <span class="title-crown">👑</span>
-  </h1>
-  <p class="subtitle">まいひめが ようかいに つかまった！まほうの けいさんで たたかって にげだそう！</p>
+  <div class="home-header">
+    <div class="castle-top" aria-hidden="true">🏰</div>
+    <h1 class="title">
+      <span class="title-crown">👑</span>
+      おひめさまの さんすう
+      <span class="title-crown">👑</span>
+    </h1>
+    <p class="subtitle">まいひめが ようかいに つかまった！まほうの けいさんで たたかって にげだそう！</p>
 
-  <div class="top-actions">
-    <div class="star-total-badge" id="star-total-badge">
-      <span class="star-ico">⭐</span> <span id="star-total-text">0</span> こ
+    <div class="top-actions">
+      <div class="star-total-badge" id="star-total-badge">
+        <span class="star-ico">⭐</span> <span id="star-total-text">0</span> こ
+      </div>
+      <button class="sound-toggle" aria-label="おとを けす" aria-pressed="true">🔊</button>
     </div>
-    <button class="sound-toggle" aria-label="おとを けす" aria-pressed="true">🔊</button>
+
+    <button class="btn-start" id="btn-start">
+      はじめる ✨
+    </button>
+
+    <button class="btn-mini" id="btn-reset">さいしょから やりなおす（きろくを けす）</button>
   </div>
 
   <div class="panel">
@@ -45,12 +53,6 @@
     <div class="puzzle-grid" id="puzzle-grid"></div>
     <div class="item-row" id="item-row"></div>
   </div>
-
-  <button class="btn-start" id="btn-start">
-    はじめる ✨
-  </button>
-
-  <button class="btn-mini" id="btn-reset">さいしょから やりなおす（きろくを けす）</button>
 </section>
 
 <!-- ============ GAME SCREEN ============ -->
