@@ -57,6 +57,23 @@ test('level 3 problems: any 2-digit + 2-digit combination', () => {
   }
 });
 
+test('level 4 problems: 3-digit + 2-digit combination', () => {
+  for (let i = 0; i < 1000; i++) {
+    const p = generateProblem(4);
+    assert.ok(p.a >= 100 && p.a <= 999, `a=${p.a} is not 3-digit`);
+    assert.ok(p.b >= 10 && p.b <= 99, `b=${p.b} is not 2-digit`);
+    assert.strictEqual(p.a + p.b, p.answer, `${p.a}+${p.b} should equal ${p.answer}`);
+  }
+});
+
+test('level 5 problems: 3-digit + 3-digit combination', () => {
+  for (let i = 0; i < 1000; i++) {
+    const p = generateProblem(5);
+    assert.ok(p.a >= 100 && p.a <= 999 && p.b >= 100 && p.b <= 999, `${p.a}+${p.b} inputs must both be 3-digit`);
+    assert.strictEqual(p.a + p.b, p.answer, `${p.a}+${p.b} should equal ${p.answer}`);
+  }
+});
+
 test('buildColumnPlan reconstructs the exact sum for known edge cases', () => {
   [[10, 10], [99, 99], [90, 10], [50, 50], [1, 1], [9, 9], [45, 55]].forEach(([a, b]) => {
     const plan = buildColumnPlan(a, b);
@@ -75,8 +92,23 @@ test('buildColumnPlan reconstructs the exact sum for 3000 random pairs', () => {
   }
 });
 
+test('buildColumnPlan reconstructs the exact sum for 3-digit pairs, including thousands overflow', () => {
+  [[999, 999], [500, 500], [100, 100], [950, 99], [1, 999]].forEach(([a, b]) => {
+    const plan = buildColumnPlan(a, b);
+    const reconstructed = Number(plan.map(s => s.digit).reverse().join(''));
+    assert.strictEqual(reconstructed, a + b, `plan for ${a}+${b} reconstructed to ${reconstructed}`);
+  });
+  for (let i = 0; i < 3000; i++) {
+    const a = randInt(100, 999);
+    const b = randInt(100, 999);
+    const plan = buildColumnPlan(a, b);
+    const reconstructed = Number(plan.map(s => s.digit).reverse().join(''));
+    assert.strictEqual(reconstructed, a + b, `plan for ${a}+${b} reconstructed to ${reconstructed}`);
+  }
+});
+
 test('buildProblemSet avoids back-to-back duplicate problems', () => {
-  for (let level = 1; level <= 3; level++) {
+  for (let level = 1; level <= 5; level++) {
     for (let trial = 0; trial < 50; trial++) {
       const set = buildProblemSet(level, 10);
       for (let i = 1; i < set.length; i++) {
@@ -93,15 +125,17 @@ test('placeLabel returns the right Japanese place-value name', () => {
   assert.strictEqual(placeLabel(0), 'いちのくらい');
   assert.strictEqual(placeLabel(1), 'じゅうのくらい');
   assert.strictEqual(placeLabel(2), 'ひゃくのくらい');
+  assert.strictEqual(placeLabel(3), 'せんのくらい');
 });
 
 test('placeLabelShort stays short enough to never wrap in the narrow column header', () => {
-  for (let i = 0; i <= 2; i++) {
+  for (let i = 0; i <= 3; i++) {
     assert.ok(placeLabelShort(i).length <= 4, `placeLabelShort(${i}) is too long: ${placeLabelShort(i)}`);
   }
   assert.strictEqual(placeLabelShort(0), 'いちの');
   assert.strictEqual(placeLabelShort(1), 'じゅうの');
   assert.strictEqual(placeLabelShort(2), 'ひゃくの');
+  assert.strictEqual(placeLabelShort(3), 'せんの');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
