@@ -42,6 +42,8 @@
     { id: 1, name: 'やさしい',   emoji: '🌸', desc: 'くりあがりなし・ちいさいかず' },
     { id: 2, name: 'ふつう',     emoji: '🌟', desc: 'いちのくらいで くりあがりあり' },
     { id: 3, name: 'むずかしい', emoji: '🔥', desc: 'くりあがりあり・おおきいかず' },
+    { id: 4, name: 'とくべつ',   emoji: '💎', desc: '3けた + 2けたの けいさん' },
+    { id: 5, name: 'たつじん',   emoji: '👑', desc: '3けた + 3けたの けいさん' },
   ];
 
   const PROBLEMS_PER_SET = 10;

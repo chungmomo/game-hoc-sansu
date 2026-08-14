@@ -1,8 +1,10 @@
 # Công Chúa Toán Học
 
-Web app luyện phép cộng 2 chữ số + 2 chữ số kiểu Kumon, dành cho bé 7 tuổi
-(lớp 1), chủ đề công chúa cổ tích. Ứng dụng dạy bé cách **đặt tính cộng theo
-cột** (đơn vị → chục → trăm, viết/nhớ) thay vì chỉ đoán đáp số cuối.
+Web app luyện phép cộng kiểu Kumon, dành cho bé 7 tuổi (lớp 1), chủ đề công
+chúa cổ tích. Ứng dụng dạy bé cách **đặt tính cộng theo cột** (đơn vị →
+chục → trăm → nghìn, viết/nhớ) thay vì chỉ đoán đáp số cuối. 5 cấp độ tăng
+dần: 2 chữ số + 2 chữ số (không nhớ → có nhớ → tự do) rồi tới 3 chữ số +
+2 chữ số và 3 chữ số + 3 chữ số.
 
 Toàn bộ nhân vật công chúa là thiết kế gốc (icon + tên tự đặt) — không dùng
 hình ảnh hay tên nhân vật có bản quyền của Disney hay bất kỳ hãng nào khác.
@@ -89,18 +91,21 @@ và kế hoạch cộng-nhớ được kiểm thử tự động độc lập v�
 npm test
 ```
 
-Chạy hàng nghìn phép tính ngẫu nhiên cho cả 3 cấp độ để xác nhận: đầu vào
-luôn là số 2 chữ số, tổng tính đúng, cấp độ Dễ không bao giờ có nhớ, cấp độ
-Vừa luôn nhớ ở hàng đơn vị và tổng vẫn dưới 100, và kế hoạch cộng theo cột
-(`buildColumnPlan`) luôn ráp lại đúng đáp số.
+Chạy hàng nghìn phép tính ngẫu nhiên cho cả 5 cấp độ để xác nhận: đúng số
+chữ số đầu vào cho từng cấp (2 chữ số cho cấp 1-3, 3 chữ số cho cấp 4-5),
+tổng tính đúng, cấp độ Dễ không bao giờ có nhớ, cấp độ Vừa luôn nhớ ở hàng
+đơn vị và tổng vẫn dưới 100, và kế hoạch cộng theo cột (`buildColumnPlan`)
+luôn ráp lại đúng đáp số — kể cả khi số nhớ tràn tới hàng nghìn (vd
+999 + 999).
 
 ## Cơ chế dạy cộng theo cột
 
 Giao diện hiện tại dùng tiếng Nhật (hiragana) vì bé học tiểu học ở Nhật.
 Mỗi bài toán được giải theo từng cột một, từ hàng đơn vị (いちのくらい) lên
-hàng chục (じゅうのくらい), rồi hàng trăm (ひゃくのくらい) nếu có nhớ
-(くりあがり). Bên trái thẻ bài toán luôn hiển thị tổng quan (vd "もんだい：
-36 + 58 = ?") để bé biết đang làm phép tính nào. Ví dụ 36 + 58:
+hàng chục (じゅうのくらい), hàng trăm (ひゃくのくらい), rồi hàng nghìn
+(せんのくらい) nếu có nhớ (くりあがり) — cấp độ 4-5 (3 chữ số) có thể cần
+tới cột hàng nghìn. Bên trái thẻ bài toán luôn hiển thị tổng quan (vd
+"もんだい：36 + 58 = ?") để bé biết đang làm phép tính nào. Ví dụ 36 + 58:
 
 1. "いちのくらい：6 + 8 = ?" → bé nhập **14** → hệ thống tách thành
    "viết 4, nhớ 1"; số nhớ **1** bay theo mũi tên từ cột Đơn Vị sang và

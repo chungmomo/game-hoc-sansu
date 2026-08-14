@@ -20,9 +20,12 @@
   }
 
   /**
-   * Generates a 2-digit + 2-digit addition problem for the given level.
-   * Level 1: no carrying anywhere. Level 2: carries the ones digit but
-   * the answer stays 2-digit. Level 3: unconstrained (answer may reach 198).
+   * Generates an addition problem for the given level.
+   * Level 1: 2-digit + 2-digit, no carrying anywhere.
+   * Level 2: 2-digit + 2-digit, carries the ones digit but the answer
+   * stays 2-digit. Level 3: 2-digit + 2-digit, unconstrained (answer may
+   * reach 198). Level 4: 3-digit + 2-digit, unconstrained. Level 5:
+   * 3-digit + 3-digit, unconstrained (answer may reach 1998).
    */
   function generateProblem(level) {
     let a, b;
@@ -40,9 +43,15 @@
       const onesB = randInt(10 - onesA, 9);
       a = tensA * 10 + onesA;
       b = tensB * 10 + onesB;
-    } else {
+    } else if (level === 3) {
       a = randInt(10, 99);
       b = randInt(10, 99);
+    } else if (level === 4) {
+      a = randInt(100, 999);
+      b = randInt(10, 99);
+    } else {
+      a = randInt(100, 999);
+      b = randInt(100, 999);
     }
     return { a, b, answer: a + b };
   }
@@ -97,14 +106,14 @@
   }
 
   function placeLabel(index) {
-    return index === 0 ? 'いちのくらい' : index === 1 ? 'じゅうのくらい' : 'ひゃくのくらい';
+    return index === 0 ? 'いちのくらい' : index === 1 ? 'じゅうのくらい' : index === 2 ? 'ひゃくのくらい' : 'せんのくらい';
   }
 
   /** Compact column-header form of placeLabel(), short enough to never
       wrap inside the narrow per-column layout (the full term is still
       used in stepPromptText()). */
   function placeLabelShort(index) {
-    return index === 0 ? 'いちの' : index === 1 ? 'じゅうの' : 'ひゃくの';
+    return index === 0 ? 'いちの' : index === 1 ? 'じゅうの' : index === 2 ? 'ひゃくの' : 'せんの';
   }
 
   function stepPromptText(step) {
