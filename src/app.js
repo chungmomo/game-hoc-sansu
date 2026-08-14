@@ -7,19 +7,33 @@
   const D = window.PM.Data;
   const A = window.PM.Audio;
   const E = window.PM.Effects;
+  const C = window.PM.Cloud;
 
-  let state = D.loadState();
+  const PROFILE_AVATARS = ['👧', '🧒', '👦', '🐣', '🌟', '🦄', '🐻', '🐰'];
+
+  let state = D.defaultState();
   let game = null; // current 10-problem session, or null on the home/result screens
+  let currentProfileId = null;
 
-  function saveState() { D.saveState(state); }
+  function saveState() {
+    if (!currentProfileId) return;
+    C.saveProfileState(currentProfileId, state);
+  }
 
   const screens = {};
   const els = {};
 
   function cacheDom() {
+    screens.loading = document.getElementById('screen-loading');
+    screens.profiles = document.getElementById('screen-profiles');
     screens.home = document.getElementById('screen-home');
     screens.game = document.getElementById('screen-game');
     screens.result = document.getElementById('screen-result');
+
+    els.loadingText = document.querySelector('#screen-loading .loading-text');
+    els.profileGrid = document.getElementById('profile-grid');
+    els.btnAddProfile = document.getElementById('btn-add-profile');
+    els.btnSwitchProfile = document.getElementById('btn-switch-profile');
 
     els.starTotalText = document.getElementById('star-total-text');
     els.princessRow = document.getElementById('princess-row');
@@ -79,6 +93,70 @@
     state.soundOn = !state.soundOn;
     saveState();
     syncSoundButtons();
+  }
+
+  /* ================= SCREEN: PROFILES ================= */
+  async function renderProfilePicker() {
+    els.profileGrid.innerHTML = '<div class="item-row-empty">よみこみちゅう…</div>';
+    let profiles;
+    try {
+      profiles = await C.listProfiles();
+    } catch (e) {
+      els.profileGrid.innerHTML = '<div class="item-row-empty">よみこめなかったよ。インターネットを かくにんしてね。</div>';
+      return;
+    }
+
+    if (profiles.length === 0) {
+      els.profileGrid.innerHTML = '<div class="item-row-empty">まだ こが いないよ。したの ボタンから つくってね！</div>';
+      return;
+    }
+
+    els.profileGrid.innerHTML = '';
+    profiles.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'profile-card';
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.innerHTML = `
+        <button class="profile-delete" aria-label="${p.name}を けす">✕</button>
+        <div class="princess-avatar">${p.avatarEmoji || '👧'}</div>
+        <div class="princess-name">${p.name}</div>
+        <div class="profile-stars">⭐ ${p.totalStars || 0}</div>
+      `;
+      const activate = () => selectProfile(p.id);
+      card.addEventListener('click', activate);
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); }
+      });
+      card.querySelector('.profile-delete').addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteProfile(p.id, p.name);
+      });
+      els.profileGrid.appendChild(card);
+    });
+  }
+
+  async function selectProfile(id) {
+    showScreen('loading');
+    state = await C.loadProfileState(id, D.defaultState());
+    currentProfileId = id;
+    syncSoundButtons();
+    renderHome();
+    showScreen('home');
+  }
+
+  async function createProfile() {
+    const name = (prompt('こどもの なまえを いれてね') || '').trim();
+    if (!name) return;
+    const avatarEmoji = M.pick(PROFILE_AVATARS);
+    const id = await C.createProfile(name, avatarEmoji, D.defaultState());
+    await selectProfile(id);
+  }
+
+  async function deleteProfile(id, name) {
+    if (!confirm(`${name}の きろくを ぜんぶ けしますか？`)) return;
+    await C.deleteProfile(id);
+    renderProfilePicker();
   }
 
   /* ================= SCREEN: HOME ================= */
@@ -573,6 +651,12 @@
 
   /* ================= wiring ================= */
   function bindEvents() {
+    els.btnAddProfile.addEventListener('click', createProfile);
+    els.btnSwitchProfile.addEventListener('click', () => {
+      showScreen('profiles');
+      renderProfilePicker();
+    });
+
     els.btnStart.addEventListener('click', () => startGame(state.selectedLevel));
 
     els.btnReset.addEventListener('click', () => {
@@ -626,12 +710,18 @@
     els.soundToggles.forEach(btn => btn.addEventListener('click', toggleSound));
   }
 
-  function init() {
+  async function init() {
     cacheDom();
     bindEvents();
-    syncSoundButtons();
-    renderHome();
-    showScreen('home');
+    showScreen('loading');
+    try {
+      await C.init();
+    } catch (e) {
+      if (els.loadingText) els.loadingText.textContent = 'つながらなかったよ。インターネットを かくにんして、ページを つくりなおしてね。';
+      return;
+    }
+    await renderProfilePicker();
+    showScreen('profiles');
   }
 
   if (document.readyState === 'loading') {

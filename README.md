@@ -9,16 +9,47 @@ hình ảnh hay tên nhân vật có bản quyền của Disney hay bất kỳ h
 
 ## Chạy thử
 
-Ứng dụng là static site thuần HTML/CSS/JS, không cần build. Chạy một server
-tĩnh bất kỳ từ thư mục dự án, ví dụ:
+Ứng dụng là static site thuần HTML/CSS/JS, không cần build, nhưng **cần một
+Firebase project** vì tiến trình chơi được lưu trên Firestore (xem mục
+"Thiết lập Firebase" bên dưới).
+
+Chạy một server tĩnh bất kỳ từ thư mục dự án, ví dụ:
 
 ```bash
 python3 -m http.server 8420
 ```
 
-rồi mở `http://localhost:8420`. (Có thể mở thẳng `index.html` bằng trình
-duyệt, nhưng một số trình duyệt giới hạn `localStorage`/audio trên `file://`
-nên dùng server tĩnh sẽ ổn định hơn.)
+rồi mở `http://localhost:8420`. (Bắt buộc phải qua server tĩnh, không mở
+thẳng `index.html` bằng `file://` — Firebase SDK cần origin `http(s)`.)
+
+## Thiết lập Firebase
+
+App dùng Firebase (Firestore + Anonymous Auth) để lưu tiến trình của nhiều
+hồ sơ bé trên cùng một thiết bị/trình duyệt, chơi được cả khi mất mạng
+(Firestore tự đồng bộ lại khi có mạng).
+
+1. Tạo project tại [console.firebase.google.com](https://console.firebase.google.com/).
+2. Trong project, bấm biểu tượng `</>` để đăng ký một Web App (không cần
+   Firebase Hosting) — Firebase sẽ hiện một object `firebaseConfig`.
+3. Vào **Build → Firestore Database** → tạo database (Native mode).
+4. Vào **Build → Authentication → Sign-in method** → bật **Anonymous**.
+5. Trong Firestore → tab **Rules**, dán:
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /users/{uid}/{document=**} {
+         allow read, write: if request.auth != null && request.auth.uid == uid;
+       }
+     }
+   }
+   ```
+6. Mở [`src/firebase-config.js`](src/firebase-config.js) và thay các giá trị
+   `REPLACE_ME` bằng `firebaseConfig` lấy được ở bước 2.
+
+Lưu ý: vì dùng đăng nhập ẩn danh theo trình duyệt (không có tài khoản
+email/password), danh sách hồ sơ bé gắn với *thiết bị/trình duyệt* — mở app
+trên máy khác sẽ là danh sách hồ sơ rỗng, không tự đồng bộ giữa các máy.
 
 ## Cấu trúc dự án
 
@@ -30,15 +61,21 @@ src/
                       tính kế hoạch cộng theo cột. Chạy được cả trong
                       trình duyệt (window.PM.Math) lẫn Node (module.exports).
   data.js             Nội dung game: danh sách công chúa, cấp độ, các câu
-                      thoại động viên, và việc lưu/đọc tiến trình qua
-                      localStorage.
+                      thoại động viên, và hình dạng (shape) mặc định của
+                      một save-state.
+  firebase-config.js  Config Web App của Firebase (không phải bí mật) —
+                      cần tự điền, xem mục "Thiết lập Firebase".
+  cloud.js            Lưu/đọc tiến trình qua Firebase (Firestore +
+                      Anonymous Auth): khởi tạo, danh sách/tạo/xoá hồ sơ
+                      bé, load/save state của một hồ sơ.
   audio.js            Hiệu ứng âm thanh bằng WebAudio (không cần file mp3),
                       có thể bật/tắt qua nút loa.
   effects.js          Hiệu ứng hình ảnh: confetti, sticker thưởng, toast.
                       Tự giảm số lượng hạt khi trình duyệt bật
                       "reduce motion".
-  app.js              Nối tất cả lại: render 3 màn hình, xử lý sự kiện
-                      chuột/bàn phím, state machine của một lượt chơi.
+  app.js              Nối tất cả lại: màn hình chọn hồ sơ + 3 màn hình chơi,
+                      xử lý sự kiện chuột/bàn phím, state machine của một
+                      lượt chơi.
 test/
   math.test.js        Bộ test cho src/math.js, chạy bằng `npm test`.
 ```

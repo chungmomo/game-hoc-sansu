@@ -1,11 +1,9 @@
-/* Game content (princesses, levels, message pools) and save-state
-   persistence. Browser-only (uses localStorage) but has no other UI
-   dependency. */
+/* Game content (princesses, levels, message pools) and the shape of a
+   save-state. Persistence itself lives in PM.Cloud (Firebase) — this
+   file only knows what a default state looks like. */
 (function (root) {
   'use strict';
   root.PM = root.PM || {};
-
-  const STORAGE_KEY = 'princessMathState_v1';
 
   /* Princess mascots are an original design (custom icon + name) —
      no Disney (or other) character names or artwork are used. The
@@ -134,20 +132,6 @@
     };
   }
 
-  function loadState() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) return Object.assign(defaultState(), JSON.parse(raw));
-    } catch (e) { /* localStorage unavailable or payload corrupt — fall back to defaults */ }
-    return defaultState();
-  }
-
-  function saveState(state) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (e) { /* private browsing / quota exceeded — progress just won't persist */ }
-  }
-
   function isPrincessUnlocked(state, princess) {
     return state.totalStars >= princess.unlockStars;
   }
@@ -165,7 +149,6 @@
   }
 
   root.PM.Data = {
-    STORAGE_KEY,
     PRINCESSES,
     LEVELS,
     PROBLEMS_PER_SET,
@@ -190,8 +173,6 @@
     getCurrentMonster,
     isAlbumComplete,
     defaultState,
-    loadState,
-    saveState,
     isPrincessUnlocked,
     getSelectedPrincess,
   };
