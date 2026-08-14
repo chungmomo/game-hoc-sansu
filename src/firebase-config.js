@@ -15,11 +15,11 @@
   root.PM = root.PM || {};
 
   root.PM.firebaseConfig = {
-    apiKey: 'REPLACE_ME',
-    authDomain: 'REPLACE_ME.firebaseapp.com',
-    projectId: 'REPLACE_ME',
-    storageBucket: 'REPLACE_ME.appspot.com',
-    messagingSenderId: 'REPLACE_ME',
-    appId: 'REPLACE_ME',
+    apiKey: 'AIzaSyAJpaXGakzMUT0O4BP1hpTSLtuRGL6e2HI',
+    authDomain: 'gametasuzan.firebaseapp.com',
+    projectId: 'gametasuzan',
+    storageBucket: 'gametasuzan.firebasestorage.app',
+    messagingSenderId: '720496556430',
+    appId: '1:720496556430:web:34e68170667302d3614cdf',
   };
 })(typeof window !== 'undefined' ? window : globalThis);
