@@ -382,7 +382,7 @@ html,body{
 }
 
 /* operation (add/subtract) selector — reuses .level-card visuals */
-.operation-row{ display:flex; gap:.5rem; justify-content:center; }
+.operation-row{ display:flex; flex-wrap:wrap; gap:.5rem; justify-content:center; }
 
 /* digit-count shortcut row (1けた/2けた/3けた/4けた) — reuses .level-card
    visuals, kept slim since it's just a jump-to-group filter above the
@@ -609,6 +609,16 @@ html,body{
   box-shadow: 0 0 0 3px var(--gold) inset;
 }
 .place-col.done{ opacity:.72; }
+/* multiplication/division: one big answer box instead of a multi-column
+   table (see renderSingleStepBox in app.js) — wider and roomier since
+   it isn't sharing space with digit-a/digit-b/carry-slot/place-label. */
+.place-col.single-step{
+  width: 5.5rem;
+  padding: .4rem 0;
+}
+.place-col.single-step .digit-result{
+  font-size: clamp(1.6rem, 7vmin, 2.6rem);
+}
 .place-col .place-label{
   font-size:.56rem; font-weight:700; color:#9a86ab;
   min-height:1.1em; line-height:1.1;

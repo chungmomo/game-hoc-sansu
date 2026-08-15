@@ -5,7 +5,8 @@ const assert = require('assert');
 const {
   randInt, generateProblem, generateSubtractionProblem, buildProblemSet,
   buildColumnPlan, buildSubtractionColumnPlan, placeLabel, placeLabelShort,
-  subtractionStepPromptText,
+  subtractionStepPromptText, generateMultiplicationProblem, generateDivisionProblem,
+  buildSingleStepPlan,
 } = require('../src/math.js');
 
 let passed = 0;
@@ -254,6 +255,57 @@ test('placeLabelShort stays short enough to never wrap in the narrow column head
   assert.strictEqual(placeLabelShort(2), 'ひゃくの');
   assert.strictEqual(placeLabelShort(3), 'せんの');
   assert.strictEqual(placeLabelShort(4), 'まんの');
+});
+
+test('multiplication levels 1-3: correct product and per-level times-table range', () => {
+  for (let level = 1; level <= 3; level++) {
+    for (let i = 0; i < 2000; i++) {
+      const p = generateMultiplicationProblem(level);
+      assert.strictEqual(p.a * p.b, p.answer, `${p.a}×${p.b} should equal ${p.answer}`);
+      assert.ok(p.a >= 1 && p.a <= 9 && p.b >= 1 && p.b <= 9, `${p.a}×${p.b}: both factors should be single-digit`);
+      const table = [p.a, p.b];
+      if (level === 1) {
+        assert.ok(table.includes(Math.min(p.a, p.b)) && (p.a <= 5 || p.b <= 5) && (Math.min(p.a, p.b) >= 2 || Math.max(p.a,p.b) <=9),
+          `level 1: ${p.a}×${p.b} should involve the 2-5 times table`);
+      } else if (level === 2) {
+        assert.ok(p.a === 6 || p.a === 7 || p.b === 6 || p.b === 7, `level 2: ${p.a}×${p.b} should involve the 6-7 times table`);
+      }
+    }
+  }
+});
+
+test('division levels 1-3: always exact (no remainder), correct quotient, per-level divisor range', () => {
+  for (let level = 1; level <= 3; level++) {
+    for (let i = 0; i < 2000; i++) {
+      const p = generateDivisionProblem(level);
+      assert.strictEqual(p.a % p.b, 0, `${p.a}÷${p.b} should divide evenly`);
+      assert.strictEqual(p.a / p.b, p.answer, `${p.a}÷${p.b} should equal ${p.answer}`);
+      assert.ok(p.answer >= 1 && p.answer <= 9, `quotient ${p.answer} should be single-digit`);
+      assert.ok(p.b >= 2 && p.b <= 9, `divisor ${p.b} should be 2-9`);
+      if (level === 1) assert.ok(p.b >= 2 && p.b <= 5, `level 1: divisor ${p.b} should be 2-5`);
+      else if (level === 2) assert.ok(p.b === 6 || p.b === 7, `level 2: divisor ${p.b} should be 6-7`);
+    }
+  }
+});
+
+test('buildProblemSet works with the multiplication/division generators (no consecutive dup)', () => {
+  [generateMultiplicationProblem, generateDivisionProblem].forEach(gen => {
+    for (let level = 1; level <= 3; level++) {
+      for (let trial = 0; trial < 30; trial++) {
+        const set = buildProblemSet(level, 10, gen);
+        assert.strictEqual(set.length, 10);
+        for (let i = 1; i < set.length; i++) {
+          assert.ok(!(set[i].a === set[i - 1].a && set[i].b === set[i - 1].b), 'set has consecutive duplicate');
+        }
+      }
+    }
+  });
+});
+
+test('buildSingleStepPlan wraps a fact into the one-element plan shape the game loop expects', () => {
+  const plan = buildSingleStepPlan(7, 8, 56);
+  assert.strictEqual(plan.length, 1);
+  assert.deepStrictEqual(plan[0], { index: 0, x: 7, y: 8, digit: 56, synthetic: false });
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

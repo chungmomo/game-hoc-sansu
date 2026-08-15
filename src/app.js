@@ -371,6 +371,7 @@
 
     renderCollection();
     renderBadges();
+    renderCustomProblemSummary();
   }
 
   /** Achievement badges — each one's "earned" state is derived purely
@@ -412,6 +413,123 @@
     }).join('');
   }
 
+  /** Home-screen recap of how many parent/child-authored problems are
+      waiting, across both operations they can currently be filed under. */
+  function renderCustomProblemSummary() {
+    if (!els.customProblemSummary) return;
+    const cp = state.customProblems || { add: [], sub: [] };
+    const addCount = (cp.add || []).length;
+    const subCount = (cp.sub || []).length;
+    els.customProblemSummary.textContent = (addCount + subCount) > 0
+      ? `たしざん ${addCount}こ・ひきざん ${subCount}こ`
+      : 'まだ もんだいが ないよ';
+  }
+
+  /* ================= SCREEN: ADMIN (custom problems) =================
+     Lets a parent type in specific problems (e.g. from homework) instead
+     of relying on the random generator, then practice exactly that list.
+     Kept to add/sub for now — mul/div's problems (and what counts as a
+     valid one, e.g. clean division) aren't wired up here yet. Each
+     problem is just { a, b }; the operation decides how it's scored and
+     which practice list (state.customProblems.add / .sub) it lives in.
+     adminOperation is this screen's own toggle, independent of
+     state.selectedOperation, so browsing "かけざん" on the home screen
+     doesn't leave this screen with no valid operation to show. */
+  let adminOperation = 'add';
+
+  function getCustomProblems(op) {
+    if (!state.customProblems) state.customProblems = { add: [], sub: [] };
+    const key = op || adminOperation;
+    if (!state.customProblems[key]) state.customProblems[key] = [];
+    return state.customProblems[key];
+  }
+
+  function renderAdminScreen() {
+    if (!els.adminOperationRow) return;
+    els.adminOperationRow.innerHTML = '';
+    D.OPERATIONS.filter(op => op.id === 'add' || op.id === 'sub').forEach(op => {
+      const className = 'level-card' + (op.id === adminOperation ? ' selected' : '');
+      const html = `
+        <div class="level-emoji">${op.emoji}</div>
+        <div class="level-name">${op.name}</div>
+      `;
+      const card = makeSelectableCard(className, html, true, '', () => {
+        adminOperation = op.id;
+        renderAdminScreen();
+      });
+      els.adminOperationRow.appendChild(card);
+    });
+    els.adminOpSymbol.textContent = adminOperation === 'add' ? '＋' : '－';
+    els.adminInputA.value = '';
+    els.adminInputB.value = '';
+    els.adminFormError.classList.add('hidden');
+    renderAdminProblemList();
+  }
+
+  function renderAdminProblemList() {
+    const list = getCustomProblems();
+    els.adminProblemCount.textContent = list.length;
+    if (els.btnAdminPractice) els.btnAdminPractice.disabled = list.length === 0;
+    if (list.length === 0) {
+      els.adminProblemList.innerHTML = `<div class="item-row-empty">まだ もんだいが ないよ</div>`;
+      return;
+    }
+    const opSymbol = adminOperation === 'add' ? '＋' : '－';
+    els.adminProblemList.innerHTML = list.map((p, i) => `
+      <div class="admin-problem-row">
+        <span class="admin-problem-text">${p.a} ${opSymbol} ${p.b}</span>
+        <button class="admin-problem-delete" data-index="${i}" aria-label="けす">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function showAdminError(msg) {
+    els.adminFormError.textContent = msg;
+    els.adminFormError.classList.remove('hidden');
+  }
+
+  function addCustomProblem() {
+    const a = parseInt(els.adminInputA.value, 10);
+    const b = parseInt(els.adminInputB.value, 10);
+    els.adminFormError.classList.add('hidden');
+    if (!Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b < 0) {
+      showAdminError('すうじを 2つ いれてね');
+      return;
+    }
+    if (a > 99999 || b > 99999) {
+      showAdminError('すうじが おおきすぎるよ');
+      return;
+    }
+    if (adminOperation === 'sub' && a < b) {
+      showAdminError('ひきざんは 1つめが 2つめより おおきい すうじに してね');
+      return;
+    }
+    getCustomProblems().push({ a, b });
+    saveState();
+    els.adminInputA.value = '';
+    els.adminInputB.value = '';
+    els.adminInputA.focus();
+    renderAdminProblemList();
+  }
+
+  function deleteCustomProblem(index) {
+    getCustomProblems().splice(index, 1);
+    saveState();
+    renderAdminProblemList();
+  }
+
+  function startCustomGame() {
+    const list = getCustomProblems();
+    if (list.length === 0) return;
+    const operation = adminOperation;
+    const problems = M.shuffle(list).map(p => ({
+      a: p.a,
+      b: p.b,
+      answer: operation === 'add' ? p.a + p.b : p.a - p.b,
+    }));
+    beginGame({ problems, level: state.selectedLevelByOp[operation] || 1, operation, isCustom: true });
+  }
+
   /* ================= SCREEN: GAME ================= */
   const PROBLEM_GENERATORS = {
     sub: M.generateSubtractionProblem,
@@ -419,21 +537,27 @@
     div: M.generateDivisionProblem,
   };
 
-  function startGame(level) {
-    const operation = state.selectedOperation;
+  /** Shared game-session setup for both the graded level flow and the
+      "practice my own problems" admin flow below — `total` (not the
+      fixed D.PROBLEMS_PER_SET) drives progress/results throughout, so a
+      shorter or longer custom problem list works without special-casing
+      the rest of the game loop. */
+  function beginGame({ problems, level, operation, isCustom }) {
     const monster = D.getCurrentMonster(state);
     game = {
       level,
       operation,
       monster,
-      problems: M.buildProblemSet(level, D.PROBLEMS_PER_SET, PROBLEM_GENERATORS[operation]),
+      isCustom: !!isCustom,
+      problems,
+      total: problems.length,
       index: 0,
       correctCount: 0,
       starsEarned: 0,
       streak: 0,
       peakStreak: 0,
       problemHadMistake: false,
-      luckyIndex: M.randInt(1, D.PROBLEMS_PER_SET - 2),
+      luckyIndex: problems.length >= 3 ? M.randInt(1, problems.length - 2) : -1,
       livesIcons: ['💖', '💖', '💖'],
       princessHp: 100,
       monsterHp: 100,
@@ -447,6 +571,12 @@
     renderHpBars();
     E.showToast(D.MONSTER_APPEAR_MESSAGE(monster));
     renderProblem();
+  }
+
+  function startGame(level) {
+    const operation = state.selectedOperation;
+    const problems = M.buildProblemSet(level, D.PROBLEMS_PER_SET, PROBLEM_GENERATORS[operation]);
+    beginGame({ problems, level, operation, isCustom: false });
   }
 
   function renderMascotHeader() {
@@ -490,8 +620,8 @@
 
   function renderProgress() {
     els.progressCurrent.textContent = game.index + 1;
-    els.progressTotal.textContent = D.PROBLEMS_PER_SET;
-    els.progressFill.style.width = (game.index / D.PROBLEMS_PER_SET) * 100 + '%';
+    els.progressTotal.textContent = game.total;
+    els.progressFill.style.width = (game.index / game.total) * 100 + '%';
   }
 
   /* ---------------- per-problem countdown timer ---------------- */
@@ -847,7 +977,7 @@
         flashClass(els.mascot, 'attacking', 550);
         E.spawnProjectile(els.mascot, els.monsterDisplay, '🪄', () => {
           flashClass(els.monsterDisplay, 'hit', 500);
-          game.monsterHp = Math.max(0, game.monsterHp - 100 / D.PROBLEMS_PER_SET);
+          game.monsterHp = Math.max(0, game.monsterHp - 100 / game.total);
           renderHpBars();
         });
         revealFinalAnswer();
@@ -899,7 +1029,7 @@
 
   function nextProblem() {
     game.index++;
-    if (game.index >= D.PROBLEMS_PER_SET) {
+    if (game.index >= game.total) {
       finishSet();
     } else {
       renderProblem();
@@ -916,12 +1046,20 @@
     state.totalStars += earned;
     state.bestStreak = Math.max(state.bestStreak || 0, game.peakStreak);
 
-    const passed = correct >= D.PASS_THRESHOLD;
+    // Custom (parent-authored) practice sets can be any length, so the
+    // pass/celebrate bars scale by the same ratio the graded flow uses
+    // (D.PASS_THRESHOLD / D.CELEBRATE_STARS_THRESHOLD out of
+    // D.PROBLEMS_PER_SET) rather than the fixed absolute counts.
+    const passThreshold = Math.ceil(game.total * D.PASS_THRESHOLD / D.PROBLEMS_PER_SET);
+    const celebrateThreshold = Math.ceil(game.total * D.CELEBRATE_STARS_THRESHOLD / D.PROBLEMS_PER_SET);
+    const passed = correct >= passThreshold;
     let leveledUp = false;
-    const maxUnlocked = state.maxUnlockedLevelByOp[game.operation];
-    if (passed && game.level === maxUnlocked && maxUnlocked < D.MAX_LEVEL_ID) {
-      state.maxUnlockedLevelByOp[game.operation] = maxUnlocked + 1;
-      leveledUp = true;
+    if (!game.isCustom) {
+      const maxUnlocked = state.maxUnlockedLevelByOp[game.operation];
+      if (passed && game.level === maxUnlocked && maxUnlocked < D.getMaxLevelIdForOp(game.operation)) {
+        state.maxUnlockedLevelByOp[game.operation] = maxUnlocked + 1;
+        leveledUp = true;
+      }
     }
 
     let storyLine = `${game.monster.emoji} ${game.monster.name}は まだ ちかくに いるよ…もういちど たたかおう！`;
@@ -947,23 +1085,23 @@
     const p = D.getSelectedPrincess(state);
     els.resultMascot.textContent = leveledUp ? '🎊' : p.avatar;
     els.resultTitle.textContent =
-      correct === D.PROBLEMS_PER_SET ? 'かんぺき！さんすう おひめさまだね！' :
+      correct === game.total ? 'かんぺき！さんすう おひめさまだね！' :
       passed ? 'よく できました！' : 'よく がんばったね！';
     // Repeating one glyph per problem reads as a cute star row at small
     // set sizes, but with a set in the thousands it'd mean rendering
     // thousands of characters — fall back to a compact count instead.
-    els.resultStars.textContent = D.PROBLEMS_PER_SET <= 30
-      ? '⭐'.repeat(correct) + '☆'.repeat(D.PROBLEMS_PER_SET - correct)
-      : `⭐ ${correct} / ${D.PROBLEMS_PER_SET}`;
+    els.resultStars.textContent = game.total <= 30
+      ? '⭐'.repeat(correct) + '☆'.repeat(game.total - correct)
+      : `⭐ ${correct} / ${game.total}`;
     const bonusNote = earned > correct ? `（おまけで +${earned - correct}こ！）` : '';
     els.resultDetail.textContent =
-      `${D.PROBLEMS_PER_SET}もんちゅう ${correct}もん せいかい — ほし +${earned}こ${bonusNote} — ぜんぶで ${state.totalStars}こ` +
+      `${game.total}もんちゅう ${correct}もん せいかい — ほし +${earned}こ${bonusNote} — ぜんぶで ${state.totalStars}こ` +
       (leveledUp ? ' — 🎉 あたらしい むずかしさが あいたよ！' : '');
 
-    els.btnNextLevel.style.display = (game.level < D.MAX_LEVEL_ID && (game.level + 1) <= state.maxUnlockedLevelByOp[game.operation]) ? 'inline-block' : 'none';
+    els.btnNextLevel.style.display = (!game.isCustom && game.level < D.getMaxLevelIdForOp(game.operation) && (game.level + 1) <= state.maxUnlockedLevelByOp[game.operation]) ? 'inline-block' : 'none';
 
     showScreen('result');
-    if (correct >= D.CELEBRATE_STARS_THRESHOLD) {
+    if (correct >= celebrateThreshold) {
       E.spawnConfetti(40, p.rewardEmoji);
       A.playCelebrateSound();
     }
@@ -1014,6 +1152,38 @@
       renderHome();
     });
 
+    if (els.btnOpenAdmin) {
+      els.btnOpenAdmin.addEventListener('click', () => {
+        showScreen('admin');
+        renderAdminScreen();
+      });
+    }
+    if (els.btnAdminBack) {
+      els.btnAdminBack.addEventListener('click', () => {
+        showScreen('home');
+        renderHome();
+      });
+    }
+    if (els.btnAdminAdd) els.btnAdminAdd.addEventListener('click', addCustomProblem);
+    if (els.adminInputA) {
+      els.adminInputA.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); els.adminInputB.focus(); }
+      });
+    }
+    if (els.adminInputB) {
+      els.adminInputB.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); addCustomProblem(); }
+      });
+    }
+    if (els.adminProblemList) {
+      els.adminProblemList.addEventListener('click', (e) => {
+        const btn = e.target.closest('.admin-problem-delete');
+        if (!btn) return;
+        deleteCustomProblem(Number(btn.dataset.index));
+      });
+    }
+    if (els.btnAdminPractice) els.btnAdminPractice.addEventListener('click', startCustomGame);
+
     els.keypad.addEventListener('click', (e) => {
       const btn = e.target.closest('.key');
       if (!btn) return;
@@ -1035,9 +1205,12 @@
       }
     });
 
-    els.btnPlayAgain.addEventListener('click', () => startGame(game.level));
+    els.btnPlayAgain.addEventListener('click', () => {
+      if (game.isCustom) startCustomGame();
+      else startGame(game.level);
+    });
     els.btnNextLevel.addEventListener('click', () => {
-      const next = Math.min(game.level + 1, D.MAX_LEVEL_ID);
+      const next = Math.min(game.level + 1, D.getMaxLevelIdForOp(game.operation));
       state.selectedLevelByOp[game.operation] = next;
       saveState();
       startGame(next);
