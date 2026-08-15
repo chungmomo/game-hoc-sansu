@@ -214,6 +214,22 @@ html,body{
 .progress-text{ text-align:center; font-size:.65rem; font-weight:700; color:var(--purple-dark); margin-top:.1rem; }
 .lives{ font-size:.85rem; flex:0 0 auto; }
 
+/* per-problem countdown — one bar per "phép tính", resets on a new
+   problem, not on every column/retry within it */
+.timer-wrap{ margin-top:.2rem; }
+.timer-wrap.hidden{ display:none; }
+.timer-track{
+  background: rgba(255,255,255,.7); border-radius:999px; height:6px; overflow:hidden;
+  border: 1px solid rgba(255,255,255,.6);
+}
+.timer-fill{
+  height:100%; width:100%;
+  background: linear-gradient(90deg, #4caf50, #8bc34a);
+  border-radius:999px;
+  transition: width .15s linear, background .3s ease;
+}
+.timer-fill.low{ background: linear-gradient(90deg, #ff6b6b, var(--pink-dark)); }
+
 .mascot-zone{
   display:flex; align-items:center; gap:.4rem; flex-wrap:wrap;
   max-width:640px; width:100%;
@@ -244,6 +260,13 @@ html,body{
   0%{ transform:scale(.4); }
   60%{ transform:scale(1.3); }
   100%{ transform:scale(1); }
+}
+.companion-sprite{
+  position:absolute; bottom:-.15rem; left:-.5rem;
+  font-size:1.15rem; line-height:1;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.15));
+  animation: bob 2.6s ease-in-out infinite .5s;
+  pointer-events:none;
 }
 .speech-bubble{
   background:#fff; border-radius:14px; padding:.35rem .6rem;
@@ -358,6 +381,27 @@ html,body{
   font-size:.68rem; color:#9a86ab; text-align:center;
 }
 
+/* operation (add/subtract) selector — reuses .level-card visuals */
+.operation-row{ display:flex; gap:.5rem; justify-content:center; }
+
+/* achievement badges */
+.badge-grid{
+  display:flex; flex-wrap:wrap; gap:.4rem; justify-content:center;
+}
+.badge-slot{
+  width: 64px;
+  background:#f3edfa; border-radius:10px; padding:.3rem .2rem;
+  text-align:center;
+  border:1.5px dashed #d8c8e6;
+}
+.badge-slot.collected{
+  background:#fff; border-style:solid; border-color:var(--gold);
+  box-shadow: 0 2px 6px rgba(255,213,79,.4);
+}
+.badge-emoji{ font-size:1.3rem; line-height:1; }
+.badge-name{ font-size:.5rem; font-weight:700; color:var(--ink); margin-top:.1rem; line-height:1.15; }
+.badge-slot:not(.collected) .badge-name{ color:#c3b3d6; }
+
 /* ---------- LOADING ---------- */
 .loading-wrap{
   margin:auto; text-align:center; color:var(--purple-dark);
@@ -395,6 +439,10 @@ html,body{
 .profile-card:active{ transform: scale(.95); }
 .profile-card .princess-avatar{ font-size:1.9rem; }
 .profile-stars{ font-size:.6rem; font-weight:800; color:#a8710a; margin-top:.1rem; }
+.profile-code{
+  font-size:.5rem; font-weight:700; color:#9a8fb0; margin-top:.15rem;
+  font-family: 'Quicksand', monospace; letter-spacing:.02em;
+}
 .profile-delete{
   position:absolute; top:-6px; right:-6px;
   width:20px; height:20px; border-radius:50%;
@@ -410,6 +458,7 @@ html,body{
 }
 
 .problem-card{
+  width:100%; max-width:640px;
   background: rgba(255,255,255,.9);
   border-radius: 20px;
   padding: .55rem .8rem;
@@ -456,6 +505,10 @@ html,body{
   width: 100%;
   margin: .15rem 0;
 }
+.problem-overview .overview-line.hidden,
+.problem-overview .overview-answer.hidden{
+  visibility: hidden;
+}
 .problem-overview .overview-answer{
   display: inline-block;
   color: var(--pink-dark);
@@ -463,6 +516,8 @@ html,body{
   border-radius: 10px;
   padding: 0 .6rem;
   margin-top: .1rem;
+}
+.problem-overview .overview-answer.pop-in{
   animation: pop .5s ease;
 }
 .problem-body{
@@ -718,14 +773,14 @@ html,body{
   #screen-home.active{
     display:grid;
     grid-template-columns: minmax(140px, 220px) 1fr;
-    grid-template-rows: repeat(3, auto);
+    grid-template-rows: repeat(5, auto);
     column-gap:.7rem;
     align-items:start;
     width:100%;
     max-width:900px;
   }
   #screen-home .home-header{
-    grid-column:1; grid-row: 1 / span 3;
+    grid-column:1; grid-row: 1 / span 5;
     justify-content:center; height:100%;
   }
   #screen-home .castle-top{ font-size:1.1rem; }

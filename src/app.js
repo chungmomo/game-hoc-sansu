@@ -20,6 +20,16 @@
     C.saveProfileState(currentProfileId, state);
   }
 
+  /* Addition and subtraction are different skills, so level progress is
+     tracked separately per operation (state.selectedLevelByOp /
+     maxUnlockedLevelByOp), scoped to whichever operation is selected. */
+  function getSelectedLevel() {
+    return state.selectedLevelByOp[state.selectedOperation];
+  }
+  function getMaxUnlockedLevel() {
+    return state.maxUnlockedLevelByOp[state.selectedOperation];
+  }
+
   const screens = {};
   const els = {};
 
@@ -33,13 +43,16 @@
     els.loadingText = document.querySelector('#screen-loading .loading-text');
     els.profileGrid = document.getElementById('profile-grid');
     els.btnAddProfile = document.getElementById('btn-add-profile');
+    els.btnLinkProfile = document.getElementById('btn-link-profile');
     els.btnSwitchProfile = document.getElementById('btn-switch-profile');
 
     els.starTotalText = document.getElementById('star-total-text');
+    els.operationRow = document.getElementById('operation-row');
     els.princessRow = document.getElementById('princess-row');
     els.levelRow = document.getElementById('level-row');
     els.puzzleGrid = document.getElementById('puzzle-grid');
     els.itemRow = document.getElementById('item-row');
+    els.badgeGrid = document.getElementById('badge-grid');
     els.btnStart = document.getElementById('btn-start');
     els.btnReset = document.getElementById('btn-reset');
 
@@ -47,8 +60,12 @@
     els.progressCurrent = document.getElementById('progress-current');
     els.progressTotal = document.getElementById('progress-total');
     els.progressFill = document.getElementById('progress-fill');
+    els.timerWrap = document.getElementById('timer-wrap');
+    els.timerFill = document.getElementById('timer-fill');
+    els.btnToggleTimer = document.getElementById('btn-toggle-timer');
     els.lives = document.getElementById('lives');
     els.mascot = document.getElementById('mascot');
+    els.companionSprite = document.getElementById('companion-sprite');
     els.speechBubble = document.getElementById('speech-bubble');
     els.streakBadge = document.getElementById('streak-badge');
     els.monsterDisplay = document.getElementById('monster-display');
@@ -122,6 +139,7 @@
         <div class="princess-avatar">${p.avatarEmoji || '👧'}</div>
         <div class="princess-name">${p.name}</div>
         <div class="profile-stars">⭐ ${p.totalStars || 0}</div>
+        <div class="profile-code">コード: ${p.id}</div>
       `;
       const activate = () => selectProfile(p.id);
       card.addEventListener('click', activate);
@@ -141,6 +159,7 @@
     state = await C.loadProfileState(id, D.defaultState());
     currentProfileId = id;
     syncSoundButtons();
+    syncTimerButton();
     renderHome();
     showScreen('home');
   }
@@ -150,7 +169,19 @@
     if (!name) return;
     const avatarEmoji = M.pick(PROFILE_AVATARS);
     const id = await C.createProfile(name, avatarEmoji, D.defaultState());
+    alert(`${name}の コード: ${id}\n\nべつの きき で つづきを あそぶときは、この コードを にゅうりょくしてね。`);
     await selectProfile(id);
+  }
+
+  async function linkProfile() {
+    const raw = (prompt('コードを にゅうりょくしてね（れい：A7K2QX）') || '').trim();
+    if (!raw) return;
+    const profile = await C.linkProfileByCode(raw);
+    if (!profile) {
+      alert('その コードの こが みつからなかったよ。もういちど かくにんしてね。');
+      return;
+    }
+    await selectProfile(profile.id);
   }
 
   async function deleteProfile(id, name) {
@@ -186,6 +217,21 @@
   function renderHome() {
     els.starTotalText.textContent = state.totalStars;
 
+    els.operationRow.innerHTML = '';
+    D.OPERATIONS.forEach(op => {
+      const className = 'level-card' + (op.id === state.selectedOperation ? ' selected' : '');
+      const html = `
+        <div class="level-emoji">${op.emoji}</div>
+        <div class="level-name">${op.name}</div>
+      `;
+      const card = makeSelectableCard(className, html, true, '', () => {
+        state.selectedOperation = op.id;
+        saveState();
+        renderHome();
+      });
+      els.operationRow.appendChild(card);
+    });
+
     els.princessRow.innerHTML = '';
     D.PRINCESSES.forEach(p => {
       const unlocked = D.isPrincessUnlocked(state, p);
@@ -204,16 +250,17 @@
     });
 
     els.levelRow.innerHTML = '';
+    const maxUnlocked = getMaxUnlockedLevel();
     D.LEVELS.forEach(lv => {
-      const unlocked = lv.id <= state.maxUnlockedLevel;
-      const className = 'level-card' + (lv.id === state.selectedLevel ? ' selected' : '');
+      const unlocked = lv.id <= maxUnlocked;
+      const className = 'level-card' + (lv.id === getSelectedLevel() ? ' selected' : '');
       const html = `
         <div class="level-emoji">${lv.emoji}</div>
         <div class="level-name">${lv.name}${unlocked ? '' : ' 🔒'}</div>
         <div class="level-desc">${lv.desc}</div>
       `;
       const card = makeSelectableCard(className, html, unlocked, 'まえの むずかしさを おわらせてから えらんでね！', () => {
-        state.selectedLevel = lv.id;
+        state.selectedLevelByOp[state.selectedOperation] = lv.id;
         saveState();
         renderHome();
       });
@@ -222,6 +269,23 @@
     });
 
     renderCollection();
+    renderBadges();
+  }
+
+  /** Achievement badges — each one's "earned" state is derived purely
+      from `state` (see D.BADGES), so there's nothing to keep in sync
+      here beyond redrawing. */
+  function renderBadges() {
+    if (!els.badgeGrid) return;
+    const earned = new Set(D.getEarnedBadgeIds(state));
+    els.badgeGrid.innerHTML = D.BADGES.map(b => {
+      const got = earned.has(b.id);
+      return `
+        <div class="badge-slot${got ? ' collected' : ''}" title="${got ? b.desc : '？？？'}">
+          <div class="badge-emoji">${got ? b.emoji : '❓'}</div>
+          <div class="badge-name">${got ? b.name : '？？？'}</div>
+        </div>`;
+    }).join('');
   }
 
   /** Home-screen recap of the adventure so far: which pieces of the
@@ -243,21 +307,26 @@
     state.itemsCollected.forEach(i => counts.set(i, (counts.get(i) || 0) + 1));
     els.itemRow.innerHTML = Array.from(counts.entries()).map(([i, count]) => {
       const item = D.ITEMS[i];
-      return `<div class="item-badge" title="${item.name}">${item.emoji}${count > 1 ? `<span class="item-count">×${count}</span>` : ''}</div>`;
+      return `<div class="item-badge" title="${item.name}">${item.icon || item.emoji}${count > 1 ? `<span class="item-count">×${count}</span>` : ''}</div>`;
     }).join('');
   }
 
   /* ================= SCREEN: GAME ================= */
   function startGame(level) {
+    const operation = state.selectedOperation;
     const monster = D.getCurrentMonster(state);
     game = {
       level,
+      operation,
       monster,
-      problems: M.buildProblemSet(level, D.PROBLEMS_PER_SET),
+      problems: operation === 'add'
+        ? M.buildProblemSet(level, D.PROBLEMS_PER_SET)
+        : M.buildProblemSet(level, D.PROBLEMS_PER_SET, M.generateSubtractionProblem),
       index: 0,
       correctCount: 0,
       starsEarned: 0,
       streak: 0,
+      peakStreak: 0,
       problemHadMistake: false,
       luckyIndex: M.randInt(1, D.PROBLEMS_PER_SET - 2),
       livesIcons: ['💖', '💖', '💖'],
@@ -279,11 +348,16 @@
     const p = D.getSelectedPrincess(state);
     els.mascot.textContent = p.mascot;
     els.lives.textContent = game.livesIcons.join('');
+    // Shared mischievous familiar, not tied to any one princess — same
+    // sprite regardless of who's selected, just a bit of extra flair.
+    if (els.companionSprite) els.companionSprite.innerHTML = D.COMPANION_SPRITE || '';
   }
 
   function renderMonster() {
     if (!els.monsterDisplay) return;
-    els.monsterDisplay.textContent = game.monster.emoji;
+    // innerHTML so monsters with a hand-drawn SVG `icon` render it;
+    // older entries fall back to their plain `emoji` character.
+    els.monsterDisplay.innerHTML = game.monster.icon || game.monster.emoji;
     els.monsterName.textContent = game.monster.name;
   }
 
@@ -315,9 +389,93 @@
     els.progressFill.style.width = (game.index / D.PROBLEMS_PER_SET) * 100 + '%';
   }
 
+  /* ---------------- per-problem countdown timer ---------------- */
+  const TIMER_BASE_SECONDS = 15;
+  const TIMER_PER_COLUMN_SECONDS = 10;
+
+  /** One timer per problem (not per column) — it keeps counting across
+      wrong-answer retries within the same problem and only resets when a
+      new problem starts, matching "1 phép tính" (one calculation). */
+  function startProblemTimer() {
+    stopProblemTimer();
+    if (!state.timerEnabled || !game) {
+      if (els.timerWrap) els.timerWrap.classList.add('hidden');
+      return;
+    }
+    if (els.timerWrap) els.timerWrap.classList.remove('hidden');
+    game.timerTotal = TIMER_BASE_SECONDS + game.columnPlan.length * TIMER_PER_COLUMN_SECONDS;
+    game.timerRemaining = game.timerTotal;
+    if (els.timerFill) {
+      els.timerFill.style.width = '100%';
+      els.timerFill.classList.remove('low');
+    }
+    game.timerInterval = setInterval(() => {
+      game.timerRemaining -= 0.1;
+      const pct = Math.max(0, (game.timerRemaining / game.timerTotal) * 100);
+      if (els.timerFill) {
+        els.timerFill.style.width = pct + '%';
+        els.timerFill.classList.toggle('low', pct <= 30);
+      }
+      if (game.timerRemaining <= 0) onTimeUp();
+    }, 100);
+  }
+
+  function stopProblemTimer() {
+    if (game && game.timerInterval) {
+      clearInterval(game.timerInterval);
+      game.timerInterval = null;
+    }
+  }
+
+  /** Timing out mid-problem is treated exactly like a wrong column
+      answer (lose a heart, encourage, monster counter-attack) — same
+      "always another try" philosophy as loseHeart() — then the timer
+      just restarts for another attempt at the same problem. */
+  function onTimeUp() {
+    if (!game || game.locked) return;
+    const colEl = activeColumnEl();
+    if (colEl) {
+      colEl.classList.remove('correct-pop');
+      void colEl.offsetWidth;
+      colEl.classList.add('wrong-shake');
+    }
+    els.speechBubble.textContent = 'じかんぎれ！もういちど がんばろう！';
+    A.playWrongSound();
+    flashClass(els.monsterDisplay, 'attacking', 550);
+    E.spawnProjectile(els.monsterDisplay, els.mascot, '💥', () => {
+      flashClass(els.mascot, 'hit', 500);
+      game.princessHp = Math.max(0, game.princessHp - 20);
+      renderHpBars();
+    });
+    game.problemHadMistake = true;
+    loseHeart();
+    game.buffer = '';
+    setTimeout(() => {
+      if (colEl) colEl.classList.remove('wrong-shake');
+      updateActiveResultDisplay();
+    }, 420);
+    startProblemTimer();
+  }
+
+  function syncTimerButton() {
+    if (!els.btnToggleTimer) return;
+    els.btnToggleTimer.textContent = state.timerEnabled ? '⏱️' : '⏱️🚫';
+    els.btnToggleTimer.setAttribute('aria-pressed', String(state.timerEnabled));
+    els.btnToggleTimer.setAttribute('aria-label', state.timerEnabled ? 'タイマーを けす' : 'タイマーを つける');
+  }
+
+  function toggleTimer() {
+    state.timerEnabled = !state.timerEnabled;
+    saveState();
+    syncTimerButton();
+    if (game && screens.game.classList.contains('active')) startProblemTimer();
+  }
+
   function renderProblem() {
     const prob = game.problems[game.index];
-    game.columnPlan = M.buildColumnPlan(prob.a, prob.b);
+    game.columnPlan = game.operation === 'add'
+      ? M.buildColumnPlan(prob.a, prob.b)
+      : M.buildSubtractionColumnPlan(prob.a, prob.b);
     game.currentStep = 0;
     game.buffer = '';
     game.locked = false;
@@ -328,15 +486,19 @@
     els.problemCard.classList.toggle('lucky', isLucky);
     els.speechBubble.textContent = isLucky ? D.LUCKY_PROBLEM_MESSAGE : M.pick(D.STARTER_MESSAGES);
     if (isLucky) E.showToast(D.LUCKY_PROBLEM_MESSAGE);
+    const opSymbol = game.operation === 'add' ? '+' : '－';
     els.problemOverview.innerHTML = `
       <span class="overview-label">もんだい</span>
       <div class="overview-numbers">
         <div>${prob.a}</div>
-        <div>+ ${prob.b}</div>
+        <div>${opSymbol} ${prob.b}</div>
+        <div class="overview-line hidden"></div>
+        <div class="overview-answer hidden">&nbsp;</div>
       </div>
     `;
     renderColumnTable();
     renderStepPrompt();
+    startProblemTimer();
   }
 
   /** Once every column is solved, assemble the digits into the whole
@@ -345,21 +507,24 @@
       a moment to register the complete answer, not just the separate
       per-column digits. */
   function revealFinalAnswer() {
-    const answer = game.columnPlan.map(s => s.digit).reverse().join('');
+    const digits = game.columnPlan.map(s => s.digit).reverse().join('');
+    const answer = String(Number(digits)); // strip meaningless leading zeros (subtraction, e.g. "001" -> "1")
     const numbersEl = els.problemOverview.querySelector('.overview-numbers');
     if (!numbersEl) return;
-    const line = document.createElement('div');
-    line.className = 'overview-line';
-    const answerEl = document.createElement('div');
-    answerEl.className = 'overview-answer';
+    const line = numbersEl.querySelector('.overview-line');
+    const answerEl = numbersEl.querySelector('.overview-answer');
+    if (!line || !answerEl) return;
+    line.classList.remove('hidden');
+    answerEl.classList.remove('hidden');
     answerEl.textContent = answer;
-    numbersEl.appendChild(line);
-    numbersEl.appendChild(answerEl);
+    flashClass(answerEl, 'pop-in', 500);
   }
 
   function renderStepPrompt() {
     const step = game.columnPlan[game.currentStep];
-    els.stepPrompt.textContent = M.stepPromptText(step);
+    els.stepPrompt.textContent = game.operation === 'add'
+      ? M.stepPromptText(step)
+      : M.subtractionStepPromptText(step);
     renderAnimalCounters(step);
   }
 
@@ -393,11 +558,12 @@
     const current = game.currentStep;
     const cols = [...game.columnPlan].reverse();
 
+    const isAdd = game.operation === 'add';
     let html = `
       <div class="place-col plus-col">
         <div class="place-label">&nbsp;</div>
         <div class="digit-a">&nbsp;</div>
-        <div class="digit-b">+</div>
+        <div class="digit-b">${isAdd ? '+' : '－'}</div>
         <div class="carry-slot">&nbsp;</div>
         <div class="line"></div>
         <div class="digit-result">&nbsp;</div>
@@ -407,7 +573,10 @@
       const isActive = step.index === current;
       const isDone = step.index < current;
       const known = step.index <= current;
-      const carryHtml = (known && step.carryIn > 0) ? `${step.carryIn}` : '&nbsp;';
+      // Subtraction resolves borrowing directly into the step prompt
+      // text (see subtractionStepPromptText) rather than a separate
+      // carry-style indicator, so the carry-slot stays empty for it.
+      const carryHtml = (isAdd && known && step.carryIn > 0) ? `${step.carryIn}` : '&nbsp;';
       const digitA = step.synthetic ? '&nbsp;' : step.x;
       const digitB = step.synthetic ? '&nbsp;' : step.y;
 
@@ -472,8 +641,15 @@
     els.lives.textContent = game.livesIcons.join('');
   }
 
+  /** What the child must type for a column: the raw sum for addition
+      (which may be 2 digits, teaching "write X, carry Y"), or the
+      already-resolved single digit for subtraction. */
+  function expectedColumnValue(step) {
+    return game.operation === 'add' ? step.sum : step.digit;
+  }
+
   function currentExpectedLen() {
-    return String(game.columnPlan[game.currentStep].sum).length;
+    return String(expectedColumnValue(game.columnPlan[game.currentStep])).length;
   }
 
   function pressDigit(digit) {
@@ -502,7 +678,7 @@
     const userSum = Number(game.buffer);
     const colEl = activeColumnEl();
 
-    if (userSum === step.sum) {
+    if (userSum === expectedColumnValue(step)) {
       game.locked = true;
       const rewardEmoji = D.getSelectedPrincess(state).rewardEmoji;
       colEl.classList.add('correct-pop');
@@ -511,6 +687,7 @@
 
       const isLastStep = game.currentStep === game.columnPlan.length - 1;
       if (isLastStep) {
+        stopProblemTimer(); // freeze the bar during the celebration pause below
         const wasPerfect = !game.problemHadMistake;
         const isLucky = game.index === game.luckyIndex;
         let starsForProblem = 1;
@@ -522,6 +699,7 @@
         }
         if (wasPerfect) {
           game.streak++;
+          game.peakStreak = Math.max(game.peakStreak, game.streak);
           if (D.STREAK_MILESTONES.includes(game.streak)) {
             starsForProblem += D.STREAK_BONUS_STARS;
             bonusMessage = M.pick(D.STREAK_MESSAGES);
@@ -548,7 +726,11 @@
         setTimeout(nextProblem, 2000);
       } else {
         els.speechBubble.textContent = M.pick(D.COLUMN_PRAISE);
-        const carryDigit = step.carryOut;
+        // Subtraction resolves borrowing into the next step's prompt text
+        // (see subtractionStepPromptText) rather than a flown carry digit,
+        // so there's nothing to animate here for it — v1 keeps that
+        // simpler than mirroring the addition carry-flight in reverse.
+        const carryDigit = game.operation === 'add' ? step.carryOut : 0;
         const carryFromRect = carryDigit > 0 ? colEl.querySelector('.digit-result').getBoundingClientRect() : null;
         setTimeout(() => {
           game.currentStep++;
@@ -598,14 +780,19 @@
 
   /* ================= SCREEN: RESULT ================= */
   function finishSet() {
+    stopProblemTimer();
+    const badgesBefore = new Set(D.getEarnedBadgeIds(state));
+
     const correct = game.correctCount;
     const earned = game.starsEarned;
     state.totalStars += earned;
+    state.bestStreak = Math.max(state.bestStreak || 0, game.peakStreak);
 
     const passed = correct >= D.PASS_THRESHOLD;
     let leveledUp = false;
-    if (passed && game.level === state.maxUnlockedLevel && state.maxUnlockedLevel < D.LEVELS.length) {
-      state.maxUnlockedLevel++;
+    const maxUnlocked = state.maxUnlockedLevelByOp[game.operation];
+    if (passed && game.level === maxUnlocked && maxUnlocked < D.LEVELS.length) {
+      state.maxUnlockedLevelByOp[game.operation] = maxUnlocked + 1;
       leveledUp = true;
     }
 
@@ -640,24 +827,33 @@
       `${D.PROBLEMS_PER_SET}もんちゅう ${correct}もん せいかい — ほし +${earned}こ${bonusNote} — ぜんぶで ${state.totalStars}こ` +
       (leveledUp ? ' — 🎉 あたらしい むずかしさが あいたよ！' : '');
 
-    els.btnNextLevel.style.display = (game.level < D.LEVELS.length && (game.level + 1) <= state.maxUnlockedLevel) ? 'inline-block' : 'none';
+    els.btnNextLevel.style.display = (game.level < D.LEVELS.length && (game.level + 1) <= state.maxUnlockedLevelByOp[game.operation]) ? 'inline-block' : 'none';
 
     showScreen('result');
     if (correct >= D.CELEBRATE_STARS_THRESHOLD) {
       E.spawnConfetti(40, p.rewardEmoji);
       A.playCelebrateSound();
     }
+
+    const newBadgeIds = D.getEarnedBadgeIds(state).filter(id => !badgesBefore.has(id));
+    newBadgeIds.forEach(id => {
+      const badge = D.BADGES.find(b => b.id === id);
+      if (!badge) return;
+      E.showToast(`🏅 あたらしい きろく：${badge.name}！`);
+      E.spawnConfetti(20, [badge.emoji]);
+    });
   }
 
   /* ================= wiring ================= */
   function bindEvents() {
     els.btnAddProfile.addEventListener('click', createProfile);
+    els.btnLinkProfile.addEventListener('click', linkProfile);
     els.btnSwitchProfile.addEventListener('click', () => {
       showScreen('profiles');
       renderProfilePicker();
     });
 
-    els.btnStart.addEventListener('click', () => startGame(state.selectedLevel));
+    els.btnStart.addEventListener('click', () => startGame(getSelectedLevel()));
 
     els.btnReset.addEventListener('click', () => {
       if (confirm('いままでの きろくと ほしを ぜんぶ けしますか？')) {
@@ -670,6 +866,7 @@
     });
 
     els.btnBackHome.addEventListener('click', () => {
+      stopProblemTimer();
       showScreen('home');
       renderHome();
     });
@@ -698,16 +895,18 @@
     els.btnPlayAgain.addEventListener('click', () => startGame(game.level));
     els.btnNextLevel.addEventListener('click', () => {
       const next = Math.min(game.level + 1, D.LEVELS.length);
-      state.selectedLevel = next;
+      state.selectedLevelByOp[game.operation] = next;
       saveState();
       startGame(next);
     });
     els.btnGoHome.addEventListener('click', () => {
+      stopProblemTimer();
       showScreen('home');
       renderHome();
     });
 
     els.soundToggles.forEach(btn => btn.addEventListener('click', toggleSound));
+    if (els.btnToggleTimer) els.btnToggleTimer.addEventListener('click', toggleTimer);
   }
 
   async function init() {
