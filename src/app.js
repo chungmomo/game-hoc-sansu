@@ -46,6 +46,13 @@
     els.btnLinkProfile = document.getElementById('btn-link-profile');
     els.btnSwitchProfile = document.getElementById('btn-switch-profile');
 
+    els.promptModal = document.getElementById('prompt-modal');
+    els.promptTitle = document.getElementById('prompt-modal-title');
+    els.promptInput = document.getElementById('prompt-modal-input');
+    els.promptError = document.getElementById('prompt-modal-error');
+    els.promptCancel = document.getElementById('prompt-modal-cancel');
+    els.promptConfirm = document.getElementById('prompt-modal-confirm');
+
     els.starTotalText = document.getElementById('star-total-text');
     els.operationRow = document.getElementById('operation-row');
     els.princessRow = document.getElementById('princess-row');
@@ -112,6 +119,47 @@
     syncSoundButtons();
   }
 
+  /* ---------------- text prompt modal (in-app replacement for
+     window.prompt, styled to match the rest of the UI) ---------------- */
+  let promptResolve = null;
+  let promptRequired = true;
+  let promptErrorMsg = 'にゅうりょくしてね';
+
+  function openPrompt({ title, placeholder = '', maxlength, required = true, errorMsg = 'にゅうりょくしてね' }) {
+    return new Promise((resolve) => {
+      promptResolve = resolve;
+      promptRequired = required;
+      promptErrorMsg = errorMsg;
+      els.promptTitle.textContent = title;
+      els.promptInput.value = '';
+      els.promptInput.placeholder = placeholder;
+      if (maxlength) els.promptInput.maxLength = maxlength;
+      else els.promptInput.removeAttribute('maxlength');
+      els.promptError.textContent = '';
+      els.promptError.classList.add('hidden');
+      els.promptModal.classList.add('visible');
+      els.promptModal.setAttribute('aria-hidden', 'false');
+      requestAnimationFrame(() => els.promptInput.focus());
+    });
+  }
+
+  function closePrompt(value) {
+    els.promptModal.classList.remove('visible');
+    els.promptModal.setAttribute('aria-hidden', 'true');
+    if (promptResolve) { promptResolve(value); promptResolve = null; }
+  }
+
+  function confirmPrompt() {
+    const val = els.promptInput.value.trim();
+    if (promptRequired && !val) {
+      els.promptError.textContent = promptErrorMsg;
+      els.promptError.classList.remove('hidden');
+      els.promptInput.focus();
+      return;
+    }
+    closePrompt(val || null);
+  }
+
   /* ================= SCREEN: PROFILES ================= */
   async function renderProfilePicker() {
     els.profileGrid.innerHTML = '<div class="item-row-empty">よみこみちゅう…</div>';
@@ -165,7 +213,12 @@
   }
 
   async function createProfile() {
-    const name = (prompt('こどもの なまえを いれてね') || '').trim();
+    const name = await openPrompt({
+      title: 'こどもの なまえを いれてね',
+      placeholder: 'なまえ',
+      maxlength: 20,
+      errorMsg: 'なまえを いれてね',
+    });
     if (!name) return;
     const avatarEmoji = M.pick(PROFILE_AVATARS);
     const id = await C.createProfile(name, avatarEmoji, D.defaultState());
@@ -174,7 +227,12 @@
   }
 
   async function linkProfile() {
-    const raw = (prompt('コードを にゅうりょくしてね（れい：A7K2QX）') || '').trim();
+    const raw = await openPrompt({
+      title: 'コードを にゅうりょくしてね（れい：A7K2QX）',
+      placeholder: 'コード',
+      maxlength: 6,
+      errorMsg: 'コードを いれてね',
+    });
     if (!raw) return;
     const profile = await C.linkProfileByCode(raw);
     if (!profile) {
@@ -854,6 +912,16 @@
     els.btnSwitchProfile.addEventListener('click', () => {
       showScreen('profiles');
       renderProfilePicker();
+    });
+
+    els.promptConfirm.addEventListener('click', confirmPrompt);
+    els.promptCancel.addEventListener('click', () => closePrompt(null));
+    els.promptModal.addEventListener('click', (e) => {
+      if (e.target === els.promptModal) closePrompt(null);
+    });
+    els.promptInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); confirmPrompt(); }
+      else if (e.key === 'Escape') { e.preventDefault(); closePrompt(null); }
     });
 
     els.btnStart.addEventListener('click', () => startGame(getSelectedLevel()));

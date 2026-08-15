@@ -19,39 +19,72 @@
     return arr[randInt(0, arr.length - 1)];
   }
 
+  /** Retries `sample()` (which returns null when the pair it drew
+      doesn't satisfy the level's digit constraint) until it returns a
+      value, up to `maxAttempts` times. Used instead of deriving one
+      digit from another so every valid combination is equally likely
+      — the old nested-derivation style (pick tensA, then constrain
+      tensB's range from it) skewed results toward small leading
+      digits, since a big tensA left tensB almost no room. The
+      constraints here are all satisfied by at least ~20% of random
+      draws, so this converges in a handful of attempts. */
+  function sampleUntilValid(sample, maxAttempts) {
+    for (let i = 0; i < maxAttempts; i++) {
+      const result = sample();
+      if (result) return result;
+    }
+    return sample.fallback();
+  }
+
   /**
    * Generates an addition problem for the given level.
    * Level 1: 2-digit + 2-digit, no carrying anywhere.
    * Level 2: 2-digit + 2-digit, carries the ones digit but the answer
    * stays 2-digit. Level 3: 2-digit + 2-digit, unconstrained (answer may
    * reach 198). Level 4: 3-digit + 2-digit, unconstrained. Level 5:
-   * 3-digit + 3-digit, unconstrained (answer may reach 1998).
+   * 3-digit + 3-digit, unconstrained (answer may reach 1998). Level 6:
+   * 4-digit + 3-digit, unconstrained. Level 7: 4-digit + 4-digit,
+   * unconstrained (answer may reach 19998).
    */
   function generateProblem(level) {
     let a, b;
     if (level === 1) {
-      const tensA = randInt(1, 8);
-      const tensB = randInt(1, 9 - tensA);
-      const onesA = randInt(0, 9);
-      const onesB = randInt(0, 9 - onesA);
-      a = tensA * 10 + onesA;
-      b = tensB * 10 + onesB;
+      const sample = () => {
+        const x = randInt(10, 99);
+        const y = randInt(10, 99);
+        const noCarry = (Math.floor(x / 10) + Math.floor(y / 10) < 10) && (x % 10 + y % 10 < 10);
+        return noCarry ? [x, y] : null;
+      };
+      sample.fallback = () => [12, 13];
+      [a, b] = sampleUntilValid(sample, 200);
     } else if (level === 2) {
-      const tensA = randInt(1, 7);
-      const tensB = randInt(1, 8 - tensA);
-      const onesA = randInt(1, 9);
-      const onesB = randInt(10 - onesA, 9);
-      a = tensA * 10 + onesA;
-      b = tensB * 10 + onesB;
+      const sample = () => {
+        const x = randInt(10, 99);
+        const y = randInt(10, 99);
+        // < 9, not < 10 — the +1 carried in from the ones column still
+        // needs to fit without pushing the tens sum to 10 (which would
+        // carry again into the hundreds, breaking "answer stays 2-digit").
+        const tensOk = Math.floor(x / 10) + Math.floor(y / 10) < 9;
+        const onesCarries = (x % 10) + (y % 10) >= 10;
+        return (tensOk && onesCarries) ? [x, y] : null;
+      };
+      sample.fallback = () => [19, 15];
+      [a, b] = sampleUntilValid(sample, 200);
     } else if (level === 3) {
       a = randInt(10, 99);
       b = randInt(10, 99);
     } else if (level === 4) {
       a = randInt(100, 999);
       b = randInt(10, 99);
-    } else {
+    } else if (level === 5) {
       a = randInt(100, 999);
       b = randInt(100, 999);
+    } else if (level === 6) {
+      a = randInt(1000, 9999);
+      b = randInt(100, 999);
+    } else {
+      a = randInt(1000, 9999);
+      b = randInt(1000, 9999);
     }
     return { a, b, answer: a + b };
   }
@@ -61,24 +94,30 @@
    * is never negative) for the given level. Mirrors generateProblem's
    * difficulty tiers: level 1 no borrowing, level 2 borrows the ones
    * digit only, level 3 free 2-digit, level 4 3-digit - 2-digit, level 5
-   * free 3-digit - 3-digit.
+   * free 3-digit - 3-digit, level 6 4-digit - 3-digit, level 7 free
+   * 4-digit - 4-digit.
    */
   function generateSubtractionProblem(level) {
     let a, b;
     if (level === 1) {
-      const tensA = randInt(2, 9);
-      const tensB = randInt(1, tensA);
-      const onesA = randInt(0, 9);
-      const onesB = randInt(0, onesA);
-      a = tensA * 10 + onesA;
-      b = tensB * 10 + onesB;
+      const sample = () => {
+        const x = randInt(10, 99);
+        const y = randInt(10, 99);
+        const noBorrow = (Math.floor(x / 10) >= Math.floor(y / 10)) && (x % 10 >= y % 10);
+        return noBorrow ? [x, y] : null;
+      };
+      sample.fallback = () => [38, 25];
+      [a, b] = sampleUntilValid(sample, 200);
     } else if (level === 2) {
-      const tensA = randInt(2, 9);
-      const tensB = randInt(1, tensA - 1);
-      const onesA = randInt(0, 8);
-      const onesB = randInt(onesA + 1, 9);
-      a = tensA * 10 + onesA;
-      b = tensB * 10 + onesB;
+      const sample = () => {
+        const x = randInt(10, 99);
+        const y = randInt(10, 99);
+        const tensOk = Math.floor(x / 10) > Math.floor(y / 10);
+        const onesBorrows = (x % 10) < (y % 10);
+        return (tensOk && onesBorrows) ? [x, y] : null;
+      };
+      sample.fallback = () => [42, 27];
+      [a, b] = sampleUntilValid(sample, 200);
     } else if (level === 3) {
       a = randInt(10, 99);
       b = randInt(10, 99);
@@ -86,9 +125,16 @@
     } else if (level === 4) {
       a = randInt(100, 999);
       b = randInt(10, 99);
-    } else {
+    } else if (level === 5) {
       a = randInt(100, 999);
       b = randInt(100, 999);
+      if (a < b) { const t = a; a = b; b = t; }
+    } else if (level === 6) {
+      a = randInt(1000, 9999);
+      b = randInt(100, 999);
+    } else {
+      a = randInt(1000, 9999);
+      b = randInt(1000, 9999);
       if (a < b) { const t = a; a = b; b = t; }
     }
     return { a, b, answer: a - b };
@@ -176,15 +222,17 @@
     return steps;
   }
 
+  const PLACE_NAMES = ['いち', 'じゅう', 'ひゃく', 'せん', 'まん'];
+
   function placeLabel(index) {
-    return index === 0 ? 'いちのくらい' : index === 1 ? 'じゅうのくらい' : index === 2 ? 'ひゃくのくらい' : 'せんのくらい';
+    return (PLACE_NAMES[index] || 'まん') + 'のくらい';
   }
 
   /** Compact column-header form of placeLabel(), short enough to never
       wrap inside the narrow per-column layout (the full term is still
       used in stepPromptText()). */
   function placeLabelShort(index) {
-    return index === 0 ? 'いちの' : index === 1 ? 'じゅうの' : index === 2 ? 'ひゃくの' : 'せんの';
+    return (PLACE_NAMES[index] || 'まん') + 'の';
   }
 
   function stepPromptText(step) {
