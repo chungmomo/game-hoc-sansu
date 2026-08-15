@@ -1,10 +1,13 @@
 # Công Chúa Toán Học
 
-Web app luyện phép cộng kiểu Kumon, dành cho bé 7 tuổi (lớp 1), chủ đề công
-chúa cổ tích. Ứng dụng dạy bé cách **đặt tính cộng theo cột** (đơn vị →
-chục → trăm → nghìn, viết/nhớ) thay vì chỉ đoán đáp số cuối. 5 cấp độ tăng
-dần: 2 chữ số + 2 chữ số (không nhớ → có nhớ → tự do) rồi tới 3 chữ số +
-2 chữ số và 3 chữ số + 3 chữ số.
+Web app luyện toán kiểu Kumon, dành cho bé 7 tuổi (lớp 1), chủ đề công
+chúa cổ tích. Ứng dụng dạy bé cách **đặt tính theo cột** cho phép **cộng**
+và **trừ** (đơn vị → chục → trăm → nghìn → chục nghìn, viết/nhớ hoặc
+mượn) thay vì chỉ đoán đáp số cuối, với các cấp độ tăng dần từ 1 chữ số
+tới 4 chữ số. Ngoài ra còn có **phép nhân** và **phép chia** — luyện bảng
+cửu chương (nhân/chia đơn giản, không dư), giao diện gõ thẳng đáp số thay
+vì đặt tính theo cột vì đây là kiến thức ghi nhớ trực tiếp chứ không phải
+một thuật toán nhiều bước.
 
 Toàn bộ nhân vật công chúa là thiết kế gốc (icon + tên tự đặt) — không dùng
 hình ảnh hay tên nhân vật có bản quyền của Disney hay bất kỳ hãng nào khác.
