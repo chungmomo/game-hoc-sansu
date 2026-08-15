@@ -56,6 +56,7 @@
     els.starTotalText = document.getElementById('star-total-text');
     els.operationRow = document.getElementById('operation-row');
     els.princessRow = document.getElementById('princess-row');
+    els.digitGroupRow = document.getElementById('digit-group-row');
     els.levelRow = document.getElementById('level-row');
     els.puzzleGrid = document.getElementById('puzzle-grid');
     els.itemRow = document.getElementById('item-row');
@@ -307,8 +308,27 @@
       els.princessRow.appendChild(card);
     });
 
-    els.levelRow.innerHTML = '';
     const maxUnlocked = getMaxUnlockedLevel();
+
+    els.digitGroupRow.innerHTML = '';
+    D.DIGIT_GROUPS.forEach(group => {
+      const levelsInGroup = group.levelIds.map(id => D.LEVELS.find(lv => lv.id === id)).filter(Boolean);
+      const unlockedLevels = levelsInGroup.filter(lv => lv.id <= maxUnlocked);
+      const groupUnlocked = unlockedLevels.length > 0;
+      const isSelected = levelsInGroup.some(lv => lv.id === getSelectedLevel());
+      const className = 'level-card' + (isSelected ? ' selected' : '');
+      const html = `<div class="level-name">${group.label}${groupUnlocked ? '' : ' 🔒'}</div>`;
+      const card = makeSelectableCard(className, html, groupUnlocked, 'さきに まえの けたすうを おわらせてから えらんでね！', () => {
+        const target = unlockedLevels[unlockedLevels.length - 1];
+        state.selectedLevelByOp[state.selectedOperation] = target.id;
+        saveState();
+        renderHome();
+      });
+      card.style.opacity = groupUnlocked ? '1' : '.55';
+      els.digitGroupRow.appendChild(card);
+    });
+
+    els.levelRow.innerHTML = '';
     D.LEVELS.forEach(lv => {
       const unlocked = lv.id <= maxUnlocked;
       const className = 'level-card' + (lv.id === getSelectedLevel() ? ' selected' : '');
@@ -852,7 +872,7 @@
     const passed = correct >= D.PASS_THRESHOLD;
     let leveledUp = false;
     const maxUnlocked = state.maxUnlockedLevelByOp[game.operation];
-    if (passed && game.level === maxUnlocked && maxUnlocked < D.LEVELS.length) {
+    if (passed && game.level === maxUnlocked && maxUnlocked < D.MAX_LEVEL_ID) {
       state.maxUnlockedLevelByOp[game.operation] = maxUnlocked + 1;
       leveledUp = true;
     }
@@ -882,13 +902,18 @@
     els.resultTitle.textContent =
       correct === D.PROBLEMS_PER_SET ? 'かんぺき！さんすう おひめさまだね！' :
       passed ? 'よく できました！' : 'よく がんばったね！';
-    els.resultStars.textContent = '⭐'.repeat(correct) + '☆'.repeat(D.PROBLEMS_PER_SET - correct);
+    // Repeating one glyph per problem reads as a cute star row at small
+    // set sizes, but with a set in the thousands it'd mean rendering
+    // thousands of characters — fall back to a compact count instead.
+    els.resultStars.textContent = D.PROBLEMS_PER_SET <= 30
+      ? '⭐'.repeat(correct) + '☆'.repeat(D.PROBLEMS_PER_SET - correct)
+      : `⭐ ${correct} / ${D.PROBLEMS_PER_SET}`;
     const bonusNote = earned > correct ? `（おまけで +${earned - correct}こ！）` : '';
     els.resultDetail.textContent =
       `${D.PROBLEMS_PER_SET}もんちゅう ${correct}もん せいかい — ほし +${earned}こ${bonusNote} — ぜんぶで ${state.totalStars}こ` +
       (leveledUp ? ' — 🎉 あたらしい むずかしさが あいたよ！' : '');
 
-    els.btnNextLevel.style.display = (game.level < D.LEVELS.length && (game.level + 1) <= state.maxUnlockedLevelByOp[game.operation]) ? 'inline-block' : 'none';
+    els.btnNextLevel.style.display = (game.level < D.MAX_LEVEL_ID && (game.level + 1) <= state.maxUnlockedLevelByOp[game.operation]) ? 'inline-block' : 'none';
 
     showScreen('result');
     if (correct >= D.CELEBRATE_STARS_THRESHOLD) {
@@ -965,7 +990,7 @@
 
     els.btnPlayAgain.addEventListener('click', () => startGame(game.level));
     els.btnNextLevel.addEventListener('click', () => {
-      const next = Math.min(game.level + 1, D.LEVELS.length);
+      const next = Math.min(game.level + 1, D.MAX_LEVEL_ID);
       state.selectedLevelByOp[game.operation] = next;
       saveState();
       startGame(next);

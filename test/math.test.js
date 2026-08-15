@@ -30,6 +30,15 @@ test('randInt stays within the requested bounds', () => {
   }
 });
 
+test('level 0 problems: 1-digit inputs, correct sum', () => {
+  for (let i = 0; i < 1000; i++) {
+    const p = generateProblem(0);
+    assert.ok(p.a >= 1 && p.a <= 9, `a=${p.a} is not 1-digit`);
+    assert.ok(p.b >= 1 && p.b <= 9, `b=${p.b} is not 1-digit`);
+    assert.strictEqual(p.a + p.b, p.answer, `${p.a}+${p.b} should equal ${p.answer}`);
+  }
+});
+
 test('level 1 problems: 2-digit inputs, correct sum, no carrying', () => {
   for (let i = 0; i < 1000; i++) {
     const p = generateProblem(1);
@@ -143,13 +152,15 @@ test('buildColumnPlan reconstructs the exact sum for 4-digit pairs, including te
   }
 });
 
-test('subtraction levels 1-7: a >= b always, answer is correct, and per-level constraints hold', () => {
-  for (let level = 1; level <= 7; level++) {
+test('subtraction levels 0-7: a >= b always, answer is correct, and per-level constraints hold', () => {
+  for (let level = 0; level <= 7; level++) {
     for (let i = 0; i < 2000; i++) {
       const p = generateSubtractionProblem(level);
       assert.ok(p.a >= p.b, `level ${level}: ${p.a}-${p.b} should never be negative`);
       assert.strictEqual(p.a - p.b, p.answer, `${p.a}-${p.b} should equal ${p.answer}`);
-      if (level <= 3) {
+      if (level === 0) {
+        assert.ok(p.a >= 1 && p.a <= 9 && p.b >= 1 && p.b <= 9, `level 0: ${p.a}-${p.b} inputs must both be 1-digit`);
+      } else if (level <= 3) {
         assert.ok(p.a >= 10 && p.a <= 99 && p.b >= 10 && p.b <= 99, `level ${level}: ${p.a}-${p.b} inputs must both be 2-digit`);
       } else if (level === 4) {
         assert.ok(p.a >= 100 && p.a <= 999, `level 4: a=${p.a} is not 3-digit`);
@@ -206,7 +217,7 @@ test('subtractionStepPromptText shows the already-borrowed value for 500 - 258',
 });
 
 test('buildProblemSet avoids back-to-back duplicate problems (addition and subtraction)', () => {
-  for (let level = 1; level <= 7; level++) {
+  for (let level = 0; level <= 7; level++) {
     for (let trial = 0; trial < 50; trial++) {
       const set = buildProblemSet(level, 10);
       for (let i = 1; i < set.length; i++) {

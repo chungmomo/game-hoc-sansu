@@ -38,7 +38,13 @@
       rewardEmoji: ['👑', '💎', '🏆', '✨', '🌟', '💫'] },
   ];
 
+  /* id 0 is a 1-digit "warm-up" tier, always unlocked (0 <= the default
+     maxUnlockedLevelByOp of 1) — it sits outside the normal 1-7
+     progression so adding it never shifts what an existing player's
+     saved level ids mean. See MAX_LEVEL_ID below for why the unlock
+     ceiling can't just be LEVELS.length anymore. */
   const LEVELS = [
+    { id: 0, name: 'にゅうもん', emoji: '🔰', desc: '1けたどうしの けいさん' },
     { id: 1, name: 'やさしい',   emoji: '🌸', desc: 'くりあがりなし・ちいさいかず' },
     { id: 2, name: 'ふつう',     emoji: '🌟', desc: 'いちのくらいで くりあがりあり' },
     { id: 3, name: 'むずかしい', emoji: '🔥', desc: 'くりあがりあり・おおきいかず' },
@@ -48,16 +54,64 @@
     { id: 7, name: 'でんせつ',   emoji: '🐉', desc: '4けた + 4けたの けいさん' },
   ];
 
-  /* Same 5 level tiers apply to both operations — only the underlying
-     number generator (carry vs. borrow) differs, so LEVELS is shared. */
+  /* Highest level id reachable through normal progression — kept separate
+     from LEVELS.length so the always-unlocked id-0 warm-up tier doesn't
+     shift the "how many levels can you climb" ceiling used for unlocking
+     the next level and the add/sub-master badges. */
+  const MAX_LEVEL_ID = Math.max(...LEVELS.map(lv => lv.id));
+
+  /* Groups the LEVELS above by operand digit count, for the digit-count
+     shortcut row on the home screen — purely a navigation convenience,
+     it doesn't change how levels unlock. */
+  const DIGIT_GROUPS = [
+    { digits: 1, label: '1けた', levelIds: [0] },
+    { digits: 2, label: '2けた', levelIds: [1, 2, 3] },
+    { digits: 3, label: '3けた', levelIds: [4, 5] },
+    { digits: 4, label: '4けた', levelIds: [6, 7] },
+  ];
+
+  /* Same digit-count level tiers apply to both add and sub — only the
+     underlying number generator (carry vs. borrow) differs, so LEVELS is
+     shared between them. Multiplication/division practice single facts
+     (times tables) instead, a different difficulty dimension entirely,
+     so they get their own short level lists — see MUL_LEVELS/DIV_LEVELS
+     and getLevelsForOp() below. */
   const OPERATIONS = [
     { id: 'add', name: 'たしざん', emoji: '➕' },
     { id: 'sub', name: 'ひきざん', emoji: '➖' },
+    { id: 'mul', name: 'かけざん', emoji: '✖️' },
+    { id: 'div', name: 'わりざん', emoji: '➗' },
   ];
 
-  const PROBLEMS_PER_SET = 10;
-  const PASS_THRESHOLD = 6;          // correct answers needed to unlock the next level
-  const CELEBRATE_STARS_THRESHOLD = 8; // correct answers needed for the big confetti finale
+  const MUL_LEVELS = [
+    { id: 1, name: 'やさしい',   emoji: '🌸', desc: '2〜5の だん' },
+    { id: 2, name: 'ふつう',     emoji: '🌟', desc: '6・7の だん' },
+    { id: 3, name: 'むずかしい', emoji: '🔥', desc: '8・9の だん・ぜんぶ' },
+  ];
+  const DIV_LEVELS = [
+    { id: 1, name: 'やさしい',   emoji: '🌸', desc: '2〜5で わる' },
+    { id: 2, name: 'ふつう',     emoji: '🌟', desc: '6・7で わる' },
+    { id: 3, name: 'むずかしい', emoji: '🔥', desc: '8・9で わる・ぜんぶ' },
+  ];
+
+  function getLevelsForOp(operationId) {
+    if (operationId === 'mul') return MUL_LEVELS;
+    if (operationId === 'div') return DIV_LEVELS;
+    return LEVELS;
+  }
+
+  /* Mirrors MAX_LEVEL_ID for whichever operation is active — MUL_LEVELS/
+     DIV_LEVELS have no id-0 warm-up gap, so their own length already is
+     the highest id. */
+  function getMaxLevelIdForOp(operationId) {
+    if (operationId === 'mul') return MUL_LEVELS.length;
+    if (operationId === 'div') return DIV_LEVELS.length;
+    return MAX_LEVEL_ID;
+  }
+
+  const PROBLEMS_PER_SET = 5000;
+  const PASS_THRESHOLD = 3000;          // correct answers needed to unlock the next level (60%, same ratio as the old 6/10)
+  const CELEBRATE_STARS_THRESHOLD = 4000; // correct answers needed for the big confetti finale (80%, same ratio as the old 8/10)
 
   const STREAK_MILESTONES = [3, 5, 8]; // consecutive perfect problems that trigger a streak bonus
   const STREAK_BONUS_STARS = 1;        // extra stars awarded at each milestone
@@ -164,8 +218,10 @@
     { id: 'stars-50',      name: 'ほしめいじん',      emoji: '🌟', desc: 'ほしを 50こ あつめた',           check: s => s.totalStars >= 50 },
     { id: 'stars-200',     name: 'ほしはかせ',        emoji: '💫', desc: 'ほしを 200こ あつめた',          check: s => s.totalStars >= 200 },
     { id: 'streak-8',      name: 'れんぞく めいじん',  emoji: '🔥', desc: '8もん れんぞく せいかい',        check: s => (s.bestStreak || 0) >= 8 },
-    { id: 'add-master',    name: 'たしざん たつじん',  emoji: '➕', desc: 'たしざん さいこうレベルクリア',  check: s => (s.maxUnlockedLevelByOp && s.maxUnlockedLevelByOp.add || 1) >= LEVELS.length },
-    { id: 'sub-master',    name: 'ひきざん たつじん',  emoji: '➖', desc: 'ひきざん さいこうレベルクリア',  check: s => (s.maxUnlockedLevelByOp && s.maxUnlockedLevelByOp.sub || 1) >= LEVELS.length },
+    { id: 'add-master',    name: 'たしざん たつじん',  emoji: '➕', desc: 'たしざん さいこうレベルクリア',  check: s => (s.maxUnlockedLevelByOp && s.maxUnlockedLevelByOp.add || 1) >= MAX_LEVEL_ID },
+    { id: 'sub-master',    name: 'ひきざん たつじん',  emoji: '➖', desc: 'ひきざん さいこうレベルクリア',  check: s => (s.maxUnlockedLevelByOp && s.maxUnlockedLevelByOp.sub || 1) >= MAX_LEVEL_ID },
+    { id: 'mul-master',    name: 'かけざん たつじん',  emoji: '✖️', desc: 'かけざん さいこうレベルクリア',  check: s => (s.maxUnlockedLevelByOp && s.maxUnlockedLevelByOp.mul || 1) >= MUL_LEVELS.length },
+    { id: 'div-master',    name: 'わりざん たつじん',  emoji: '➗', desc: 'わりざん さいこうレベルクリア',  check: s => (s.maxUnlockedLevelByOp && s.maxUnlockedLevelByOp.div || 1) >= DIV_LEVELS.length },
     { id: 'monster-10',    name: 'ゆうしゃ',          emoji: '🗡️', desc: 'ようかいを 10たい たおした',     check: s => (s.monstersDefeated || 0) >= 10 },
     { id: 'album-complete', name: 'コレクター',        emoji: '🏆', desc: 'ぼうけんアルバムを かんせい',    check: s => isAlbumComplete(s) },
   ];
@@ -175,14 +231,18 @@
       totalStars: 0,
       selectedPrincessId: PRINCESSES[0].id,
       selectedOperation: 'add',
-      selectedLevelByOp: { add: 1, sub: 1 },
-      maxUnlockedLevelByOp: { add: 1, sub: 1 },
+      selectedLevelByOp: { add: 1, sub: 1, mul: 1, div: 1 },
+      maxUnlockedLevelByOp: { add: 1, sub: 1, mul: 1, div: 1 },
       soundOn: true,
       timerEnabled: true,
       monstersDefeated: 0,
       itemsCollected: [],
       puzzlePiecesCollected: 0,
       bestStreak: 0,
+      // Parent/child-authored problems (see the "じぶんで もんだいを
+      // つくろう" admin screen), scoped per operation like level
+      // progress above. Each entry is a plain { a, b }.
+      customProblems: { add: [], sub: [] },
     };
   }
 
@@ -209,6 +269,12 @@
   root.PM.Data = {
     PRINCESSES,
     LEVELS,
+    MAX_LEVEL_ID,
+    DIGIT_GROUPS,
+    MUL_LEVELS,
+    DIV_LEVELS,
+    getLevelsForOp,
+    getMaxLevelIdForOp,
     OPERATIONS,
     BADGES,
     PROBLEMS_PER_SET,

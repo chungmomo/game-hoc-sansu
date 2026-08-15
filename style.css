@@ -384,6 +384,12 @@ html,body{
 /* operation (add/subtract) selector — reuses .level-card visuals */
 .operation-row{ display:flex; gap:.5rem; justify-content:center; }
 
+/* digit-count shortcut row (1けた/2けた/3けた/4けた) — reuses .level-card
+   visuals, kept slim since it's just a jump-to-group filter above the
+   full level list. */
+.digit-group-row{ display:flex; gap:.4rem; justify-content:center; margin-bottom:.5rem; }
+.digit-group-row .level-card{ flex:1; padding:.3rem .2rem; }
+
 /* achievement badges */
 .badge-grid{
   display:flex; flex-wrap:wrap; gap:.4rem; justify-content:center;
