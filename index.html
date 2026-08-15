@@ -61,6 +61,7 @@
       はじめる ✨
     </button>
     <button class="btn-start btn-secondary" id="btn-start-quiz">⚡ クイズで あそぶ</button>
+    <button class="btn-start btn-secondary" id="btn-open-minigames">🎮 ミニゲームで あそぶ</button>
 
     <button class="btn-mini" id="btn-reset">さいしょから やりなおす（きろくを けす）</button>
   </div>
@@ -167,14 +168,33 @@
   </div>
 </section>
 
-<!-- ============ MINIGAME SCREEN: an optional non-math bonus round
-     (memory match) offered on the result screen ============ -->
-<section id="screen-minigame" class="screen">
+<!-- ============ MINIGAME PICKER: pick which bonus mini-game to play,
+     reachable from the home screen any time or as a post-practice
+     reward from the result screen ============ -->
+<section id="screen-minigame-picker" class="screen">
   <div class="home-header">
     <div class="castle-top" aria-hidden="true">🎮</div>
     <h1 class="title">
       <span class="title-crown">🎉</span>
-      ごほうび ミニゲーム
+      ミニゲーム ひろば
+      <span class="title-crown">🎉</span>
+    </h1>
+  </div>
+
+  <div class="panel">
+    <div class="minigame-picker-grid" id="minigame-picker-grid"></div>
+  </div>
+
+  <button class="btn-mini" id="btn-minigame-picker-back">🏠 ホームに もどる</button>
+</section>
+
+<!-- ============ MINIGAME: memory match ============ -->
+<section id="screen-minigame" class="screen">
+  <div class="home-header">
+    <div class="castle-top" aria-hidden="true">🧠</div>
+    <h1 class="title">
+      <span class="title-crown">🎉</span>
+      しんけいすいじゃく
       <span class="title-crown">🎉</span>
     </h1>
     <p class="subtitle" id="memory-status">おなじ カードを 2まい みつけてね！</p>
@@ -185,6 +205,108 @@
   </div>
 
   <button class="btn-mini" id="btn-minigame-skip">🏠 ホームに もどる</button>
+</section>
+
+<!-- ============ MINIGAME: whack-a-mole ============ -->
+<section id="screen-mole" class="screen">
+  <div class="home-header">
+    <div class="castle-top" aria-hidden="true">🎯</div>
+    <h1 class="title">
+      <span class="title-crown">🎉</span>
+      もぐらたたき
+      <span class="title-crown">🎉</span>
+    </h1>
+    <p class="subtitle" id="mole-status">でてきたら すばやく タップ！</p>
+  </div>
+
+  <div class="panel">
+    <div class="mole-score" id="mole-score">スコア：0</div>
+    <div class="mole-grid" id="mole-grid"></div>
+  </div>
+
+  <div class="minigame-done hidden" id="mole-done">
+    <button class="btn-start" id="btn-mole-again">もういちど 🔁</button>
+    <button class="btn-mini" id="btn-mole-go-home">🏠 ホームに もどる</button>
+  </div>
+  <button class="btn-mini hidden" id="btn-mole-skip">🏠 ホームに もどる</button>
+</section>
+
+<!-- ============ MINIGAME: make-10 pairs ============ -->
+<section id="screen-pairs10" class="screen">
+  <div class="home-header">
+    <div class="castle-top" aria-hidden="true">🔟</div>
+    <h1 class="title">
+      <span class="title-crown">🎉</span>
+      たしざんペア
+      <span class="title-crown">🎉</span>
+    </h1>
+    <p class="subtitle" id="pairs10-status">たして 10に なる 2まいを タップ！</p>
+  </div>
+
+  <div class="panel">
+    <div class="pairs10-grid" id="pairs10-grid"></div>
+  </div>
+
+  <div class="minigame-done hidden" id="pairs10-done">
+    <button class="btn-start" id="btn-pairs10-again">もういちど 🔁</button>
+    <button class="btn-mini" id="btn-pairs10-go-home">🏠 ホームに もどる</button>
+  </div>
+  <button class="btn-mini" id="btn-pairs10-skip">🏠 ホームに もどる</button>
+</section>
+
+<!-- ============ MINIGAME: number sort ============ -->
+<section id="screen-sort" class="screen">
+  <div class="home-header">
+    <div class="castle-top" aria-hidden="true">🔢</div>
+    <h1 class="title">
+      <span class="title-crown">🎉</span>
+      じゅんばん クイズ
+      <span class="title-crown">🎉</span>
+    </h1>
+    <p class="subtitle" id="sort-status">ちいさい じゅんに タップしてね！</p>
+  </div>
+
+  <div class="panel">
+    <div class="sort-row" id="sort-row"></div>
+  </div>
+
+  <div class="minigame-done hidden" id="sort-done">
+    <button class="btn-start" id="btn-sort-again">もういちど 🔁</button>
+    <button class="btn-mini" id="btn-sort-go-home">🏠 ホームに もどる</button>
+  </div>
+  <button class="btn-mini" id="btn-sort-skip">🏠 ホームに もどる</button>
+</section>
+
+<!-- ============ MINIGAME: shared "flash round" screen — one prompt +
+     a row of tap-to-answer choices, reused by 6 different learning
+     games (true/false math, clock reading, number sequences, shape
+     counting, length comparison, shopping money) so each only needs to
+     supply a round generator, not its own screen/markup ============ -->
+<section id="screen-flashquiz" class="screen">
+  <div class="game-top-bar">
+    <button class="btn-back" id="btn-flashquiz-back-home" aria-label="さいしょの がめんに もどる">🏠</button>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="flashquiz-progress-fill"></div></div>
+      <div class="progress-text"><span id="flashquiz-progress-current">1</span> / <span id="flashquiz-progress-total">8</span></div>
+    </div>
+  </div>
+
+  <div class="home-header">
+    <h1 class="title" id="flashquiz-title">
+      <span class="title-crown">🎉</span>
+      <span id="flashquiz-title-text"></span>
+      <span class="title-crown">🎉</span>
+    </h1>
+    <p class="subtitle" id="flashquiz-subtitle"></p>
+  </div>
+
+  <div class="flashquiz-prompt" id="flashquiz-prompt"></div>
+  <div class="flashquiz-choices" id="flashquiz-choices"></div>
+
+  <div class="minigame-done hidden" id="flashquiz-done">
+    <button class="btn-start" id="btn-flashquiz-again">もういちど 🔁</button>
+    <button class="btn-mini" id="btn-flashquiz-go-home">🏠 ホームに もどる</button>
+  </div>
 </section>
 
 <!-- ============ GAME SCREEN ============ -->
