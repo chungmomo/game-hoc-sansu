@@ -634,6 +634,84 @@ html,body{
 .sort-card.picked{ background: var(--green); color:#fff; box-shadow: 0 4px 0 #2e7d32; opacity:.85; cursor:default; }
 .sort-card.wrong{ animation: shake .4s ease; }
 
+/* ---------- MINIGAME: shared "flash round" screen (6 learning games) ---------- */
+.flashquiz-prompt{
+  display:flex; flex-direction:column; align-items:center;
+  margin: .6rem 0 .8rem;
+  min-height: 5rem;
+  justify-content:center;
+}
+.flashquiz-equation{
+  font-family:'Baloo 2','M PLUS Rounded 1c',sans-serif;
+  font-size: clamp(1.4rem, 7vmin, 2.4rem); font-weight:800; color:var(--ink);
+  text-align:center;
+}
+.flashquiz-subprompt{
+  font-weight:700; font-size:.85rem; color:var(--purple-dark);
+  text-align:center; margin-top:.4rem;
+}
+.flashquiz-choices{
+  display:grid; grid-template-columns: repeat(2, 1fr);
+  gap:.6rem; width:100%; max-width:420px; margin:0 auto;
+}
+.flashquiz-choice-btn{
+  font-family:inherit; font-weight:800; font-size: clamp(1rem, 4.5vmin, 1.4rem);
+  padding: .7rem .4rem;
+  border-radius: 16px; border:none;
+  background: var(--white); color:var(--ink);
+  box-shadow: 0 4px 0 #d9c8e8, 0 6px 10px rgba(0,0,0,.08);
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+.flashquiz-choice-btn:active{ transform: translateY(3px); box-shadow: 0 1px 0 #d9c8e8; }
+.flashquiz-choice-btn:disabled{ cursor:default; }
+.flashquiz-choice-btn.correct{ background: var(--green); color:#fff; box-shadow: 0 4px 0 #2e7d32; }
+.flashquiz-choice-btn.wrong{ background: var(--red); color:#fff; box-shadow: 0 4px 0 #b23a3a; }
+
+/* clock-reading round */
+.clock-face{
+  position:relative; width:140px; height:140px; margin:0 auto;
+  border-radius:50%; background:#fff; border:4px solid var(--purple-dark);
+}
+.clock-hand{
+  position:absolute; bottom:50%; left:50%;
+  transform-origin:50% 100%;
+  background:var(--ink); border-radius:4px;
+}
+.clock-hour{ width:5px; height:34px; margin-left:-2.5px; }
+.clock-minute{ width:3px; height:50px; margin-left:-1.5px; background:var(--pink-dark); }
+.clock-center{
+  position:absolute; top:50%; left:50%; width:10px; height:10px;
+  background:var(--pink-dark); border-radius:50%; transform:translate(-50%,-50%);
+}
+.clock-num{
+  position:absolute; font-weight:800; font-size:.75rem; color:var(--purple-dark);
+}
+.clock-num.n12{ top:6px; left:50%; transform:translateX(-50%); }
+.clock-num.n3{ right:8px; top:50%; transform:translateY(-50%); }
+.clock-num.n6{ bottom:6px; left:50%; transform:translateX(-50%); }
+.clock-num.n9{ left:8px; top:50%; transform:translateY(-50%); }
+
+/* shape-counting round */
+.shape-grid{
+  display:grid; grid-template-columns: repeat(4, 1fr);
+  gap:.3rem; max-width:280px; margin:0 auto;
+  font-size: clamp(1.2rem, 5vmin, 1.6rem);
+}
+
+/* length-comparison round — the choice buttons themselves hold the bars */
+.length-bar{
+  height:22px; max-width:100%;
+  background: linear-gradient(90deg, var(--pink-dark), var(--purple-dark));
+  border-radius:999px;
+}
+
+/* shopping-money round */
+.shop-items{
+  display:flex; align-items:center; justify-content:center; gap:.6rem;
+  font-weight:800; font-size:1rem; color:var(--ink);
+}
+
 .result-story{
   font-size:.75rem; color:var(--ink); font-weight:700;
   background:#f8f4ff; border-radius:12px; padding:.4rem .6rem;

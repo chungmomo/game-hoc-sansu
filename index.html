@@ -277,6 +277,38 @@
   <button class="btn-mini" id="btn-sort-skip">🏠 ホームに もどる</button>
 </section>
 
+<!-- ============ MINIGAME: shared "flash round" screen — one prompt +
+     a row of tap-to-answer choices, reused by 6 different learning
+     games (true/false math, clock reading, number sequences, shape
+     counting, length comparison, shopping money) so each only needs to
+     supply a round generator, not its own screen/markup ============ -->
+<section id="screen-flashquiz" class="screen">
+  <div class="game-top-bar">
+    <button class="btn-back" id="btn-flashquiz-back-home" aria-label="さいしょの がめんに もどる">🏠</button>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="flashquiz-progress-fill"></div></div>
+      <div class="progress-text"><span id="flashquiz-progress-current">1</span> / <span id="flashquiz-progress-total">8</span></div>
+    </div>
+  </div>
+
+  <div class="home-header">
+    <h1 class="title" id="flashquiz-title">
+      <span class="title-crown">🎉</span>
+      <span id="flashquiz-title-text"></span>
+      <span class="title-crown">🎉</span>
+    </h1>
+    <p class="subtitle" id="flashquiz-subtitle"></p>
+  </div>
+
+  <div class="flashquiz-prompt" id="flashquiz-prompt"></div>
+  <div class="flashquiz-choices" id="flashquiz-choices"></div>
+
+  <div class="minigame-done hidden" id="flashquiz-done">
+    <button class="btn-start" id="btn-flashquiz-again">もういちど 🔁</button>
+    <button class="btn-mini" id="btn-flashquiz-go-home">🏠 ホームに もどる</button>
+  </div>
+</section>
+
 <!-- ============ GAME SCREEN ============ -->
 <section id="screen-game" class="screen">
   <div class="game-top-bar">

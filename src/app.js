@@ -46,6 +46,7 @@
     screens.mole = document.getElementById('screen-mole');
     screens.pairs10 = document.getElementById('screen-pairs10');
     screens.sort = document.getElementById('screen-sort');
+    screens.flashquiz = document.getElementById('screen-flashquiz');
 
     els.loadingText = document.querySelector('#screen-loading .loading-text');
     els.profileGrid = document.getElementById('profile-grid');
@@ -161,6 +162,18 @@
     els.btnSortAgain = document.getElementById('btn-sort-again');
     els.btnSortGoHome = document.getElementById('btn-sort-go-home');
     els.btnSortSkip = document.getElementById('btn-sort-skip');
+
+    els.btnFlashquizBackHome = document.getElementById('btn-flashquiz-back-home');
+    els.flashquizProgressCurrent = document.getElementById('flashquiz-progress-current');
+    els.flashquizProgressTotal = document.getElementById('flashquiz-progress-total');
+    els.flashquizProgressFill = document.getElementById('flashquiz-progress-fill');
+    els.flashquizTitleText = document.getElementById('flashquiz-title-text');
+    els.flashquizSubtitle = document.getElementById('flashquiz-subtitle');
+    els.flashquizPrompt = document.getElementById('flashquiz-prompt');
+    els.flashquizChoices = document.getElementById('flashquiz-choices');
+    els.flashquizDone = document.getElementById('flashquiz-done');
+    els.btnFlashquizAgain = document.getElementById('btn-flashquiz-again');
+    els.btnFlashquizGoHome = document.getElementById('btn-flashquiz-go-home');
 
     els.soundToggles = Array.from(document.querySelectorAll('.sound-toggle'));
   }
@@ -948,12 +961,267 @@
     }
   }
 
+  /* ================= MINIGAME: shared "flash round" engine =================
+     Six learning games below (true/false math, clock reading, number
+     sequences, shape counting, length comparison, shopping money) are
+     all the same shape — one prompt, a row of tap-to-answer choices —
+     so they share this single engine/screen instead of each getting
+     its own. A game only supplies a config: title/subtitle, how many
+     rounds, and a buildRound() that returns the next prompt + choices
+     (each choice's `html` can be plain text or a visual like a clock
+     face or a bar, since it's just innerHTML). No stars awarded, same
+     "fun break" rule as the other mini-games above. */
+  let flashQuiz = null; // { config, index, correctCount, currentRound, locked }
+
+  function startFlashRound(config) {
+    flashQuiz = { config, index: 0, correctCount: 0, currentRound: null, locked: false };
+    els.flashquizTitleText.textContent = config.title;
+    els.flashquizSubtitle.textContent = config.subtitle;
+    els.flashquizDone.classList.add('hidden');
+    els.flashquizChoices.classList.remove('hidden');
+    showScreen('flashquiz');
+    renderFlashRound();
+  }
+
+  function renderFlashRound() {
+    const { config, index } = flashQuiz;
+    els.flashquizProgressCurrent.textContent = index + 1;
+    els.flashquizProgressTotal.textContent = config.rounds;
+    els.flashquizProgressFill.style.width = (index / config.rounds) * 100 + '%';
+
+    const round = config.buildRound();
+    flashQuiz.currentRound = round;
+    flashQuiz.locked = false;
+    els.flashquizPrompt.innerHTML = round.promptHtml;
+    els.flashquizChoices.innerHTML = '';
+    round.choices.forEach((choice, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'flashquiz-choice-btn';
+      btn.innerHTML = choice.html;
+      btn.addEventListener('click', () => submitFlashAnswer(i, btn));
+      els.flashquizChoices.appendChild(btn);
+    });
+  }
+
+  function submitFlashAnswer(i, btnEl) {
+    if (!flashQuiz || flashQuiz.locked) return;
+    flashQuiz.locked = true;
+    const buttons = Array.from(els.flashquizChoices.children);
+    buttons.forEach(b => { b.disabled = true; });
+
+    const choices = flashQuiz.currentRound.choices;
+    if (choices[i].correct) {
+      btnEl.classList.add('correct');
+      flashQuiz.correctCount++;
+      A.playCorrectSound();
+    } else {
+      btnEl.classList.add('wrong');
+      const correctIdx = choices.findIndex(c => c.correct);
+      if (correctIdx >= 0) buttons[correctIdx].classList.add('correct');
+      A.playWrongSound();
+    }
+
+    setTimeout(() => {
+      flashQuiz.index++;
+      if (flashQuiz.index >= flashQuiz.config.rounds) finishFlashRound();
+      else renderFlashRound();
+    }, 900);
+  }
+
+  function finishFlashRound() {
+    const { config, correctCount } = flashQuiz;
+    els.flashquizPrompt.innerHTML = `<div class="flashquiz-equation">できた！ ${correctCount} / ${config.rounds} もん せいかい</div>`;
+    els.flashquizChoices.classList.add('hidden');
+    els.flashquizDone.classList.remove('hidden');
+    if (correctCount === config.rounds) {
+      E.spawnConfetti(24, D.getSelectedPrincess(state).rewardEmoji);
+    }
+  }
+
+  /** Shuffles `count` distinct wrong values around `correct`, for the
+      games below that build a 4-choice number quiz — small helper so
+      each buildRound() isn't re-deriving the same "keep trying until
+      count distinct, non-negative, not-the-answer candidates" loop. */
+  function distinctWrongValues(correct, count, makeCandidate) {
+    const seen = new Set([correct]);
+    const wrongs = [];
+    let attempts = 0;
+    while (wrongs.length < count && attempts < 100) {
+      attempts++;
+      const candidate = makeCandidate();
+      if (candidate < 0 || seen.has(candidate)) continue;
+      seen.add(candidate);
+      wrongs.push(candidate);
+    }
+    let filler = 1;
+    while (wrongs.length < count) {
+      const candidate = correct + filler;
+      filler++;
+      if (seen.has(candidate)) continue;
+      seen.add(candidate);
+      wrongs.push(candidate);
+    }
+    return wrongs;
+  }
+
+  const FLASHQUIZ_CONFIGS = {
+    /* まるばつ けいさん: flash an addition fact, tap ⭕/❌ for whether
+       the shown answer is right — arithmetic-fluency drill, distinct
+       from the quiz mode's 4-choice format. */
+    truefalse: {
+      title: 'まるばつ けいさん',
+      subtitle: 'けいさんが あってるか はやく こたえよう！',
+      rounds: 8,
+      buildRound() {
+        const level = Math.min(state.selectedLevelByOp.add || 1, 3);
+        const p = M.generateProblem(level);
+        const isTrue = Math.random() < 0.5;
+        const shownAnswer = isTrue ? p.answer : p.answer + M.pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${p.a} ＋ ${p.b} = ${shownAnswer}</div>`,
+          choices: [
+            { html: '⭕ あってる', correct: isTrue },
+            { html: '❌ ちがう', correct: !isTrue },
+          ],
+        };
+      },
+    },
+
+    /* とけいを よもう: read an analog clock (o'clock or half-past),
+       pick the matching digital time from 4 choices. */
+    clock: {
+      title: 'とけいを よもう',
+      subtitle: 'なんじ かな？ ただしい じかんを えらぼう！',
+      rounds: 8,
+      buildRound() {
+        const hour = M.randInt(1, 12);
+        const minute = M.pick([0, 30]);
+        const hourAngle = (hour % 12) * 30 + (minute / 60) * 30;
+        const minuteAngle = minute * 6;
+        const label = h => `${h}じ${minute === 0 ? '' : minute + 'ふん'}`;
+        const wrongHours = M.shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter(h => h !== hour)).slice(0, 3);
+        const options = M.shuffle([hour, ...wrongHours]);
+        return {
+          promptHtml: `
+            <div class="clock-face">
+              <div class="clock-hand clock-hour" style="transform:rotate(${hourAngle}deg)"></div>
+              <div class="clock-hand clock-minute" style="transform:rotate(${minuteAngle}deg)"></div>
+              <div class="clock-center"></div>
+              <span class="clock-num n12">12</span><span class="clock-num n3">3</span>
+              <span class="clock-num n6">6</span><span class="clock-num n9">9</span>
+            </div>`,
+          choices: options.map(h => ({ html: label(h), correct: h === hour })),
+        };
+      },
+    },
+
+    /* かずの ならび: fill the missing number in a skip-counting
+       sequence (by 1s, 2s, 5s, or 10s). */
+    sequence: {
+      title: 'かずの ならび',
+      subtitle: '？に はいる かずは なにかな？',
+      rounds: 8,
+      buildRound() {
+        const step = M.pick([1, 2, 5, 10]);
+        const start = M.randInt(1, 40);
+        const seq = [0, 1, 2, 3, 4].map(i => start + i * step);
+        const blankIndex = M.randInt(1, 3);
+        const answer = seq[blankIndex];
+        const displayed = seq.map((n, i) => i === blankIndex ? '？' : n).join(' , ');
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-2, -1, 1, 2]) * step);
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${displayed}</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    /* かたちの かず: count how many of a target shape appear in a
+       12-cell grid of mixed shapes. */
+    shapes: {
+      title: 'かたちの かず',
+      subtitle: '',
+      rounds: 8,
+      buildRound() {
+        const SHAPES = ['🔺', '⚪', '🟦', '⭐', '💚'];
+        const target = M.pick(SHAPES);
+        const others = SHAPES.filter(s => s !== target);
+        const targetCount = M.randInt(2, 6);
+        const cells = [];
+        for (let i = 0; i < targetCount; i++) cells.push(target);
+        while (cells.length < 12) cells.push(M.pick(others));
+        const shuffled = M.shuffle(cells);
+        const wrongs = distinctWrongValues(targetCount, 3, () => M.randInt(Math.max(1, targetCount - 3), targetCount + 3));
+        const options = M.shuffle([targetCount, ...wrongs]);
+        return {
+          promptHtml: `
+            <div class="shape-grid">${shuffled.map(s => `<span>${s}</span>`).join('')}</div>
+            <div class="flashquiz-subprompt">${target} は いくつ あるかな？</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === targetCount })),
+        };
+      },
+    },
+
+    /* どっちが ながい？: two bars of random (sufficiently different)
+       width — the bars themselves are the tappable choices. */
+    compare: {
+      title: 'どっちが ながい？',
+      subtitle: '',
+      rounds: 8,
+      buildRound() {
+        const askLonger = Math.random() < 0.5;
+        let w1 = M.randInt(50, 220);
+        let w2 = M.randInt(50, 220);
+        while (Math.abs(w1 - w2) < 30) w2 = M.randInt(50, 220);
+        const widths = [w1, w2];
+        const longerIdx = w1 > w2 ? 0 : 1;
+        const correctIdx = askLonger ? longerIdx : 1 - longerIdx;
+        return {
+          promptHtml: `<div class="flashquiz-subprompt">${askLonger ? 'ながい ほうを タップしてね！' : 'みじかい ほうを タップしてね！'}</div>`,
+          choices: widths.map((w, i) => ({ html: `<div class="length-bar" style="width:${w}px"></div>`, correct: i === correctIdx })),
+        };
+      },
+    },
+
+    /* おかいもの けいさん: add two item prices, pick the total from
+       4 choices — addition practice framed as a real-world word problem. */
+    shopping: {
+      title: 'おかいもの けいさん',
+      subtitle: '',
+      rounds: 8,
+      buildRound() {
+        const SHOP_ITEMS = [
+          { emoji: '🍎', price: 80 }, { emoji: '🍞', price: 150 }, { emoji: '🥛', price: 120 },
+          { emoji: '🍭', price: 50 }, { emoji: '🧁', price: 200 }, { emoji: '🍙', price: 110 },
+          { emoji: '🎈', price: 90 }, { emoji: '📕', price: 300 },
+        ];
+        const [item1, item2] = M.shuffle(SHOP_ITEMS).slice(0, 2);
+        const total = item1.price + item2.price;
+        const wrongs = distinctWrongValues(total, 3, () => total + M.pick([-100, -50, -30, -20, 20, 30, 50, 100]));
+        const options = M.shuffle([total, ...wrongs]);
+        return {
+          promptHtml: `
+            <div class="shop-items"><span>${item1.emoji} ${item1.price}えん</span><span>＋</span><span>${item2.emoji} ${item2.price}えん</span></div>
+            <div class="flashquiz-subprompt">ぜんぶで いくらかな？</div>`,
+          choices: options.map(v => ({ html: `${v}えん`, correct: v === total })),
+        };
+      },
+    },
+  };
+
   /* ================= MINIGAME PICKER ================= */
   const MINIGAMES = [
     { id: 'memory', emoji: '🧠', name: 'しんけいすいじゃく', start: () => startMinigame() },
     { id: 'pairs10', emoji: '🔟', name: 'たしざんペア', start: () => startPairs10() },
     { id: 'sort', emoji: '🔢', name: 'じゅんばん クイズ', start: () => startSort() },
     { id: 'mole', emoji: '🎯', name: 'もぐらたたき', start: () => startMole() },
+    { id: 'truefalse', emoji: '✅', name: 'まるばつ けいさん', start: () => startFlashRound(FLASHQUIZ_CONFIGS.truefalse) },
+    { id: 'clock', emoji: '🕐', name: 'とけいを よもう', start: () => startFlashRound(FLASHQUIZ_CONFIGS.clock) },
+    { id: 'sequence', emoji: '🔢', name: 'かずの ならび', start: () => startFlashRound(FLASHQUIZ_CONFIGS.sequence) },
+    { id: 'shapes', emoji: '🔺', name: 'かたちの かず', start: () => startFlashRound(FLASHQUIZ_CONFIGS.shapes) },
+    { id: 'compare', emoji: '📏', name: 'どっちが ながい？', start: () => startFlashRound(FLASHQUIZ_CONFIGS.compare) },
+    { id: 'shopping', emoji: '💰', name: 'おかいもの けいさん', start: () => startFlashRound(FLASHQUIZ_CONFIGS.shopping) },
   ];
 
   function renderMinigamePicker() {
@@ -1732,6 +2000,12 @@
         if (!btn) return;
         pickSortCard(Number(btn.dataset.id));
       });
+    }
+
+    if (els.btnFlashquizBackHome) els.btnFlashquizBackHome.addEventListener('click', goHome);
+    if (els.btnFlashquizGoHome) els.btnFlashquizGoHome.addEventListener('click', goHome);
+    if (els.btnFlashquizAgain) {
+      els.btnFlashquizAgain.addEventListener('click', () => startFlashRound(flashQuiz.config));
     }
 
     els.soundToggles.forEach(btn => btn.addEventListener('click', toggleSound));
