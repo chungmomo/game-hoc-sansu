@@ -109,9 +109,9 @@
     return MAX_LEVEL_ID;
   }
 
-  const PROBLEMS_PER_SET = 5000;
-  const PASS_THRESHOLD = 3000;          // correct answers needed to unlock the next level (60%, same ratio as the old 6/10)
-  const CELEBRATE_STARS_THRESHOLD = 4000; // correct answers needed for the big confetti finale (80%, same ratio as the old 8/10)
+  const PROBLEMS_PER_SET = 10;
+  const PASS_THRESHOLD = 6;          // correct answers needed to unlock the next level
+  const CELEBRATE_STARS_THRESHOLD = 8; // correct answers needed for the big confetti finale
 
   const STREAK_MILESTONES = [3, 5, 8]; // consecutive perfect problems that trigger a streak bonus
   const STREAK_BONUS_STARS = 1;        // extra stars awarded at each milestone

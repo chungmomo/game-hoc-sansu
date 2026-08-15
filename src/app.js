@@ -39,6 +39,7 @@
     screens.home = document.getElementById('screen-home');
     screens.game = document.getElementById('screen-game');
     screens.result = document.getElementById('screen-result');
+    screens.admin = document.getElementById('screen-admin');
 
     els.loadingText = document.querySelector('#screen-loading .loading-text');
     els.profileGrid = document.getElementById('profile-grid');
@@ -63,6 +64,19 @@
     els.badgeGrid = document.getElementById('badge-grid');
     els.btnStart = document.getElementById('btn-start');
     els.btnReset = document.getElementById('btn-reset');
+
+    els.customProblemSummary = document.getElementById('custom-problem-summary');
+    els.btnOpenAdmin = document.getElementById('btn-open-admin');
+    els.adminOperationRow = document.getElementById('admin-operation-row');
+    els.adminInputA = document.getElementById('admin-input-a');
+    els.adminOpSymbol = document.getElementById('admin-op-symbol');
+    els.adminInputB = document.getElementById('admin-input-b');
+    els.btnAdminAdd = document.getElementById('btn-admin-add');
+    els.adminFormError = document.getElementById('admin-form-error');
+    els.adminProblemList = document.getElementById('admin-problem-list');
+    els.adminProblemCount = document.getElementById('admin-problem-count');
+    els.btnAdminPractice = document.getElementById('btn-admin-practice');
+    els.btnAdminBack = document.getElementById('btn-admin-back');
 
     els.btnBackHome = document.getElementById('btn-back-home');
     els.progressCurrent = document.getElementById('progress-current');
@@ -309,27 +323,36 @@
     });
 
     const maxUnlocked = getMaxUnlockedLevel();
+    // DIGIT_GROUPS is a digit-count shortcut for add/sub's shared LEVELS
+    // list — multiplication/division practice times tables instead (see
+    // MUL_LEVELS/DIV_LEVELS), a different difficulty dimension that
+    // doesn't have a digit-count grouping, so the shortcut row just
+    // doesn't apply and stays hidden for those two operations.
+    const isDigitBasedOp = state.selectedOperation === 'add' || state.selectedOperation === 'sub';
 
     els.digitGroupRow.innerHTML = '';
-    D.DIGIT_GROUPS.forEach(group => {
-      const levelsInGroup = group.levelIds.map(id => D.LEVELS.find(lv => lv.id === id)).filter(Boolean);
-      const unlockedLevels = levelsInGroup.filter(lv => lv.id <= maxUnlocked);
-      const groupUnlocked = unlockedLevels.length > 0;
-      const isSelected = levelsInGroup.some(lv => lv.id === getSelectedLevel());
-      const className = 'level-card' + (isSelected ? ' selected' : '');
-      const html = `<div class="level-name">${group.label}${groupUnlocked ? '' : ' 🔒'}</div>`;
-      const card = makeSelectableCard(className, html, groupUnlocked, 'さきに まえの けたすうを おわらせてから えらんでね！', () => {
-        const target = unlockedLevels[unlockedLevels.length - 1];
-        state.selectedLevelByOp[state.selectedOperation] = target.id;
-        saveState();
-        renderHome();
+    els.digitGroupRow.classList.toggle('hidden', !isDigitBasedOp);
+    if (isDigitBasedOp) {
+      D.DIGIT_GROUPS.forEach(group => {
+        const levelsInGroup = group.levelIds.map(id => D.LEVELS.find(lv => lv.id === id)).filter(Boolean);
+        const unlockedLevels = levelsInGroup.filter(lv => lv.id <= maxUnlocked);
+        const groupUnlocked = unlockedLevels.length > 0;
+        const isSelected = levelsInGroup.some(lv => lv.id === getSelectedLevel());
+        const className = 'level-card' + (isSelected ? ' selected' : '');
+        const html = `<div class="level-name">${group.label}${groupUnlocked ? '' : ' 🔒'}</div>`;
+        const card = makeSelectableCard(className, html, groupUnlocked, 'さきに まえの けたすうを おわらせてから えらんでね！', () => {
+          const target = unlockedLevels[unlockedLevels.length - 1];
+          state.selectedLevelByOp[state.selectedOperation] = target.id;
+          saveState();
+          renderHome();
+        });
+        card.style.opacity = groupUnlocked ? '1' : '.55';
+        els.digitGroupRow.appendChild(card);
       });
-      card.style.opacity = groupUnlocked ? '1' : '.55';
-      els.digitGroupRow.appendChild(card);
-    });
+    }
 
     els.levelRow.innerHTML = '';
-    D.LEVELS.forEach(lv => {
+    D.getLevelsForOp(state.selectedOperation).forEach(lv => {
       const unlocked = lv.id <= maxUnlocked;
       const className = 'level-card' + (lv.id === getSelectedLevel() ? ' selected' : '');
       const html = `
@@ -390,6 +413,12 @@
   }
 
   /* ================= SCREEN: GAME ================= */
+  const PROBLEM_GENERATORS = {
+    sub: M.generateSubtractionProblem,
+    mul: M.generateMultiplicationProblem,
+    div: M.generateDivisionProblem,
+  };
+
   function startGame(level) {
     const operation = state.selectedOperation;
     const monster = D.getCurrentMonster(state);
@@ -397,9 +426,7 @@
       level,
       operation,
       monster,
-      problems: operation === 'add'
-        ? M.buildProblemSet(level, D.PROBLEMS_PER_SET)
-        : M.buildProblemSet(level, D.PROBLEMS_PER_SET, M.generateSubtractionProblem),
+      problems: M.buildProblemSet(level, D.PROBLEMS_PER_SET, PROBLEM_GENERATORS[operation]),
       index: 0,
       correctCount: 0,
       starsEarned: 0,
@@ -551,9 +578,9 @@
 
   function renderProblem() {
     const prob = game.problems[game.index];
-    game.columnPlan = game.operation === 'add'
-      ? M.buildColumnPlan(prob.a, prob.b)
-      : M.buildSubtractionColumnPlan(prob.a, prob.b);
+    if (game.operation === 'add') game.columnPlan = M.buildColumnPlan(prob.a, prob.b);
+    else if (game.operation === 'sub') game.columnPlan = M.buildSubtractionColumnPlan(prob.a, prob.b);
+    else game.columnPlan = M.buildSingleStepPlan(prob.a, prob.b, prob.answer);
     game.currentStep = 0;
     game.buffer = '';
     game.locked = false;
@@ -564,7 +591,7 @@
     els.problemCard.classList.toggle('lucky', isLucky);
     els.speechBubble.textContent = isLucky ? D.LUCKY_PROBLEM_MESSAGE : M.pick(D.STARTER_MESSAGES);
     if (isLucky) E.showToast(D.LUCKY_PROBLEM_MESSAGE);
-    const opSymbol = game.operation === 'add' ? '+' : '－';
+    const opSymbol = { add: '+', sub: '－', mul: '×', div: '÷' }[game.operation];
     els.problemOverview.innerHTML = `
       <span class="overview-label">もんだい</span>
       <div class="overview-numbers">
@@ -600,9 +627,9 @@
 
   function renderStepPrompt() {
     const step = game.columnPlan[game.currentStep];
-    els.stepPrompt.textContent = game.operation === 'add'
-      ? M.stepPromptText(step)
-      : M.subtractionStepPromptText(step);
+    if (game.operation === 'add') els.stepPrompt.textContent = M.stepPromptText(step);
+    else if (game.operation === 'sub') els.stepPrompt.textContent = M.subtractionStepPromptText(step);
+    else els.stepPrompt.textContent = `${step.x} ${game.operation === 'mul' ? '×' : '÷'} ${step.y} = ?`;
     renderAnimalCounters(step);
   }
 
@@ -620,7 +647,7 @@
       down" step, which has nothing to count. */
   function renderAnimalCounters(step) {
     if (!els.animalCounters) return;
-    if (step.synthetic) {
+    if (step.synthetic || game.operation === 'mul' || game.operation === 'div') {
       els.animalCounters.innerHTML = `
         <div class="animal-row">&nbsp;</div>
         <div class="animal-row">&nbsp;</div>
@@ -634,7 +661,27 @@
     `;
   }
 
+  /** Multiplication/division facts are a single big answer box, not a
+      multi-column table — no place-label/carry-slot/digit-a/digit-b
+      needed since the fact itself is already shown in problem-overview.
+      Keeps the same `.place-col[data-step-index="0"] .digit-result`
+      shape the rest of the input handling (activeColumnEl,
+      updateActiveResultDisplay, submitAnswer's colEl) relies on. */
+  function renderSingleStepBox() {
+    const resultHtml = game.buffer.length ? game.buffer : '?';
+    const resultClass = 'digit-result' + (game.buffer.length ? ' entering' : ' placeholder');
+    els.columnTable.innerHTML = `
+      <div class="place-col active single-step" data-step-index="0">
+        <div class="line"></div>
+        <div class="${resultClass}">${resultHtml}</div>
+      </div>`;
+  }
+
   function renderColumnTable(opts) {
+    if (game.operation === 'mul' || game.operation === 'div') {
+      renderSingleStepBox();
+      return;
+    }
     const pendingCarryFlight = !!(opts && opts.pendingCarryFlight);
     const current = game.currentStep;
     const cols = [...game.columnPlan].reverse();

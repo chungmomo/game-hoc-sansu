@@ -457,6 +457,51 @@ html,body{
   box-shadow: 0 2px 5px rgba(0,0,0,.2);
 }
 
+/* ---------- ADMIN: custom problems ---------- */
+.panel-desc{
+  font-size:.68rem; color:#7a6a86; text-align:center;
+  margin: 0 0 .4rem;
+}
+.admin-problem-form{
+  display:flex; align-items:center; justify-content:center; gap:.4rem;
+  flex-wrap:wrap;
+}
+.admin-number-input{
+  width: 4.4rem;
+  font-family:inherit; font-size:1rem; font-weight:700; color:var(--ink);
+  text-align:center;
+  padding: .45rem .3rem;
+  border-radius:12px;
+  border: 3px solid #e3d8ff;
+  outline:none;
+  background:#faf7ff;
+}
+.admin-number-input:focus{ border-color:var(--purple-dark); }
+.admin-op-symbol{ font-size:1.2rem; font-weight:800; color:var(--purple-dark); }
+.admin-add-btn{ flex:0 0 auto; padding:.5rem 1rem; }
+.admin-problem-form + .modal-error{ text-align:center; margin-top:.4rem; }
+
+.admin-problem-list{
+  display:flex; flex-direction:column; gap:.35rem;
+  margin-bottom:.6rem;
+}
+.admin-problem-row{
+  display:flex; align-items:center; justify-content:space-between;
+  background:#fff; border-radius:12px; padding:.4rem .6rem;
+  box-shadow: 0 2px 6px rgba(140,92,255,.1);
+}
+.admin-problem-text{
+  font-family:'Baloo 2','M PLUS Rounded 1c',sans-serif;
+  font-weight:800; font-size:.95rem; color:var(--ink);
+}
+.admin-problem-delete{
+  width:24px; height:24px; border-radius:50%;
+  background:var(--red); color:#fff; border:2px solid #fff;
+  font-size:.65rem; font-weight:800; line-height:1; cursor:pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,.2);
+  flex:0 0 auto;
+}
+
 .result-story{
   font-size:.75rem; color:var(--ink); font-weight:700;
   background:#f8f4ff; border-radius:12px; padding:.4rem .6rem;

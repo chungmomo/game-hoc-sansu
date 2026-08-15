@@ -98,6 +98,42 @@
   </div>
 </section>
 
+<!-- ============ ADMIN: CUSTOM PROBLEMS SCREEN ============ -->
+<section id="screen-admin" class="screen">
+  <div class="home-header">
+    <div class="castle-top" aria-hidden="true">✏️</div>
+    <h1 class="title">
+      <span class="title-crown">✏️</span>
+      じぶんで もんだいを つくろう
+      <span class="title-crown">✏️</span>
+    </h1>
+  </div>
+
+  <div class="panel">
+    <h2 class="panel-title">けいさんの しゅるい</h2>
+    <div class="operation-row" id="admin-operation-row"></div>
+  </div>
+
+  <div class="panel">
+    <h2 class="panel-title">あたらしい もんだいを ついかする</h2>
+    <div class="admin-problem-form">
+      <input type="text" inputmode="numeric" pattern="[0-9]*" class="admin-number-input" id="admin-input-a" placeholder="123" maxlength="5">
+      <span class="admin-op-symbol" id="admin-op-symbol">＋</span>
+      <input type="text" inputmode="numeric" pattern="[0-9]*" class="admin-number-input" id="admin-input-b" placeholder="45" maxlength="5">
+      <button class="modal-confirm admin-add-btn" id="btn-admin-add">ついか</button>
+    </div>
+    <p class="modal-error hidden" id="admin-form-error"></p>
+  </div>
+
+  <div class="panel">
+    <h2 class="panel-title">もんだいリスト（<span id="admin-problem-count">0</span>）</h2>
+    <div class="admin-problem-list" id="admin-problem-list"></div>
+    <button class="btn-start" id="btn-admin-practice">これで れんしゅうする ▶️</button>
+  </div>
+
+  <button class="btn-mini" id="btn-admin-back">🏠 ホームに もどる</button>
+</section>
+
 <!-- ============ GAME SCREEN ============ -->
 <section id="screen-game" class="screen">
   <div class="game-top-bar">
