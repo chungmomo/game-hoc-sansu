@@ -152,6 +152,140 @@
       <circle cx="6.5" cy="17.5" r="0.6" fill="#facc15"/>
       <circle cx="17.5" cy="18" r="0.5" fill="#facc15"/>
     </svg>`,
+
+    // ---- Minigame picker cards ----
+    memoryGameIcon: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 3.5c-2.5 0-4 2-3.7 4.2C3.8 8.4 3 10 3.5 11.8c-.6 1.6.2 3.4 1.8 4 .2 2 2 3.4 4 3.2 1 .8 2.5.8 3.5 0 1.6.3 3.2-.7 3.6-2.3 1.7-.5 2.6-2.3 2-4 .8-1.6.1-3.5-1.5-4.2.4-2-1-4-3-4.3C13.4 2.7 11 2 9 3.5Z" fill="#f9a8d4"/>
+      <path d="M9 6c-1.2.6-1.8 2-1.5 3.3M12 5.5c1 .3 1.7 1.3 1.7 2.4M9.5 12c1 .5 1.8 1.5 1.8 2.7" fill="none" stroke="#be185d" stroke-width=".8" stroke-linecap="round" opacity=".5"/>
+      <path d="M8 12.3q1-1 2 0" fill="none" stroke="#831843" stroke-width="1.1" stroke-linecap="round"/>
+      <circle cx="14.3" cy="12.3" r="1.2" fill="#831843"/>
+      <circle cx="14.6" cy="11.9" r=".35" fill="#fff"/>
+      <path d="M9.3 15.3q1.7 1.4 3.4 0" fill="none" stroke="#831843" stroke-width="1" stroke-linecap="round"/>
+    </svg>`,
+
+    pairs10Icon: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="2" y="6" width="9.5" height="12" rx="3" fill="#fbbf24"/>
+      <rect x="12.5" y="6" width="9.5" height="12" rx="3" fill="#fb923c"/>
+      <path d="M5.5 10q1-1 2 0" fill="none" stroke="#78350f" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="9" cy="10" r="1" fill="#78350f"/>
+      <path d="M4.8 13.5q1.7 1.3 3.4 0" fill="none" stroke="#78350f" stroke-width="1" stroke-linecap="round"/>
+      <path d="M15.5 10q1-1 2 0" fill="none" stroke="#7c2d12" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="19" cy="10" r="1" fill="#7c2d12"/>
+      <path d="M14.8 13.5q1.7 1.3 3.4 0" fill="none" stroke="#7c2d12" stroke-width="1" stroke-linecap="round"/>
+      <path d="M11.5 4.5l1 2 2 .8-2 .8-1 2-1-2-2-.8 2-.8Z" fill="#fef08a"/>
+    </svg>`,
+
+    sortIcon: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="2" y="15" width="5" height="6" rx="1.4" fill="#93c5fd"/>
+      <rect x="8" y="10" width="5" height="11" rx="1.4" fill="#60a5fa"/>
+      <rect x="14" y="4" width="5" height="17" rx="1.4" fill="#3b82f6"/>
+      <path d="M15.3 8.3q1-1 2 0" fill="none" stroke="#1e3a8a" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="18.2" cy="8.3" r="1" fill="#1e3a8a"/>
+      <path d="M14.6 11q1.7 1.3 3.4 0" fill="none" stroke="#1e3a8a" stroke-width="1" stroke-linecap="round"/>
+    </svg>`,
+
+    moleIcon: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <ellipse cx="12" cy="20.5" rx="9" ry="2" fill="#92400e"/>
+      <path d="M12 3c3.3 0 6 3.6 6 8.2 0 4.6-2.3 8.3-6 8.3s-6-3.7-6-8.3C6 6.6 8.7 3 12 3Z" fill="#c08a5c"/>
+      <ellipse cx="8.6" cy="10.2" rx="1.5" ry="1.9" fill="#e9c39b"/>
+      <ellipse cx="15.4" cy="10.2" rx="1.5" ry="1.9" fill="#e9c39b"/>
+      <path d="M8.3 11.4q1-1 2 0" fill="none" stroke="#4a2c14" stroke-width="1.1" stroke-linecap="round"/>
+      <circle cx="15.6" cy="11.4" r="1.3" fill="#4a2c14"/>
+      <circle cx="15.9" cy="11" r=".4" fill="#fff"/>
+      <ellipse cx="12" cy="13.6" rx="1.2" ry="1" fill="#78350f"/>
+      <path d="M9.5 15.6q2.5 1.8 5 0" fill="none" stroke="#4a2c14" stroke-width="1" stroke-linecap="round"/>
+    </svg>`,
+
+    truefalseIcon: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="8" cy="12" r="6.5" fill="none" stroke="#22c55e" stroke-width="2.6"/>
+      <path d="M6 10.5q1-1 2 0" fill="none" stroke="#166534" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="10.2" cy="10.5" r="1" fill="#166534"/>
+      <path d="M5.3 13.5q2 1.6 4 0" fill="none" stroke="#166534" stroke-width="1" stroke-linecap="round"/>
+      <path d="M16.5 7.5l6 6M22.5 7.5l-6 6" stroke="#ef4444" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="18" cy="8.6" r=".9" fill="#7f1d1d"/>
+      <circle cx="21" cy="8.6" r=".9" fill="#7f1d1d"/>
+      <path d="M18.3 12q1.4 1.1 2.8 0" fill="none" stroke="#7f1d1d" stroke-width="1" stroke-linecap="round"/>
+    </svg>`,
+
+    clockIcon: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="6" cy="4.5" r="1.6" fill="#fca5a5"/>
+      <circle cx="18" cy="4.5" r="1.6" fill="#fca5a5"/>
+      <rect x="4.7" y="2" width="2.2" height="3" rx="1" fill="#f87171" transform="rotate(-25 5.8 3.5)"/>
+      <rect x="17.1" y="2" width="2.2" height="3" rx="1" fill="#f87171" transform="rotate(25 18.2 3.5)"/>
+      <circle cx="12" cy="13" r="9" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.4"/>
+      <circle cx="12" cy="13" r="6.6" fill="#fffbeb"/>
+      <path d="M9 11.3q1-1 2 0" fill="none" stroke="#78350f" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="14.6" cy="11.3" r="1" fill="#78350f"/>
+      <path d="M9.4 14.7q2.6 2 5.2 0" fill="none" stroke="#78350f" stroke-width="1" stroke-linecap="round"/>
+      <rect x="11.5" y="6.5" width="1" height="4" rx=".5" fill="#78350f"/>
+      <circle cx="12" cy="13" r=".8" fill="#78350f"/>
+    </svg>`,
+
+    sequenceIcon: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="2" y="9" width="6" height="6" rx="1.4" fill="#a78bfa"/>
+      <rect x="9" y="9" width="6" height="6" rx="1.4" fill="#818cf8"/>
+      <rect x="16" y="9" width="6" height="6" rx="1.4" fill="#6366f1"/>
+      <path d="M4.5 11.5q.7-.7 1.4 0" fill="none" stroke="#3730a3" stroke-width=".9" stroke-linecap="round"/>
+      <circle cx="6.7" cy="11.5" r=".7" fill="#3730a3"/>
+      <path d="M4.1 13.2q1.4 1 2.8 0" fill="none" stroke="#3730a3" stroke-width=".8" stroke-linecap="round"/>
+      <path d="M17 10.2l3 1.8-3 1.8Z" fill="#fde68a"/>
+    </svg>`,
+
+    shapesIcon: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="18" cy="17" r="4" fill="#86efac"/>
+      <rect x="2.5" y="13.5" width="7" height="7" rx="1.4" fill="#93c5fd"/>
+      <path d="M13 3 L20 15 L6 15 Z" fill="#fca5a5"/>
+      <path d="M11.5 10.3q.9-.9 1.8 0" fill="none" stroke="#7f1d1d" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="15.2" cy="10.3" r="1" fill="#7f1d1d"/>
+      <path d="M11.8 12.6q1.7 1.3 3.4 0" fill="none" stroke="#7f1d1d" stroke-width="1" stroke-linecap="round"/>
+    </svg>`,
+
+    compareIcon: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M2 15c0-1.2 1-2 2-2h16c1.1 0 2 .9 2 2v3c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2Z" fill="#fbbf24"/>
+      <rect x="4" y="13" width="1.2" height="3" fill="#92400e"/>
+      <rect x="7" y="13" width="1.2" height="2.2" fill="#92400e"/>
+      <rect x="10" y="13" width="1.2" height="3" fill="#92400e"/>
+      <rect x="13" y="13" width="1.2" height="2.2" fill="#92400e"/>
+      <rect x="16" y="13" width="1.2" height="3" fill="#92400e"/>
+      <path d="M9.3 18.3q1-1 2 0" fill="none" stroke="#78350f" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="14.5" cy="18.3" r="1.1" fill="#78350f"/>
+      <circle cx="14.8" cy="17.9" r=".35" fill="#fff"/>
+      <path d="M9.6 20.4q2.4 1.6 4.8 0" fill="none" stroke="#78350f" stroke-width="1" stroke-linecap="round"/>
+    </svg>`,
+
+    shoppingIcon: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 9c0-2.2 3.6-4 8-4s8 1.8 8 4-3.6 4-8 4-8-1.8-8-4Z" fill="#fb923c"/>
+      <path d="M4 9v7c0 2.2 3.6 4 8 4s8-1.8 8-4V9" fill="#f97316"/>
+      <ellipse cx="12" cy="16" rx="8" ry="4" fill="#fdba74"/>
+      <path d="M9.3 15.3q1-1 2 0" fill="none" stroke="#7c2d12" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="14.6" cy="15.3" r="1.1" fill="#7c2d12"/>
+      <circle cx="14.9" cy="14.9" r=".35" fill="#fff"/>
+      <path d="M9.6 17.6q2.4 1.6 4.8 0" fill="none" stroke="#7c2d12" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="19" cy="6" r="3" fill="#fde68a" stroke="#ca8a04" stroke-width="1"/>
+      <text x="19" y="7.6" font-size="3.2" font-weight="800" fill="#92400e" text-anchor="middle" font-family="sans-serif">¥</text>
+    </svg>`,
+
+    // ---- Shopping minigame items ----
+    cupcakeItem: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7.5 12h9l-1.4 8.6c-.1.9-.9 1.4-1.8 1.4h-2.6c-.9 0-1.7-.5-1.8-1.4Z" fill="#fbbf24"/>
+      <path d="M6.7 12l.9-1.3h8.8l.9 1.3Z" fill="#f59e0b"/>
+      <path d="M6.5 11.5c-1-4.3 2.2-8 5.5-8s6.5 3.7 5.5 8Z" fill="#f9a8d4"/>
+      <circle cx="12" cy="3.5" r="1.1" fill="#f472b6"/>
+      <path d="M9.6 13.3q1-1 2 0" fill="none" stroke="#78350f" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="14.3" cy="13.3" r="1" fill="#78350f"/>
+      <path d="M9.9 15.3q1.9 1.4 3.8 0" fill="none" stroke="#78350f" stroke-width="1" stroke-linecap="round"/>
+    </svg>`,
+
+    balloonItem: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <ellipse cx="12" cy="9" rx="7" ry="8" fill="#f472b6"/>
+      <path d="M12 17l-1.4 2.5h2.8Z" fill="#be185d"/>
+      <path d="M12 19.5c0 1.5 3 2 2 3.5" fill="none" stroke="#831843" stroke-width="1" stroke-linecap="round"/>
+      <ellipse cx="9.3" cy="6" rx="1.6" ry="2.2" fill="#fbcfe8" opacity=".6"/>
+      <path d="M9 8.3q1-1 2 0" fill="none" stroke="#831843" stroke-width="1.1" stroke-linecap="round"/>
+      <circle cx="14.6" cy="8.3" r="1.2" fill="#831843"/>
+      <circle cx="14.9" cy="7.9" r=".35" fill="#fff"/>
+      <path d="M9.3 11.3q2.7 2 5.4 0" fill="none" stroke="#831843" stroke-width="1" stroke-linecap="round"/>
+    </svg>`,
   };
 
   root.PM.Icons = ICONS;

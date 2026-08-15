@@ -8,6 +8,7 @@
   const A = window.PM.Audio;
   const E = window.PM.Effects;
   const C = window.PM.Cloud;
+  const I = window.PM.Icons;
 
   const PROFILE_AVATARS = ['👧', '🧒', '👦', '🐣', '🌟', '🦄', '🐻', '🐰'];
 
@@ -802,7 +803,7 @@
     let html = '';
     for (let i = 0; i < MOLE_HOLE_COUNT; i++) {
       const up = mole.activeHole === i;
-      html += `<button class="mole-hole${up ? ' up' : ''}${up && mole.whacked ? ' whacked' : ''}" data-id="${i}">${up ? '👺' : ''}</button>`;
+      html += `<button class="mole-hole${up ? ' up' : ''}${up && mole.whacked ? ' whacked' : ''}" data-id="${i}">${up ? I.moleIcon : ''}</button>`;
     }
     els.moleGrid.innerHTML = html;
   }
@@ -1201,8 +1202,8 @@
       buildRound() {
         const SHOP_ITEMS = [
           { emoji: '🍎', price: 80 }, { emoji: '🍞', price: 150 }, { emoji: '🥛', price: 120 },
-          { emoji: '🍭', price: 50 }, { emoji: '🧁', price: 200 }, { emoji: '🍙', price: 110 },
-          { emoji: '🎈', price: 90 }, { emoji: '📕', price: 300 },
+          { emoji: '🍭', price: 50 }, { emoji: '🧁', icon: I.cupcakeItem, price: 200 }, { emoji: '🍙', price: 110 },
+          { emoji: '🎈', icon: I.balloonItem, price: 90 }, { emoji: '📕', price: 300 },
         ];
         const [item1, item2] = M.shuffle(SHOP_ITEMS).slice(0, 2);
         const total = item1.price + item2.price;
@@ -1210,7 +1211,7 @@
         const options = M.shuffle([total, ...wrongs]);
         return {
           promptHtml: `
-            <div class="shop-items"><span>${item1.emoji} ${item1.price}えん</span><span>＋</span><span>${item2.emoji} ${item2.price}えん</span></div>
+            <div class="shop-items"><span>${item1.icon || item1.emoji} ${item1.price}えん</span><span>＋</span><span>${item2.icon || item2.emoji} ${item2.price}えん</span></div>
             <div class="flashquiz-subprompt">ぜんぶで いくらかな？</div>`,
           choices: options.map(v => ({ html: `${v}えん`, correct: v === total })),
         };
@@ -1220,16 +1221,16 @@
 
   /* ================= MINIGAME PICKER ================= */
   const MINIGAMES = [
-    { id: 'memory', emoji: '🧠', name: 'しんけいすいじゃく', start: () => startMinigame() },
-    { id: 'pairs10', emoji: '🔟', name: 'たしざんペア', start: () => startPairs10() },
-    { id: 'sort', emoji: '🔢', name: 'じゅんばん クイズ', start: () => startSort() },
-    { id: 'mole', emoji: '🎯', name: 'もぐらたたき', start: () => startMole() },
-    { id: 'truefalse', emoji: '✅', name: 'まるばつ けいさん', start: () => startFlashRound(FLASHQUIZ_CONFIGS.truefalse) },
-    { id: 'clock', emoji: '🕐', name: 'とけいを よもう', start: () => startFlashRound(FLASHQUIZ_CONFIGS.clock) },
-    { id: 'sequence', emoji: '🔢', name: 'かずの ならび', start: () => startFlashRound(FLASHQUIZ_CONFIGS.sequence) },
-    { id: 'shapes', emoji: '🔺', name: 'かたちの かず', start: () => startFlashRound(FLASHQUIZ_CONFIGS.shapes) },
-    { id: 'compare', emoji: '📏', name: 'どっちが ながい？', start: () => startFlashRound(FLASHQUIZ_CONFIGS.compare) },
-    { id: 'shopping', emoji: '💰', name: 'おかいもの けいさん', start: () => startFlashRound(FLASHQUIZ_CONFIGS.shopping) },
+    { id: 'memory', emoji: '🧠', icon: I.memoryGameIcon, name: 'しんけいすいじゃく', start: () => startMinigame() },
+    { id: 'pairs10', emoji: '🔟', icon: I.pairs10Icon, name: 'たしざんペア', start: () => startPairs10() },
+    { id: 'sort', emoji: '🔢', icon: I.sortIcon, name: 'じゅんばん クイズ', start: () => startSort() },
+    { id: 'mole', emoji: '🎯', icon: I.moleIcon, name: 'もぐらたたき', start: () => startMole() },
+    { id: 'truefalse', emoji: '✅', icon: I.truefalseIcon, name: 'まるばつ けいさん', start: () => startFlashRound(FLASHQUIZ_CONFIGS.truefalse) },
+    { id: 'clock', emoji: '🕐', icon: I.clockIcon, name: 'とけいを よもう', start: () => startFlashRound(FLASHQUIZ_CONFIGS.clock) },
+    { id: 'sequence', emoji: '🔢', icon: I.sequenceIcon, name: 'かずの ならび', start: () => startFlashRound(FLASHQUIZ_CONFIGS.sequence) },
+    { id: 'shapes', emoji: '🔺', icon: I.shapesIcon, name: 'かたちの かず', start: () => startFlashRound(FLASHQUIZ_CONFIGS.shapes) },
+    { id: 'compare', emoji: '📏', icon: I.compareIcon, name: 'どっちが ながい？', start: () => startFlashRound(FLASHQUIZ_CONFIGS.compare) },
+    { id: 'shopping', emoji: '💰', icon: I.shoppingIcon, name: 'おかいもの けいさん', start: () => startFlashRound(FLASHQUIZ_CONFIGS.shopping) },
   ];
 
   function renderMinigamePicker() {
@@ -1241,7 +1242,7 @@
       card.setAttribute('role', 'button');
       card.setAttribute('tabindex', '0');
       card.innerHTML = `
-        <div class="minigame-card-emoji">${g.emoji}</div>
+        <div class="minigame-card-emoji">${g.icon || g.emoji}</div>
         <div class="minigame-card-name">${g.name}</div>
       `;
       card.addEventListener('click', g.start);
