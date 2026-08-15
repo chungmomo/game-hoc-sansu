@@ -40,6 +40,8 @@
     screens.game = document.getElementById('screen-game');
     screens.result = document.getElementById('screen-result');
     screens.admin = document.getElementById('screen-admin');
+    screens.quiz = document.getElementById('screen-quiz');
+    screens.minigame = document.getElementById('screen-minigame');
 
     els.loadingText = document.querySelector('#screen-loading .loading-text');
     els.profileGrid = document.getElementById('profile-grid');
@@ -108,7 +110,27 @@
     els.resultStory = document.getElementById('result-story');
     els.btnPlayAgain = document.getElementById('btn-play-again');
     els.btnNextLevel = document.getElementById('btn-next-level');
+    els.btnPlayMinigame = document.getElementById('btn-play-minigame');
     els.btnGoHome = document.getElementById('btn-go-home');
+
+    els.btnStartQuiz = document.getElementById('btn-start-quiz');
+    els.btnQuizBackHome = document.getElementById('btn-quiz-back-home');
+    els.quizProgressCurrent = document.getElementById('quiz-progress-current');
+    els.quizProgressTotal = document.getElementById('quiz-progress-total');
+    els.quizProgressFill = document.getElementById('quiz-progress-fill');
+    els.quizLives = document.getElementById('quiz-lives');
+    els.quizMascot = document.getElementById('quiz-mascot');
+    els.quizSpeechBubble = document.getElementById('quiz-speech-bubble');
+    els.quizMonsterDisplay = document.getElementById('quiz-monster-display');
+    els.quizEquation = document.getElementById('quiz-equation');
+    els.quizChoices = document.getElementById('quiz-choices');
+    els.quizDone = document.getElementById('quiz-done');
+    els.btnQuizAgain = document.getElementById('btn-quiz-again');
+    els.btnQuizGoHome = document.getElementById('btn-quiz-go-home');
+
+    els.memoryStatus = document.getElementById('memory-status');
+    els.memoryGrid = document.getElementById('memory-grid');
+    els.btnMinigameSkip = document.getElementById('btn-minigame-skip');
 
     els.soundToggles = Array.from(document.querySelectorAll('.sound-toggle'));
   }
@@ -528,6 +550,188 @@
       answer: operation === 'add' ? p.a + p.b : p.a - p.b,
     }));
     beginGame({ problems, level: state.selectedLevelByOp[operation] || 1, operation, isCustom: true });
+  }
+
+  /* ================= SCREEN: QUIZ =================
+     A second, much simpler way to practice than the column-by-column
+     game screen: one flat "a op b = ?" equation with 4 tap-to-answer
+     choices instead of typing digits column by column. Deliberately
+     kept as its own small state machine (`quiz`, separate from `game`)
+     rather than bolted onto the column-work game loop — that loop's
+     per-column buffer/timer/carry machinery doesn't apply here, and
+     branching it in throughout would risk the existing flow more than
+     a short parallel implementation does. No monster-defeat/puzzle-
+     piece story rewards here (that progression is tied to the graded
+     level flow specifically) — stars only, so it stays a quick,
+     low-stakes warm-up rather than a second progression track. */
+  const QUIZ_PROBLEMS_PER_SET = 10;
+  const QUIZ_GENERATORS = {
+    add: M.generateProblem,
+    sub: M.generateSubtractionProblem,
+    mul: M.generateMultiplicationProblem,
+    div: M.generateDivisionProblem,
+  };
+
+  let quiz = null;
+
+  function startQuiz() {
+    const operation = state.selectedOperation;
+    const level = state.selectedLevelByOp[operation] || 1;
+    const problems = M.buildProblemSet(level, QUIZ_PROBLEMS_PER_SET, QUIZ_GENERATORS[operation]);
+    quiz = {
+      operation, problems, index: 0, correctCount: 0, starsEarned: 0,
+      streak: 0, peakStreak: 0, livesIcons: ['💖', '💖', '💖'], locked: false,
+    };
+    const p = D.getSelectedPrincess(state);
+    els.quizMascot.textContent = p.mascot;
+    els.quizMonsterDisplay.textContent = D.getCurrentMonster(state).emoji;
+    els.quizLives.textContent = quiz.livesIcons.join('');
+    els.quizDone.classList.add('hidden');
+    els.quizChoices.classList.remove('hidden');
+    els.quizEquation.classList.remove('hidden');
+    showScreen('quiz');
+    renderQuizProblem();
+  }
+
+  function renderQuizProblem() {
+    quiz.locked = false;
+    const prob = quiz.problems[quiz.index];
+    const opSymbol = { add: '＋', sub: '－', mul: '×', div: '÷' }[quiz.operation];
+    els.quizProgressCurrent.textContent = quiz.index + 1;
+    els.quizProgressTotal.textContent = quiz.problems.length;
+    els.quizProgressFill.style.width = (quiz.index / quiz.problems.length) * 100 + '%';
+    els.quizEquation.textContent = `${prob.a} ${opSymbol} ${prob.b} = ?`;
+    els.quizSpeechBubble.textContent = M.pick(D.STARTER_MESSAGES);
+
+    const choices = M.shuffle([prob.answer, ...M.generateDistractors(prob.answer, 3)]);
+    els.quizChoices.innerHTML = '';
+    choices.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'quiz-choice-btn';
+      btn.textContent = choice;
+      btn.addEventListener('click', () => submitQuizAnswer(choice, btn, prob.answer));
+      els.quizChoices.appendChild(btn);
+    });
+  }
+
+  function submitQuizAnswer(choice, btnEl, answer) {
+    if (quiz.locked) return;
+    quiz.locked = true;
+    const correct = choice === answer;
+    const buttons = Array.from(els.quizChoices.children);
+    buttons.forEach(b => { b.disabled = true; });
+
+    if (correct) {
+      btnEl.classList.add('correct');
+      quiz.correctCount++;
+      quiz.streak++;
+      quiz.peakStreak = Math.max(quiz.peakStreak, quiz.streak);
+      let stars = 1;
+      if (D.STREAK_MILESTONES.includes(quiz.streak)) stars += D.STREAK_BONUS_STARS;
+      quiz.starsEarned += stars;
+      A.playCorrectSound();
+      els.quizSpeechBubble.textContent = M.pick(D.PRAISE_MESSAGES);
+      flashClass(els.quizMascot, 'attacking', 550);
+      E.spawnProjectile(els.quizMascot, els.quizMonsterDisplay, '🪄', () => {
+        flashClass(els.quizMonsterDisplay, 'hit', 500);
+      });
+    } else {
+      btnEl.classList.add('wrong');
+      buttons.forEach(b => { if (Number(b.textContent) === answer) b.classList.add('correct'); });
+      quiz.streak = 0;
+      A.playWrongSound();
+      els.quizSpeechBubble.textContent = M.pick(D.ENCOURAGE_MESSAGES);
+      flashClass(els.quizMonsterDisplay, 'attacking', 550);
+      E.spawnProjectile(els.quizMonsterDisplay, els.quizMascot, '💥', () => {
+        flashClass(els.quizMascot, 'hit', 500);
+      });
+      let brokeOne = false;
+      for (let i = quiz.livesIcons.length - 1; i >= 0; i--) {
+        if (quiz.livesIcons[i] === '💖') { quiz.livesIcons[i] = '💔'; brokeOne = true; break; }
+      }
+      if (!brokeOne) quiz.livesIcons = ['💖', '💖', '💖'];
+      els.quizLives.textContent = quiz.livesIcons.join('');
+    }
+
+    setTimeout(() => {
+      quiz.index++;
+      if (quiz.index >= quiz.problems.length) finishQuiz();
+      else renderQuizProblem();
+    }, 900);
+  }
+
+  function finishQuiz() {
+    state.totalStars += quiz.starsEarned;
+    state.bestStreak = Math.max(state.bestStreak || 0, quiz.peakStreak);
+    saveState();
+    const perfect = quiz.correctCount === quiz.problems.length;
+    els.quizSpeechBubble.textContent = perfect ? 'かんぺき！すごいね！' : 'よく がんばったね！';
+    els.quizEquation.textContent = `できた！ ${quiz.correctCount} / ${quiz.problems.length} もん せいかい`;
+    els.quizChoices.classList.add('hidden');
+    els.quizDone.classList.remove('hidden');
+    const p = D.getSelectedPrincess(state);
+    if (perfect) E.spawnConfetti(30, p.rewardEmoji);
+    E.showToast(`⭐ +${quiz.starsEarned}こ ゲット！`);
+  }
+
+  /* ================= SCREEN: MINIGAME (memory match) =================
+     A non-math bonus round offered on the result screen — purely a fun
+     break, no stars/progression tied to it, so it's fine for a child to
+     skip it entirely. Flip two cards; a match stays face-up, a mismatch
+     flips back after a beat. */
+  let memory = null;
+  const MEMORY_PAIR_COUNT = 6;
+
+  function startMinigame() {
+    const pool = M.shuffle(D.STICKER_POOL.filter(Boolean)).slice(0, MEMORY_PAIR_COUNT);
+    const cards = M.shuffle(pool.concat(pool)).map((face, i) => ({ id: i, face, matched: false }));
+    memory = { cards, flipped: [], matchesFound: 0, locked: false };
+    els.memoryStatus.textContent = 'おなじ カードを 2まい みつけてね！';
+    renderMemoryGrid();
+    showScreen('minigame');
+  }
+
+  function renderMemoryGrid() {
+    els.memoryGrid.innerHTML = memory.cards.map(card => {
+      const revealed = card.matched || memory.flipped.includes(card.id);
+      return `
+        <button class="memory-card${revealed ? ' revealed' : ''}${card.matched ? ' matched' : ''}" data-id="${card.id}" ${card.matched ? 'disabled' : ''}>
+          <span class="memory-card-face">${revealed ? card.face : '❓'}</span>
+        </button>`;
+    }).join('');
+  }
+
+  function flipMemoryCard(id) {
+    if (memory.locked) return;
+    const card = memory.cards.find(c => c.id === id);
+    if (!card || card.matched || memory.flipped.includes(id)) return;
+    memory.flipped.push(id);
+    renderMemoryGrid();
+    if (memory.flipped.length < 2) return;
+
+    memory.locked = true;
+    const [firstId, secondId] = memory.flipped;
+    const first = memory.cards.find(c => c.id === firstId);
+    const second = memory.cards.find(c => c.id === secondId);
+    if (first.face === second.face) {
+      first.matched = true;
+      second.matched = true;
+      memory.matchesFound++;
+      A.playCorrectSound();
+      memory.flipped = [];
+      memory.locked = false;
+      renderMemoryGrid();
+      if (memory.matchesFound === MEMORY_PAIR_COUNT) {
+        els.memoryStatus.textContent = 'ぜんぶ そろった！やったね！🎉';
+        E.spawnConfetti(24, D.getSelectedPrincess(state).rewardEmoji);
+      }
+    } else {
+      setTimeout(() => {
+        memory.flipped = [];
+        memory.locked = false;
+        renderMemoryGrid();
+      }, 700);
+    }
   }
 
   /* ================= SCREEN: GAME ================= */
@@ -1220,6 +1424,27 @@
       showScreen('home');
       renderHome();
     });
+
+    if (els.btnStartQuiz) els.btnStartQuiz.addEventListener('click', startQuiz);
+    if (els.btnQuizBackHome) {
+      els.btnQuizBackHome.addEventListener('click', () => { showScreen('home'); renderHome(); });
+    }
+    if (els.btnQuizAgain) els.btnQuizAgain.addEventListener('click', startQuiz);
+    if (els.btnQuizGoHome) {
+      els.btnQuizGoHome.addEventListener('click', () => { showScreen('home'); renderHome(); });
+    }
+
+    if (els.btnPlayMinigame) els.btnPlayMinigame.addEventListener('click', startMinigame);
+    if (els.btnMinigameSkip) {
+      els.btnMinigameSkip.addEventListener('click', () => { showScreen('home'); renderHome(); });
+    }
+    if (els.memoryGrid) {
+      els.memoryGrid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.memory-card');
+        if (!btn) return;
+        flipMemoryCard(Number(btn.dataset.id));
+      });
+    }
 
     els.soundToggles.forEach(btn => btn.addEventListener('click', toggleSound));
     if (els.btnToggleTimer) els.btnToggleTimer.addEventListener('click', toggleTimer);
