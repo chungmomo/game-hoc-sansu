@@ -60,6 +60,7 @@
     <button class="btn-start" id="btn-start">
       はじめる ✨
     </button>
+    <button class="btn-start btn-secondary" id="btn-start-quiz">⚡ クイズで あそぶ</button>
 
     <button class="btn-mini" id="btn-reset">さいしょから やりなおす（きろくを けす）</button>
   </div>
@@ -132,6 +133,58 @@
   </div>
 
   <button class="btn-mini" id="btn-admin-back">🏠 ホームに もどる</button>
+</section>
+
+<!-- ============ QUIZ SCREEN: fast multiple-choice practice, a
+     different play style from the column-by-column game screen below ============ -->
+<section id="screen-quiz" class="screen">
+  <div class="game-top-bar">
+    <button class="btn-back" id="btn-quiz-back-home" aria-label="さいしょの がめんに もどる">🏠</button>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="quiz-progress-fill"></div></div>
+      <div class="progress-text"><span id="quiz-progress-current">1</span> / <span id="quiz-progress-total">10</span></div>
+    </div>
+    <div class="lives" id="quiz-lives" aria-hidden="true">💖💖💖</div>
+    <button class="sound-toggle" aria-label="おとを けす" aria-pressed="true">🔊</button>
+  </div>
+
+  <div class="mascot-zone">
+    <div class="mascot-wrap">
+      <div class="mascot" id="quiz-mascot">🧚</div>
+    </div>
+    <div class="speech-bubble" id="quiz-speech-bubble">はやく こたえてみよう！</div>
+    <div class="monster-wrap">
+      <div class="monster" id="quiz-monster-display">👺</div>
+    </div>
+  </div>
+
+  <div class="quiz-equation" id="quiz-equation">7 ＋ 8 = ?</div>
+  <div class="quiz-choices" id="quiz-choices"></div>
+
+  <div class="quiz-done hidden" id="quiz-done">
+    <button class="btn-start" id="btn-quiz-again">もういちど クイズ 🔁</button>
+    <button class="btn-mini" id="btn-quiz-go-home">🏠 ホームに もどる</button>
+  </div>
+</section>
+
+<!-- ============ MINIGAME SCREEN: an optional non-math bonus round
+     (memory match) offered on the result screen ============ -->
+<section id="screen-minigame" class="screen">
+  <div class="home-header">
+    <div class="castle-top" aria-hidden="true">🎮</div>
+    <h1 class="title">
+      <span class="title-crown">🎉</span>
+      ごほうび ミニゲーム
+      <span class="title-crown">🎉</span>
+    </h1>
+    <p class="subtitle" id="memory-status">おなじ カードを 2まい みつけてね！</p>
+  </div>
+
+  <div class="panel">
+    <div class="memory-grid" id="memory-grid"></div>
+  </div>
+
+  <button class="btn-mini" id="btn-minigame-skip">🏠 ホームに もどる</button>
 </section>
 
 <!-- ============ GAME SCREEN ============ -->
@@ -208,6 +261,7 @@
     <div class="result-buttons">
       <button class="btn-start" id="btn-play-again">もういちど れんしゅう 🔁</button>
       <button class="btn-start btn-secondary" id="btn-next-level">つぎの むずかしさへ ➡️</button>
+      <button class="btn-start btn-secondary" id="btn-play-minigame">🎮 ごほうび ミニゲーム</button>
       <button class="btn-mini" id="btn-go-home">さいしょの がめんに もどる 🏠</button>
     </div>
   </div>

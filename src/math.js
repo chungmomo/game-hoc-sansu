@@ -29,6 +29,38 @@
     return copy;
   }
 
+  /** Picks `count` distinct wrong answers near the real one, for a
+      multiple-choice quiz — close enough that a child has to actually
+      compute rather than guess by size, but never negative or equal to
+      the real answer. The offset scales with the answer's own size (a
+      fixed ±1-5 would be trivially easy to spot next to a 4-digit
+      answer, and too tight to stay non-negative next to a 1-digit one). */
+  function generateDistractors(answer, count) {
+    const maxOffset = Math.max(3, Math.round(answer * 0.2) + 2);
+    const seen = new Set([answer]);
+    const distractors = [];
+    let attempts = 0;
+    while (distractors.length < count && attempts < 200) {
+      attempts++;
+      const offset = randInt(1, maxOffset);
+      const candidate = answer + (Math.random() < 0.5 ? -offset : offset);
+      if (candidate < 0 || seen.has(candidate)) continue;
+      seen.add(candidate);
+      distractors.push(candidate);
+    }
+    // Fallback for the rare case randomness didn't find enough distinct
+    // candidates in range (e.g. answer is 0 or 1) — just count outward.
+    let filler = 1;
+    while (distractors.length < count) {
+      const candidate = answer + filler;
+      filler++;
+      if (seen.has(candidate)) continue;
+      seen.add(candidate);
+      distractors.push(candidate);
+    }
+    return distractors;
+  }
+
   /** Retries `sample()` (which returns null when the pair it drew
       doesn't satisfy the level's digit constraint) until it returns a
       value, up to `maxAttempts` times. Used instead of deriving one
@@ -319,6 +351,7 @@
     randInt,
     pick,
     shuffle,
+    generateDistractors,
     generateProblem,
     generateSubtractionProblem,
     generateMultiplicationProblem,

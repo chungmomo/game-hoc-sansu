@@ -502,6 +502,53 @@ html,body{
   flex:0 0 auto;
 }
 
+/* ---------- QUIZ: fast multiple-choice practice ---------- */
+.quiz-equation{
+  font-family:'Baloo 2','M PLUS Rounded 1c',sans-serif;
+  font-size: clamp(1.6rem, 8vmin, 2.8rem); font-weight:800; color:var(--ink);
+  text-align:center;
+  margin: .6rem 0 .8rem;
+}
+.quiz-equation.hidden{ display:none; }
+.quiz-choices{
+  display:grid; grid-template-columns: repeat(2, 1fr);
+  gap:.6rem; width:100%; max-width:400px;
+}
+.quiz-choices.hidden{ display:none; }
+.quiz-choice-btn{
+  font-family:inherit; font-weight:800; font-size: clamp(1.1rem, 5vmin, 1.6rem);
+  padding: .8rem 0;
+  border-radius: 16px; border:none;
+  background: var(--white); color:var(--ink);
+  box-shadow: 0 4px 0 #d9c8e8, 0 6px 10px rgba(0,0,0,.08);
+  cursor:pointer;
+}
+.quiz-choice-btn:active{ transform: translateY(3px); box-shadow: 0 1px 0 #d9c8e8; }
+.quiz-choice-btn:disabled{ cursor:default; }
+.quiz-choice-btn.correct{ background: var(--green); color:#fff; box-shadow: 0 4px 0 #2e7d32; }
+.quiz-choice-btn.wrong{ background: var(--red); color:#fff; box-shadow: 0 4px 0 #b23a3a; }
+.quiz-done{
+  display:flex; flex-direction:column; align-items:center; gap:.4rem;
+  margin-top: 1rem;
+}
+.quiz-done.hidden{ display:none; }
+
+/* ---------- MINIGAME: memory match (bonus, non-math) ---------- */
+.memory-grid{
+  display:grid; grid-template-columns: repeat(4, 1fr);
+  gap:.5rem; max-width:360px; margin:0 auto;
+}
+.memory-card{
+  aspect-ratio:1; border-radius:12px; border:none;
+  background: var(--purple-dark);
+  box-shadow: 0 4px 0 #6a3fce;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+}
+.memory-card.revealed{ background:#fff; box-shadow: 0 4px 0 #d9c8e8; }
+.memory-card.matched{ background:#e8fbe8; box-shadow: 0 4px 0 #a8dba8; opacity:.7; cursor:default; }
+.memory-card-face{ font-size: clamp(1.2rem, 6vmin, 2rem); line-height:1; }
+
 .result-story{
   font-size:.75rem; color:var(--ink); font-weight:700;
   background:#f8f4ff; border-radius:12px; padding:.4rem .6rem;
