@@ -44,6 +44,8 @@
     { id: 3, name: 'むずかしい', emoji: '🔥', desc: 'くりあがりあり・おおきいかず' },
     { id: 4, name: 'とくべつ',   emoji: '💎', desc: '3けた + 2けたの けいさん' },
     { id: 5, name: 'たつじん',   emoji: '👑', desc: '3けた + 3けたの けいさん' },
+    { id: 6, name: 'だいたつじん', emoji: '🏆', desc: '4けた + 3けたの けいさん' },
+    { id: 7, name: 'でんせつ',   emoji: '🐉', desc: '4けた + 4けたの けいさん' },
   ];
 
   /* Same 5 level tiers apply to both operations — only the underlying
