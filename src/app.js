@@ -723,7 +723,7 @@
      skip it entirely. Flip two cards; a match stays face-up, a mismatch
      flips back after a beat. */
   let memory = null;
-  const MEMORY_PAIR_COUNT = 6;
+  const MEMORY_PAIR_COUNT = 8;
 
   function startMinigame() {
     const pool = M.shuffle(D.STICKER_POOL.filter(Boolean)).slice(0, MEMORY_PAIR_COUNT);
@@ -782,7 +782,7 @@
      window; tap it before it ducks back down. Runs for a fixed number
      of appearances, then shows a final score. */
   const MOLE_HOLE_COUNT = 9;
-  const MOLE_ROUNDS = 12;
+  const MOLE_ROUNDS = 18;
   const MOLE_UP_MS = 850;
   const MOLE_GAP_MS = 450;
   let mole = null;
@@ -857,7 +857,9 @@
      add to 10. A correct pair locks in place; a wrong pair flashes red
      and un-selects after a beat — no hidden/flip state needed since the
      values are visible the whole time. */
-  const PAIRS10_VALUES = [1, 9, 2, 8, 3, 7, 4, 6, 5, 5];
+  // Each 1-9 sum-to-10 pair listed twice — doubles the board to 20 cards
+  // (10 matches) since there are only 5 distinct single-digit pairs.
+  const PAIRS10_VALUES = [1, 9, 2, 8, 3, 7, 4, 6, 5, 5, 1, 9, 2, 8, 3, 7, 4, 6, 5, 5];
   let pairs10 = null;
 
   function startPairs10() {
@@ -920,7 +922,7 @@
      6 shuffled 2-digit numbers; tap them in ascending order as fast as
      possible. Tapping out of turn just shakes (no penalty) — the goal
      is speed, not lives. */
-  const SORT_CARD_COUNT = 6;
+  const SORT_CARD_COUNT = 8;
   let sortGame = null;
 
   function startSort() {
@@ -1075,7 +1077,7 @@
     truefalse: {
       title: 'まるばつ けいさん',
       subtitle: 'けいさんが あってるか はやく こたえよう！',
-      rounds: 8,
+      rounds: 12,
       buildRound() {
         const level = Math.min(state.selectedLevelByOp.add || 1, 3);
         const p = M.generateProblem(level);
@@ -1096,7 +1098,7 @@
     clock: {
       title: 'とけいを よもう',
       subtitle: 'なんじ かな？ ただしい じかんを えらぼう！',
-      rounds: 8,
+      rounds: 12,
       buildRound() {
         const hour = M.randInt(1, 12);
         const minute = M.pick([0, 30]);
@@ -1126,7 +1128,7 @@
     sequence: {
       title: 'かずの ならび',
       subtitle: '？に はいる かずは なにかな？',
-      rounds: 8,
+      rounds: 12,
       buildRound() {
         const step = M.pick([1, 2, 5, 10]);
         const start = M.randInt(1, 40);
@@ -1148,7 +1150,7 @@
     shapes: {
       title: 'かたちの かず',
       subtitle: '',
-      rounds: 8,
+      rounds: 12,
       buildRound() {
         const SHAPES = ['🔺', '⚪', '🟦', '⭐', '💚'];
         const target = M.pick(SHAPES);
@@ -1174,7 +1176,7 @@
     compare: {
       title: 'どっちが ながい？',
       subtitle: '',
-      rounds: 8,
+      rounds: 12,
       buildRound() {
         const askLonger = Math.random() < 0.5;
         let w1 = M.randInt(50, 220);
@@ -1195,7 +1197,7 @@
     shopping: {
       title: 'おかいもの けいさん',
       subtitle: '',
-      rounds: 8,
+      rounds: 12,
       buildRound() {
         const SHOP_ITEMS = [
           { emoji: '🍎', price: 80 }, { emoji: '🍞', price: 150 }, { emoji: '🥛', price: 120 },
