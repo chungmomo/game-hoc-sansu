@@ -263,10 +263,9 @@ test('multiplication levels 1-3: correct product and per-level times-table range
       const p = generateMultiplicationProblem(level);
       assert.strictEqual(p.a * p.b, p.answer, `${p.a}×${p.b} should equal ${p.answer}`);
       assert.ok(p.a >= 1 && p.a <= 9 && p.b >= 1 && p.b <= 9, `${p.a}×${p.b}: both factors should be single-digit`);
-      const table = [p.a, p.b];
       if (level === 1) {
-        assert.ok(table.includes(Math.min(p.a, p.b)) && (p.a <= 5 || p.b <= 5) && (Math.min(p.a, p.b) >= 2 || Math.max(p.a,p.b) <=9),
-          `level 1: ${p.a}×${p.b} should involve the 2-5 times table`);
+        const inTable = (n) => n >= 2 && n <= 5;
+        assert.ok(inTable(p.a) || inTable(p.b), `level 1: ${p.a}×${p.b} should involve the 2-5 times table`);
       } else if (level === 2) {
         assert.ok(p.a === 6 || p.a === 7 || p.b === 6 || p.b === 7, `level 2: ${p.a}×${p.b} should involve the 6-7 times table`);
       }
