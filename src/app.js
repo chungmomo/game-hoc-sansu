@@ -865,6 +865,7 @@
     pairs10 = { cards, selected: [], matchesFound: 0, locked: false };
     els.pairs10Status.textContent = 'たして 10に なる 2まいを タップ！';
     els.pairs10Done.classList.add('hidden');
+    els.btnPairs10Skip.classList.remove('hidden');
     renderPairs10Grid();
     showScreen('pairs10');
   }
@@ -901,6 +902,7 @@
       if (pairs10.matchesFound === PAIRS10_VALUES.length / 2) {
         els.pairs10Status.textContent = 'ぜんぶ 10に できた！やったね！🎉';
         els.pairs10Done.classList.remove('hidden');
+        els.btnPairs10Skip.classList.add('hidden');
         E.spawnConfetti(24, D.getSelectedPrincess(state).rewardEmoji);
       }
     } else {
@@ -929,6 +931,7 @@
     sortGame = { cards, order: sorted, nextIndex: 0, startedAt: Date.now() };
     els.sortStatus.textContent = 'ちいさい じゅんに タップしてね！';
     els.sortDone.classList.add('hidden');
+    els.btnSortSkip.classList.remove('hidden');
     renderSortRow();
     showScreen('sort');
   }
@@ -957,6 +960,7 @@
       const seconds = ((Date.now() - sortGame.startedAt) / 1000).toFixed(1);
       els.sortStatus.textContent = `せいかい！ ${seconds}びょうで できたよ！🎉`;
       els.sortDone.classList.remove('hidden');
+      els.btnSortSkip.classList.add('hidden');
       E.spawnConfetti(24, D.getSelectedPrincess(state).rewardEmoji);
     }
   }
@@ -1101,14 +1105,16 @@
         const label = h => `${h}じ${minute === 0 ? '' : minute + 'ふん'}`;
         const wrongHours = M.shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter(h => h !== hour)).slice(0, 3);
         const options = M.shuffle([hour, ...wrongHours]);
+        const numsHtml = Array.from({ length: 12 }, (_, i) => i + 1)
+          .map(n => `<span class="clock-num" style="--ang:${n * 30}deg">${n}</span>`)
+          .join('');
         return {
           promptHtml: `
             <div class="clock-face">
               <div class="clock-hand clock-hour" style="transform:rotate(${hourAngle}deg)"></div>
               <div class="clock-hand clock-minute" style="transform:rotate(${minuteAngle}deg)"></div>
               <div class="clock-center"></div>
-              <span class="clock-num n12">12</span><span class="clock-num n3">3</span>
-              <span class="clock-num n6">6</span><span class="clock-num n9">9</span>
+              ${numsHtml}
             </div>`,
           choices: options.map(h => ({ html: label(h), correct: h === hour })),
         };
