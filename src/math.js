@@ -19,6 +19,16 @@
     return arr[randInt(0, arr.length - 1)];
   }
 
+  /** Fisher–Yates shuffle, returns a new array (leaves `arr` untouched). */
+  function shuffle(arr) {
+    const copy = arr.slice();
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = randInt(0, i);
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
   /** Retries `sample()` (which returns null when the pair it drew
       doesn't satisfy the level's digit constraint) until it returns a
       value, up to `maxAttempts` times. Used instead of deriving one
@@ -38,6 +48,7 @@
 
   /**
    * Generates an addition problem for the given level.
+   * Level 0: 1-digit + 1-digit warm-up (answer may carry into 2 digits).
    * Level 1: 2-digit + 2-digit, no carrying anywhere.
    * Level 2: 2-digit + 2-digit, carries the ones digit but the answer
    * stays 2-digit. Level 3: 2-digit + 2-digit, unconstrained (answer may
@@ -48,7 +59,10 @@
    */
   function generateProblem(level) {
     let a, b;
-    if (level === 1) {
+    if (level === 0) {
+      a = randInt(1, 9);
+      b = randInt(1, 9);
+    } else if (level === 1) {
       const sample = () => {
         const x = randInt(10, 99);
         const y = randInt(10, 99);
@@ -92,14 +106,18 @@
   /**
    * Generates a subtraction problem (a - b, always a >= b so the answer
    * is never negative) for the given level. Mirrors generateProblem's
-   * difficulty tiers: level 1 no borrowing, level 2 borrows the ones
-   * digit only, level 3 free 2-digit, level 4 3-digit - 2-digit, level 5
-   * free 3-digit - 3-digit, level 6 4-digit - 3-digit, level 7 free
-   * 4-digit - 4-digit.
+   * difficulty tiers: level 0 free 1-digit warm-up, level 1 no borrowing,
+   * level 2 borrows the ones digit only, level 3 free 2-digit, level 4
+   * 3-digit - 2-digit, level 5 free 3-digit - 3-digit, level 6 4-digit -
+   * 3-digit, level 7 free 4-digit - 4-digit.
    */
   function generateSubtractionProblem(level) {
     let a, b;
-    if (level === 1) {
+    if (level === 0) {
+      a = randInt(1, 9);
+      b = randInt(1, 9);
+      if (a < b) { const t = a; a = b; b = t; }
+    } else if (level === 1) {
       const sample = () => {
         const x = randInt(10, 99);
         const y = randInt(10, 99);
@@ -138,6 +156,39 @@
       if (a < b) { const t = a; a = b; b = t; }
     }
     return { a, b, answer: a - b };
+  }
+
+  /**
+   * Generates a multiplication fact (a × b) for the given level — plain
+   * multiplication-table practice, not long-form column multiplication.
+   * Level 1: the 2-5 times tables. Level 2: 6-7. Level 3: 8-9, plus the
+   * full 2-9 range unconstrained. Multiplicand/multiplier order is
+   * randomized so the "table number" isn't always in the same position.
+   */
+  function generateMultiplicationProblem(level) {
+    let table;
+    if (level === 1) table = randInt(2, 5);
+    else if (level === 2) table = randInt(6, 7);
+    else table = randInt(2, 9);
+    const other = randInt(1, 9);
+    const [a, b] = Math.random() < 0.5 ? [table, other] : [other, table];
+    return { a, b, answer: a * b };
+  }
+
+  /**
+   * Generates a division fact (a ÷ b) for the given level, always exact
+   * (no remainder) — built from a random divisor/quotient pair so a is
+   * guaranteed divisible by b. Mirrors generateMultiplicationProblem's
+   * tiers: level 1 divides by 2-5, level 2 by 6-7, level 3 by 8-9 plus
+   * the full 2-9 range.
+   */
+  function generateDivisionProblem(level) {
+    let divisor;
+    if (level === 1) divisor = randInt(2, 5);
+    else if (level === 2) divisor = randInt(6, 7);
+    else divisor = randInt(2, 9);
+    const quotient = randInt(1, 9);
+    return { a: divisor * quotient, b: divisor, answer: quotient };
   }
 
   function isSameProblem(p1, p2) {
@@ -222,6 +273,15 @@
     return steps;
   }
 
+  /** Multiplication/division facts are single-step recall (bảng cửu
+      chương), not a column algorithm — this wraps a fact into the same
+      one-element "plan" shape addition/subtraction use, so the rest of
+      the game (buffer entry, submit, reveal) needs no separate code
+      path for them. */
+  function buildSingleStepPlan(a, b, answer) {
+    return [{ index: 0, x: a, y: b, digit: answer, synthetic: false }];
+  }
+
   const PLACE_NAMES = ['いち', 'じゅう', 'ひゃく', 'せん', 'まん'];
 
   function placeLabel(index) {
@@ -258,12 +318,16 @@
   return {
     randInt,
     pick,
+    shuffle,
     generateProblem,
     generateSubtractionProblem,
+    generateMultiplicationProblem,
+    generateDivisionProblem,
     buildProblemSet,
     digitsLSB,
     buildColumnPlan,
     buildSubtractionColumnPlan,
+    buildSingleStepPlan,
     placeLabel,
     placeLabelShort,
     stepPromptText,
