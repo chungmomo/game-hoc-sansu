@@ -670,27 +670,33 @@ html,body{
 
 /* clock-reading round */
 .clock-face{
-  position:relative; width:140px; height:140px; margin:0 auto;
+  position:relative; width:112px; height:112px; margin:0 auto;
   border-radius:50%; background:#fff; border:4px solid var(--purple-dark);
 }
 .clock-hand{
   position:absolute; bottom:50%; left:50%;
   transform-origin:50% 100%;
   background:var(--ink); border-radius:4px;
+  z-index:1;
 }
-.clock-hour{ width:5px; height:34px; margin-left:-2.5px; }
-.clock-minute{ width:3px; height:50px; margin-left:-1.5px; background:var(--pink-dark); }
+.clock-hour{ width:4px; height:24px; margin-left:-2px; }
+.clock-minute{ width:2.5px; height:38px; margin-left:-1.25px; background:var(--pink-dark); }
 .clock-center{
-  position:absolute; top:50%; left:50%; width:10px; height:10px;
+  position:absolute; top:50%; left:50%; width:8px; height:8px;
   background:var(--pink-dark); border-radius:50%; transform:translate(-50%,-50%);
+  z-index:2;
 }
+/* All 12 numbers, evenly spaced: rotate to the hour's angle, push out
+   from center, then rotate back so the digit itself stays upright
+   (the standard "clock face" CSS trick) — --ang is set inline per
+   number (30deg * hour) since it differs per span. */
 .clock-num{
-  position:absolute; font-weight:800; font-size:.75rem; color:var(--purple-dark);
+  position:absolute; top:50%; left:50%;
+  width:16px; height:16px; margin:-8px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:.58rem; color:var(--purple-dark);
+  transform: rotate(var(--ang, 0deg)) translate(0, -42px) rotate(calc(-1 * var(--ang, 0deg)));
 }
-.clock-num.n12{ top:6px; left:50%; transform:translateX(-50%); }
-.clock-num.n3{ right:8px; top:50%; transform:translateY(-50%); }
-.clock-num.n6{ bottom:6px; left:50%; transform:translateX(-50%); }
-.clock-num.n9{ left:8px; top:50%; transform:translateY(-50%); }
 
 /* shape-counting round */
 .shape-grid{

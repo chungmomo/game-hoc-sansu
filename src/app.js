@@ -1101,14 +1101,16 @@
         const label = h => `${h}じ${minute === 0 ? '' : minute + 'ふん'}`;
         const wrongHours = M.shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter(h => h !== hour)).slice(0, 3);
         const options = M.shuffle([hour, ...wrongHours]);
+        const numsHtml = Array.from({ length: 12 }, (_, i) => i + 1)
+          .map(n => `<span class="clock-num" style="--ang:${n * 30}deg">${n}</span>`)
+          .join('');
         return {
           promptHtml: `
             <div class="clock-face">
               <div class="clock-hand clock-hour" style="transform:rotate(${hourAngle}deg)"></div>
               <div class="clock-hand clock-minute" style="transform:rotate(${minuteAngle}deg)"></div>
               <div class="clock-center"></div>
-              <span class="clock-num n12">12</span><span class="clock-num n3">3</span>
-              <span class="clock-num n6">6</span><span class="clock-num n9">9</span>
+              ${numsHtml}
             </div>`,
           choices: options.map(h => ({ html: label(h), correct: h === hour })),
         };
