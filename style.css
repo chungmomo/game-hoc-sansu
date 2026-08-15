@@ -53,6 +53,10 @@ html,body{
   flex-direction:column;
   align-items:center;
   width:100%;
+  min-height:100vh; /* fallback for browsers that don't understand dvh below —
+                        without this, an unsupported dvh value is dropped
+                        entirely and the screen just shrinks to its content,
+                        leaving blank background underneath. */
   min-height:100dvh;
   padding: .6rem .8rem .8rem;
 }
