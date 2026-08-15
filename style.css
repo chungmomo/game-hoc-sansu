@@ -521,17 +521,17 @@ html,body{
   animation: pop .5s ease;
 }
 .problem-body{
-  display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:center;
-  gap:.5rem;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:.4rem;
 }
-/* counting aid: N of one animal + M of another next to the active
-   column, so a child can count the addends before calculating them.
-   Each row stays on one line (no wrap) so the count reads left to
-   right like objects laid out on a table; .problem-body wraps the
-   whole block below the column table instead if there isn't room. */
+/* counting aid: N of one animal + M of another, shown under the column
+   table so a child can count the addends before calculating them. Always
+   stacked (not beside the table) so the card's height stays the same
+   regardless of how many columns or animals the current step has —
+   letting it wrap based on available width made the card visibly grow
+   and shrink between problems. */
 .animal-counters{
-  display:flex; flex-direction:column; gap:.3rem;
-  padding-top: 1.4rem;
+  display:flex; flex-direction:column; align-items:center; gap:.3rem;
 }
 .animal-row{
   display:flex; flex-wrap:nowrap; gap:1px;
