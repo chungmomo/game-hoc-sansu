@@ -27,8 +27,9 @@ thẳng `index.html` bằng `file://` — Firebase SDK cần origin `http(s)`.)
 ## Thiết lập Firebase
 
 App dùng Firebase (Firestore + Anonymous Auth) để lưu tiến trình của nhiều
-hồ sơ bé trên cùng một thiết bị/trình duyệt, chơi được cả khi mất mạng
-(Firestore tự đồng bộ lại khi có mạng).
+hồ sơ bé, chơi được cả khi mất mạng (Firestore tự đồng bộ lại khi có mạng),
+và chơi tiếp được trên thiết bị khác nhờ một **mã tiếp tục** riêng cho mỗi bé
+(xem "Chơi trên nhiều thiết bị" bên dưới).
 
 1. Tạo project tại [console.firebase.google.com](https://console.firebase.google.com/).
 2. Trong project, bấm biểu tượng `</>` để đăng ký một Web App (không cần
@@ -40,18 +41,42 @@ hồ sơ bé trên cùng một thiết bị/trình duyệt, chơi được cả 
    rules_version = '2';
    service cloud.firestore {
      match /databases/{database}/documents {
+       match /profiles/{profileId} {
+         allow read, write: if request.auth != null;
+       }
        match /users/{uid}/{document=**} {
          allow read, write: if request.auth != null && request.auth.uid == uid;
        }
      }
    }
    ```
+   (Quy tắc thứ hai — `users/{uid}/...` — chỉ giữ lại để app còn đọc được
+   hồ sơ kiểu cũ một lần khi tự động chuyển sang kiểu mã mới; có thể xoá
+   sau khi đã chắc chắn mọi hồ sơ đang dùng đều đã có mã.)
 6. Mở [`src/firebase-config.js`](src/firebase-config.js) và thay các giá trị
    `REPLACE_ME` bằng `firebaseConfig` lấy được ở bước 2.
 
-Lưu ý: vì dùng đăng nhập ẩn danh theo trình duyệt (không có tài khoản
-email/password), danh sách hồ sơ bé gắn với *thiết bị/trình duyệt* — mở app
-trên máy khác sẽ là danh sách hồ sơ rỗng, không tự đồng bộ giữa các máy.
+### Chơi trên nhiều thiết bị
+
+Mỗi hồ sơ bé có một **mã tiếp tục** 6 ký tự (vd `A7K2QX`), hiện ra khi tạo hồ
+sơ và cũng hiển thị luôn dưới tên bé ở màn hình chọn hồ sơ. Để bé chơi tiếp
+trên máy/trình duyệt khác: mở app, bấm "🔑 べつの きき の コードで つづける"
+(tiếp tục bằng mã của máy khác) rồi nhập mã đó.
+
+Đánh đổi cần biết: hồ sơ không gắn với tài khoản đăng nhập (email/mật khẩu),
+nên **ai biết mã đều xem/sửa được hồ sơ đó** — giống một link chia sẻ. Phù
+hợp app dùng trong gia đình; đừng đăng mã lên nơi công khai. Danh sách hồ sơ
+hiện trên mỗi thiết bị là các hồ sơ *tạo trên chính thiết bị đó* cộng với các
+mã đã từng nhập bằng tay — Firestore là nguồn dữ liệu thật, danh sách này chỉ
+là bộ nhớ đệm cục bộ để khỏi phải nhập lại mã mỗi lần mở app.
+
+Hồ sơ tạo trước khi có mã (kiểu `users/{uid}/profiles/{id}` cũ) được tự động
+sao chép sang hồ sơ có mã mới, một lần duy nhất cho mỗi thiết bị, ngay lần
+đầu mở app sau khi cập nhật — không mất tiến trình đã có trên thiết bị đó.
+Nhưng vì hồ sơ cũ vốn đã tách riêng theo từng thiết bị, nếu cùng một bé từng
+chơi trên 2 máy khác nhau *trước* khi có mã thì sau khi nâng cấp sẽ thành 2
+hồ sơ có mã riêng biệt (không tự gộp điểm) — cần chọn 1 mã để dùng tiếp và tự
+xoá hồ sơ còn lại nếu muốn.
 
 ## Cấu trúc dự án
 
@@ -68,8 +93,9 @@ src/
   firebase-config.js  Config Web App của Firebase (không phải bí mật) —
                       cần tự điền, xem mục "Thiết lập Firebase".
   cloud.js            Lưu/đọc tiến trình qua Firebase (Firestore +
-                      Anonymous Auth): khởi tạo, danh sách/tạo/xoá hồ sơ
-                      bé, load/save state của một hồ sơ.
+                      Anonymous Auth): khởi tạo, danh sách/tạo/xoá/liên kết
+                      hồ sơ bé bằng mã tiếp tục, load/save state của một hồ
+                      sơ, và tự chuyển hồ sơ kiểu cũ sang kiểu có mã.
   audio.js            Hiệu ứng âm thanh bằng WebAudio (không cần file mp3),
                       có thể bật/tắt qua nút loa.
   effects.js          Hiệu ứng hình ảnh: confetti, sticker thưởng, toast.

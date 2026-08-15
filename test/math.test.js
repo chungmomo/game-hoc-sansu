@@ -2,7 +2,11 @@
 /* Plain-Node test runner for src/math.js — no test framework or
    dependencies required. Run with: npm test */
 const assert = require('assert');
-const { randInt, generateProblem, buildProblemSet, buildColumnPlan, placeLabel, placeLabelShort } = require('../src/math.js');
+const {
+  randInt, generateProblem, generateSubtractionProblem, buildProblemSet,
+  buildColumnPlan, buildSubtractionColumnPlan, placeLabel, placeLabelShort,
+  subtractionStepPromptText,
+} = require('../src/math.js');
 
 let passed = 0;
 let failed = 0;
@@ -107,7 +111,64 @@ test('buildColumnPlan reconstructs the exact sum for 3-digit pairs, including th
   }
 });
 
-test('buildProblemSet avoids back-to-back duplicate problems', () => {
+test('subtraction levels 1-5: a >= b always, answer is correct, and per-level constraints hold', () => {
+  for (let level = 1; level <= 5; level++) {
+    for (let i = 0; i < 2000; i++) {
+      const p = generateSubtractionProblem(level);
+      assert.ok(p.a >= p.b, `level ${level}: ${p.a}-${p.b} should never be negative`);
+      assert.strictEqual(p.a - p.b, p.answer, `${p.a}-${p.b} should equal ${p.answer}`);
+      if (level <= 3) {
+        assert.ok(p.a >= 10 && p.a <= 99 && p.b >= 10 && p.b <= 99, `level ${level}: ${p.a}-${p.b} inputs must both be 2-digit`);
+      } else if (level === 4) {
+        assert.ok(p.a >= 100 && p.a <= 999, `level 4: a=${p.a} is not 3-digit`);
+        assert.ok(p.b >= 10 && p.b <= 99, `level 4: b=${p.b} is not 2-digit`);
+      } else {
+        assert.ok(p.a >= 100 && p.a <= 999 && p.b >= 100 && p.b <= 999, `level 5: ${p.a}-${p.b} inputs must both be 3-digit`);
+      }
+      const plan = buildSubtractionColumnPlan(p.a, p.b);
+      if (level === 1) {
+        assert.ok(plan.every(s => s.borrowOut === 0), `level 1: ${p.a}-${p.b} should never borrow`);
+      }
+      if (level === 2) {
+        assert.strictEqual(plan[0].borrowOut, 1, `level 2: ${p.a}-${p.b} should borrow the ones column`);
+        assert.strictEqual(plan[1].borrowOut, 0, `level 2: ${p.a}-${p.b} should not need a second borrow`);
+      }
+    }
+  }
+});
+
+test('buildSubtractionColumnPlan reconstructs the exact difference for known borrow-chain edge cases', () => {
+  [[500, 258], [300, 299], [999, 1], [999, 999], [100, 99], [910, 111], [10, 10]].forEach(([a, b]) => {
+    const plan = buildSubtractionColumnPlan(a, b);
+    const reconstructed = Number(plan.map(s => s.digit).reverse().join(''));
+    assert.strictEqual(reconstructed, a - b, `plan for ${a}-${b} reconstructed to ${reconstructed}`);
+    assert.strictEqual(plan[plan.length - 1].borrowOut, 0, `plan for ${a}-${b} should never leave a leftover borrow`);
+  });
+});
+
+test('buildSubtractionColumnPlan reconstructs the exact difference for 5000 random pairs (2-digit and 3-digit)', () => {
+  for (let i = 0; i < 5000; i++) {
+    const [lo, hi] = i % 2 === 0 ? [10, 99] : [100, 999];
+    let a = randInt(lo, hi);
+    let b = randInt(lo, hi);
+    if (a < b) { const t = a; a = b; b = t; }
+    const plan = buildSubtractionColumnPlan(a, b);
+    const reconstructed = Number(plan.map(s => s.digit).reverse().join(''));
+    assert.strictEqual(reconstructed, a - b, `plan for ${a}-${b} reconstructed to ${reconstructed}`);
+    assert.strictEqual(plan[plan.length - 1].borrowOut, 0, `plan for ${a}-${b} should never leave a leftover borrow`);
+  }
+});
+
+test('subtractionStepPromptText shows the already-borrowed value for 500 - 258', () => {
+  const plan = buildSubtractionColumnPlan(500, 258);
+  assert.deepStrictEqual(plan.map(subtractionStepPromptText), [
+    'いちのくらい：10 － 8 = ?',
+    'じゅうのくらい：9 － 5 = ?',
+    'ひゃくのくらい：4 － 2 = ?',
+  ]);
+});
+
+test('buildProblemSet avoids back-to-back duplicate problems (addition and subtraction)', () => {
   for (let level = 1; level <= 5; level++) {
     for (let trial = 0; trial < 50; trial++) {
       const set = buildProblemSet(level, 10);
@@ -115,6 +176,13 @@ test('buildProblemSet avoids back-to-back duplicate problems', () => {
         assert.ok(
           !(set[i].a === set[i - 1].a && set[i].b === set[i - 1].b),
           `level ${level} set has consecutive duplicate ${set[i].a}+${set[i].b}`
+        );
+      }
+      const subSet = buildProblemSet(level, 10, generateSubtractionProblem);
+      for (let i = 1; i < subSet.length; i++) {
+        assert.ok(
+          !(subSet[i].a === subSet[i - 1].a && subSet[i].b === subSet[i - 1].b),
+          `level ${level} subtraction set has consecutive duplicate ${subSet[i].a}-${subSet[i].b}`
         );
       }
     }

@@ -62,7 +62,10 @@
     const layer = document.getElementById('sticker-layer');
     const el = document.createElement('div');
     el.className = 'sticker-pop';
-    el.textContent = emoji || pool[Math.floor(Math.random() * pool.length)];
+    // innerHTML (not textContent) so hand-drawn SVG sticker icons render
+    // instead of showing as literal markup text — pool entries are all
+    // static, trusted strings from data.js, never user input.
+    el.innerHTML = emoji || pool[Math.floor(Math.random() * pool.length)];
     el.style.left = x + 'px';
     el.style.top = y + 'px';
     el.style.fontSize = (1.6 + Math.random() * 1.3) + 'rem';

@@ -34,6 +34,7 @@
   <div class="panel">
     <div class="profile-grid" id="profile-grid"></div>
     <button class="btn-start" id="btn-add-profile">＋ あたらしい こを つくる</button>
+    <button class="btn-mini" id="btn-link-profile">🔑 べつの きき の コードで つづける</button>
   </div>
 </section>
 
@@ -64,12 +65,17 @@
   </div>
 
   <div class="panel">
-    <h2 class="panel-title">1. おひめさまを えらんでね</h2>
+    <h2 class="panel-title">1. けいさんの しゅるいを えらんでね</h2>
+    <div class="operation-row" id="operation-row"></div>
+  </div>
+
+  <div class="panel">
+    <h2 class="panel-title">2. おひめさまを えらんでね</h2>
     <div class="princess-row" id="princess-row"></div>
   </div>
 
   <div class="panel">
-    <h2 class="panel-title">2. むずかしさを えらんでね</h2>
+    <h2 class="panel-title">3. むずかしさを えらんでね</h2>
     <div class="level-row" id="level-row"></div>
   </div>
 
@@ -77,6 +83,11 @@
     <h2 class="panel-title">🗝️ ぼうけんの きろく</h2>
     <div class="puzzle-grid" id="puzzle-grid"></div>
     <div class="item-row" id="item-row"></div>
+  </div>
+
+  <div class="panel">
+    <h2 class="panel-title">🏅 きろく</h2>
+    <div class="badge-grid" id="badge-grid"></div>
   </div>
 </section>
 
@@ -87,14 +98,19 @@
     <div class="progress-wrap">
       <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
       <div class="progress-text"><span id="progress-current">1</span> / <span id="progress-total">10</span></div>
+      <div class="timer-wrap" id="timer-wrap">
+        <div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div>
+      </div>
     </div>
     <div class="lives" id="lives" aria-hidden="true">💖💖💖</div>
+    <button class="icon-btn" id="btn-toggle-timer" aria-label="タイマーを けす" aria-pressed="true">⏱️</button>
     <button class="sound-toggle" aria-label="おとを けす" aria-pressed="true">🔊</button>
   </div>
 
   <div class="mascot-zone">
     <div class="mascot-wrap">
       <div class="mascot" id="mascot">🧚</div>
+      <div class="companion-sprite" id="companion-sprite" aria-hidden="true"></div>
       <div class="streak-badge" id="streak-badge" aria-live="polite"></div>
       <div class="hp-bar"><div class="hp-fill" id="mascot-hp-fill"></div></div>
     </div>
@@ -163,6 +179,7 @@
 <script src="src/firebase-config.js"></script>
 <script src="src/cloud.js"></script>
 <script src="src/math.js"></script>
+<script src="src/icons.js"></script>
 <script src="src/data.js"></script>
 <script src="src/audio.js"></script>
 <script src="src/effects.js"></script>
