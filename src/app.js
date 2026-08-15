@@ -865,6 +865,7 @@
     pairs10 = { cards, selected: [], matchesFound: 0, locked: false };
     els.pairs10Status.textContent = 'たして 10に なる 2まいを タップ！';
     els.pairs10Done.classList.add('hidden');
+    els.btnPairs10Skip.classList.remove('hidden');
     renderPairs10Grid();
     showScreen('pairs10');
   }
@@ -901,6 +902,7 @@
       if (pairs10.matchesFound === PAIRS10_VALUES.length / 2) {
         els.pairs10Status.textContent = 'ぜんぶ 10に できた！やったね！🎉';
         els.pairs10Done.classList.remove('hidden');
+        els.btnPairs10Skip.classList.add('hidden');
         E.spawnConfetti(24, D.getSelectedPrincess(state).rewardEmoji);
       }
     } else {
@@ -929,6 +931,7 @@
     sortGame = { cards, order: sorted, nextIndex: 0, startedAt: Date.now() };
     els.sortStatus.textContent = 'ちいさい じゅんに タップしてね！';
     els.sortDone.classList.add('hidden');
+    els.btnSortSkip.classList.remove('hidden');
     renderSortRow();
     showScreen('sort');
   }
@@ -957,6 +960,7 @@
       const seconds = ((Date.now() - sortGame.startedAt) / 1000).toFixed(1);
       els.sortStatus.textContent = `せいかい！ ${seconds}びょうで できたよ！🎉`;
       els.sortDone.classList.remove('hidden');
+      els.btnSortSkip.classList.add('hidden');
       E.spawnConfetti(24, D.getSelectedPrincess(state).rewardEmoji);
     }
   }
