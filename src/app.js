@@ -63,6 +63,8 @@
     els.promptConfirm = document.getElementById('prompt-modal-confirm');
 
     els.starTotalText = document.getElementById('star-total-text');
+    els.homeTabs = document.getElementById('home-tabs');
+    els.homeTabPanels = Array.from(document.querySelectorAll('.home-tab-panel'));
     els.operationRow = document.getElementById('operation-row');
     els.princessRow = document.getElementById('princess-row');
     els.digitGroupRow = document.getElementById('digit-group-row');
@@ -353,8 +355,28 @@
     return card;
   }
 
+  /* Home screen groups its panels into 3 tabs (practice setup / other
+     play modes / records) instead of one long stacked list. Kept as a
+     plain module variable rather than in `state` — which tab is open
+     is just view state, not something worth persisting or syncing. */
+  let activeHomeTab = 'practice';
+
+  function switchHomeTab(tabId) {
+    activeHomeTab = tabId;
+    if (!els.homeTabs) return;
+    Array.from(els.homeTabs.children).forEach(btn => {
+      const isActive = btn.dataset.tab === tabId;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', String(isActive));
+    });
+    els.homeTabPanels.forEach(panel => {
+      panel.classList.toggle('active', panel.dataset.tabPanel === tabId);
+    });
+  }
+
   function renderHome() {
     els.starTotalText.textContent = state.totalStars;
+    switchHomeTab(activeHomeTab);
 
     els.operationRow.innerHTML = '';
     D.OPERATIONS.forEach(op => {
@@ -1846,6 +1868,14 @@
       showScreen('profiles');
       renderProfilePicker();
     });
+
+    if (els.homeTabs) {
+      els.homeTabs.addEventListener('click', (e) => {
+        const btn = e.target.closest('.home-tab-btn');
+        if (!btn) return;
+        switchHomeTab(btn.dataset.tab);
+      });
+    }
 
     els.promptConfirm.addEventListener('click', confirmPrompt);
     els.promptCancel.addEventListener('click', () => closePrompt(null));

@@ -56,48 +56,61 @@
       <button class="sound-toggle" aria-label="おとを けす" aria-pressed="true">🔊</button>
       <button class="icon-btn" id="btn-switch-profile" aria-label="こを かえる">🧒</button>
     </div>
+  </div>
+
+  <div class="home-tabs" id="home-tabs" role="tablist">
+    <button class="home-tab-btn" data-tab="practice" role="tab" aria-selected="true">🎯 れんしゅう</button>
+    <button class="home-tab-btn" data-tab="more" role="tab" aria-selected="false">🎮 もっと あそぶ</button>
+    <button class="home-tab-btn" data-tab="records" role="tab" aria-selected="false">🏅 きろく</button>
+  </div>
+
+  <div class="home-tab-panel" data-tab-panel="practice">
+    <div class="panel">
+      <h2 class="panel-title">1. けいさんの しゅるいを えらんでね</h2>
+      <div class="operation-row" id="operation-row"></div>
+    </div>
+
+    <div class="panel">
+      <h2 class="panel-title">2. おひめさまを えらんでね</h2>
+      <div class="princess-row" id="princess-row"></div>
+    </div>
+
+    <div class="panel">
+      <h2 class="panel-title">3. むずかしさを えらんでね</h2>
+      <div class="digit-group-row" id="digit-group-row"></div>
+      <div class="level-row" id="level-row"></div>
+    </div>
 
     <button class="btn-start" id="btn-start">
       はじめる ✨
     </button>
+  </div>
+
+  <div class="home-tab-panel" data-tab-panel="more">
     <button class="btn-start btn-secondary" id="btn-start-quiz">⚡ クイズで あそぶ</button>
     <button class="btn-start btn-secondary" id="btn-open-minigames">🎮 ミニゲームで あそぶ</button>
 
-    <button class="btn-mini" id="btn-reset">さいしょから やりなおす（きろくを けす）</button>
+    <div class="panel">
+      <h2 class="panel-title">✏️ じぶんで つくった もんだい</h2>
+      <p class="panel-desc" id="custom-problem-summary">まだ もんだいが ないよ</p>
+      <button class="btn-start btn-secondary" id="btn-open-admin">もんだいを つくる・れんしゅうする</button>
+    </div>
   </div>
 
-  <div class="panel">
-    <h2 class="panel-title">1. けいさんの しゅるいを えらんでね</h2>
-    <div class="operation-row" id="operation-row"></div>
+  <div class="home-tab-panel" data-tab-panel="records">
+    <div class="panel">
+      <h2 class="panel-title">🗝️ ぼうけんの きろく</h2>
+      <div class="puzzle-grid" id="puzzle-grid"></div>
+      <div class="item-row" id="item-row"></div>
+    </div>
+
+    <div class="panel">
+      <h2 class="panel-title">🏅 きろく</h2>
+      <div class="badge-grid" id="badge-grid"></div>
+    </div>
   </div>
 
-  <div class="panel">
-    <h2 class="panel-title">2. おひめさまを えらんでね</h2>
-    <div class="princess-row" id="princess-row"></div>
-  </div>
-
-  <div class="panel">
-    <h2 class="panel-title">3. むずかしさを えらんでね</h2>
-    <div class="digit-group-row" id="digit-group-row"></div>
-    <div class="level-row" id="level-row"></div>
-  </div>
-
-  <div class="panel">
-    <h2 class="panel-title">✏️ じぶんで つくった もんだい</h2>
-    <p class="panel-desc" id="custom-problem-summary">まだ もんだいが ないよ</p>
-    <button class="btn-start btn-secondary" id="btn-open-admin">もんだいを つくる・れんしゅうする</button>
-  </div>
-
-  <div class="panel">
-    <h2 class="panel-title">🗝️ ぼうけんの きろく</h2>
-    <div class="puzzle-grid" id="puzzle-grid"></div>
-    <div class="item-row" id="item-row"></div>
-  </div>
-
-  <div class="panel">
-    <h2 class="panel-title">🏅 きろく</h2>
-    <div class="badge-grid" id="badge-grid"></div>
-  </div>
+  <button class="btn-mini" id="btn-reset">さいしょから やりなおす（きろくを けす）</button>
 </section>
 
 <!-- ============ ADMIN: CUSTOM PROBLEMS SCREEN ============ -->

@@ -114,6 +114,37 @@ html,body{
 }
 .sound-toggle:active{ transform: scale(.92); }
 
+/* home screen: groups the practice setup, other play modes, and
+   records/badges panels into tabs instead of one long stacked list */
+.home-tabs{
+  display:flex; gap:.4rem;
+  width:100%; max-width:640px;
+  margin-bottom:.5rem;
+}
+.home-tab-btn{
+  flex:1;
+  font-family:inherit; font-weight:800; font-size:.7rem;
+  padding:.5rem .3rem;
+  border-radius:14px; border:none;
+  background: rgba(255,255,255,.6); color:var(--purple-dark);
+  cursor:pointer;
+  transition: background .15s ease, color .15s ease, transform .15s ease, box-shadow .15s ease;
+}
+.home-tab-btn:active{ transform: scale(.96); }
+.home-tab-btn.active{
+  background: linear-gradient(135deg, var(--pink-dark), var(--purple-dark));
+  color:#fff;
+  box-shadow: 0 4px 10px rgba(140,92,255,.35);
+  transform: translateY(-2px);
+}
+.home-tab-panel{
+  display:none;
+  flex-direction:column; align-items:center;
+  width:100%;
+}
+.home-tab-panel.active{ display:flex; }
+.home-tab-panel .btn-start{ margin-bottom:.5rem; }
+
 .panel{
   width:100%; max-width: 640px;
   background: rgba(255,255,255,.75);
