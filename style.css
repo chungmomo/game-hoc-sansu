@@ -549,6 +549,91 @@ html,body{
 .memory-card.matched{ background:#e8fbe8; box-shadow: 0 4px 0 #a8dba8; opacity:.7; cursor:default; }
 .memory-card-face{ font-size: clamp(1.2rem, 6vmin, 2rem); line-height:1; }
 
+/* shared "round finished" panel across the mini-games below (mirrors
+   .quiz-done's layout) */
+.minigame-done{
+  display:flex; flex-direction:column; align-items:center; gap:.4rem;
+  margin-top: 1rem;
+}
+.minigame-done.hidden{ display:none; }
+
+/* ---------- MINIGAME PICKER ---------- */
+.minigame-picker-grid{
+  display:grid; grid-template-columns: repeat(2, 1fr);
+  gap:.6rem;
+}
+.minigame-card{
+  background: var(--white);
+  border-radius: 16px;
+  border: 3px solid transparent;
+  padding: .7rem .4rem;
+  text-align:center;
+  cursor:pointer;
+  transition: transform .15s ease, border-color .15s ease;
+}
+.minigame-card:active{ transform: scale(.95); }
+.minigame-card-emoji{ font-size: clamp(1.6rem, 6vmin, 2.2rem); line-height:1; }
+.minigame-card-name{ font-weight:800; font-size:.72rem; margin-top:.25rem; color:var(--ink); }
+
+/* ---------- MINIGAME: whack-a-mole (bonus, non-math) ---------- */
+.mole-score{
+  text-align:center; font-weight:800; color:var(--purple-dark);
+  font-size:.9rem; margin-bottom:.5rem;
+}
+.mole-grid{
+  display:grid; grid-template-columns: repeat(3, 1fr);
+  gap:.5rem; max-width:320px; margin:0 auto;
+}
+.mole-hole{
+  aspect-ratio:1; border-radius:50%; border:none;
+  background:#d8c8a8;
+  box-shadow: inset 0 4px 8px rgba(0,0,0,.25);
+  display:flex; align-items:center; justify-content:center;
+  font-size: clamp(1.4rem, 6vmin, 2.2rem);
+  cursor:pointer;
+  overflow:hidden;
+}
+.mole-hole.up{ background:#e8d8b8; }
+.mole-hole.whacked{ background:#e8fbe8; }
+
+/* ---------- MINIGAME: make-10 pairs (addition practice) ---------- */
+.pairs10-grid{
+  display:grid; grid-template-columns: repeat(5, 1fr);
+  gap:.4rem; max-width:400px; margin:0 auto;
+}
+.pairs10-card{
+  aspect-ratio:1; border-radius:10px; border:none;
+  background: var(--white);
+  box-shadow: 0 4px 0 #d9c8e8;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Baloo 2','M PLUS Rounded 1c',sans-serif;
+  font-weight:800; font-size: clamp(1.1rem, 5vmin, 1.5rem); color:var(--ink);
+  cursor:pointer;
+}
+.pairs10-card:active{ transform: translateY(3px); box-shadow: 0 1px 0 #d9c8e8; }
+.pairs10-card.selected{ background:#fff3d6; box-shadow: 0 4px 0 var(--gold); }
+.pairs10-card.matched{ background:#e8fbe8; box-shadow: 0 4px 0 #a8dba8; opacity:.5; cursor:default; }
+.pairs10-card.wrong{ background:#ffe0e0; box-shadow: 0 4px 0 #f0b8b8; }
+
+/* ---------- MINIGAME: number sort (ordering practice) ---------- */
+.sort-row{
+  display:flex; flex-wrap:wrap; justify-content:center;
+  gap:.4rem; max-width:420px; margin:0 auto;
+}
+.sort-card{
+  min-width:3.2rem;
+  border-radius: 12px; border:none;
+  background: var(--white);
+  box-shadow: 0 4px 0 #d9c8e8;
+  padding: .6rem .3rem;
+  font-family:'Baloo 2','M PLUS Rounded 1c',sans-serif;
+  font-weight:800; font-size: clamp(1rem, 4.5vmin, 1.3rem); color:var(--ink);
+  cursor:pointer;
+}
+.sort-card:active{ transform: translateY(3px); box-shadow: 0 1px 0 #d9c8e8; }
+.sort-card.picked{ background: var(--green); color:#fff; box-shadow: 0 4px 0 #2e7d32; opacity:.85; cursor:default; }
+.sort-card.wrong{ animation: shake .4s ease; }
+
 .result-story{
   font-size:.75rem; color:var(--ink); font-weight:700;
   background:#f8f4ff; border-radius:12px; padding:.4rem .6rem;
