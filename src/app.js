@@ -543,7 +543,10 @@
   function renderAnimalCounters(step) {
     if (!els.animalCounters) return;
     if (step.synthetic) {
-      els.animalCounters.innerHTML = '';
+      els.animalCounters.innerHTML = `
+        <div class="animal-row">&nbsp;</div>
+        <div class="animal-row">&nbsp;</div>
+      `;
       return;
     }
     const [animalA, animalB] = pickTwoDistinctAnimals();
