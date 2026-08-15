@@ -16,6 +16,15 @@
 
 *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; user-select:none; }
 
+/* Generic "hide this element" utility — several spots toggle a bare
+   .hidden class (skip buttons, the digit-group shortcut row, the
+   flashquiz choice grid) expecting this to exist; only more specific
+   combos like .minigame-done.hidden were ever defined, so those bare
+   toggles were silently doing nothing. Safe to add generically: any
+   scoped ".x.hidden" rule elsewhere has higher specificity and still
+   wins regardless of source order. */
+.hidden{ display:none; }
+
 :focus-visible{
   outline: 3px solid var(--purple-dark);
   outline-offset: 2px;
