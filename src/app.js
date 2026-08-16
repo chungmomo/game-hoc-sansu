@@ -71,6 +71,10 @@
     els.avatarPickerGrid = document.getElementById('avatar-picker-grid');
     els.avatarModalCancel = document.getElementById('avatar-modal-cancel');
 
+    els.warriorItemModal = document.getElementById('warrior-item-modal');
+    els.warriorItemPickerGrid = document.getElementById('warrior-item-picker-grid');
+    els.warriorItemModalCancel = document.getElementById('warrior-item-modal-cancel');
+
     els.starTotalText = document.getElementById('star-total-text');
     els.homeTabs = document.getElementById('home-tabs');
     els.homeTabPanels = Array.from(document.querySelectorAll('.home-tab-panel'));
@@ -567,47 +571,135 @@
       slot's fixed position — an empty dashed marker shows where an
       item would go once collected. The "back" slot (cloak) renders
       before the body so it sits behind her instead of on top. */
+  /** Every index in D.WARRIOR_ITEM_SLOTS that maps to `slotName` and is
+      currently collected, in a stable (ascending index) order. Used only
+      to pick a sensible *default* item for a slot before the child has
+      made an explicit choice — actual equip choices (see
+      openWarriorItemPicker) aren't restricted to this mapping, so any
+      collected item can go in any slot. */
+  function collectedIndicesForSlot(slotName) {
+    const collected = new Set(state.itemsCollected);
+    return Object.entries(D.WARRIOR_ITEM_SLOTS)
+      .filter(([indexStr, info]) => info.slot === slotName && collected.has(Number(indexStr)))
+      .map(([indexStr]) => Number(indexStr));
+  }
+
+  // Sentinel stored in state.warriorEquipped[slot] when the child
+  // explicitly clears a slot via the "はずす" picker option — distinct
+  // from `undefined` (no choice made yet, use the mapped default).
+  const WARRIOR_SLOT_EMPTY = -1;
+
   function warriorAvatarHtml(opts) {
     const sizeClass = opts && opts.size === 'large' ? ' warrior-avatar-large' : '';
-    const collected = new Set(state.itemsCollected);
+    const interactive = !!(opts && opts.interactive);
+    const collectedSet = new Set(state.itemsCollected);
+    const anyCollected = collectedSet.size > 0;
 
     // One entry per slot: previewItem is always the first (base) item
     // mapped there, used as a grayed-out silhouette until something
-    // fills the slot. filledItem checks *every* index mapped to that
-    // slot (not just the first) — a slot's variant item (e.g. the
-    // second wand) being collected still counts even if its base item
-    // wasn't.
+    // fills the slot. equippedItem is whichever item the child freely
+    // chose for this slot (state.warriorEquipped, see
+    // openWarriorItemPicker) as long as it's still collected, falling
+    // back to the slot's originally-mapped collected item otherwise.
     const bySlot = {};
-    Object.entries(D.WARRIOR_ITEM_SLOTS).forEach(([indexStr, info]) => {
-      const idx = Number(indexStr);
-      if (!bySlot[info.slot]) {
-        bySlot[info.slot] = { left: info.left, top: info.top, previewItem: D.ITEMS[idx], filledItem: null };
-      }
-      if (collected.has(idx) && !bySlot[info.slot].filledItem) {
-        bySlot[info.slot].filledItem = D.ITEMS[idx];
-      }
+    Object.values(D.WARRIOR_ITEM_SLOTS).forEach(info => {
+      if (bySlot[info.slot]) return;
+      const previewIdx = Object.entries(D.WARRIOR_ITEM_SLOTS).find(([, i]) => i.slot === info.slot)[0];
+      const defaultOptions = collectedIndicesForSlot(info.slot);
+      const chosen = state.warriorEquipped[info.slot];
+      let equippedIdx;
+      if (chosen === WARRIOR_SLOT_EMPTY) equippedIdx = undefined;
+      else if (chosen !== undefined && collectedSet.has(chosen)) equippedIdx = chosen;
+      else equippedIdx = defaultOptions[0];
+      bySlot[info.slot] = {
+        left: info.left,
+        top: info.top,
+        previewItem: D.ITEMS[previewIdx],
+        equippedItem: equippedIdx === undefined ? null : D.ITEMS[equippedIdx],
+        pickable: anyCollected,
+      };
     });
 
-    const slotSpan = (info) => {
-      const filled = !!info.filledItem;
-      const item = info.filledItem || info.previewItem;
-      const title = filled ? item.name : 'みつけて そうびしよう';
-      return `<span class="warrior-item-slot${filled ? ' filled' : ' empty'}" style="left:${info.left}%; top:${info.top}%;" title="${title}">${item.icon || item.emoji}</span>`;
+    const slotSpan = (slotName, info) => {
+      const filled = !!info.equippedItem;
+      const item = info.equippedItem || info.previewItem;
+      const tapHint = interactive && info.pickable ? '（タップで きがえ）' : '';
+      const title = (filled ? item.name : 'みつけて そうびしよう') + tapHint;
+      const classes = ['warrior-item-slot', filled ? 'filled' : 'empty'];
+      if (interactive && info.pickable) classes.push('swappable');
+      const dataSlot = interactive ? ` data-slot="${slotName}"` : '';
+      return `<span class="${classes.join(' ')}" style="left:${info.left}%; top:${info.top}%;" title="${title}"${dataSlot}>${item.icon || item.emoji}</span>`;
     };
 
     const back = bySlot.back;
     const frontHtml = Object.entries(bySlot)
       .filter(([slotName]) => slotName !== 'back')
-      .map(([, info]) => slotSpan(info))
+      .map(([slotName, info]) => slotSpan(slotName, info))
       .join('');
 
     return `
       <div class="warrior-avatar${sizeClass}">
-        ${back ? slotSpan(back) : ''}
+        ${back ? slotSpan('back', back) : ''}
         <div class="warrior-avatar-body">${I.warriorPrincessBody}</div>
         ${frontHtml}
       </div>
     `;
+  }
+
+  /** Opens a picker letting the child freely choose ANY collected item
+      to show in one of the warrior princess's equipment slots (not
+      restricted to that slot's original item mapping — the point is
+      free dress-up, "theo y thich"), or clear the slot back to empty. */
+  function openWarriorItemPicker(slotName) {
+    const collectedSet = new Set(state.itemsCollected);
+    const uniqueCollected = D.ITEMS.map((_, i) => i).filter(i => collectedSet.has(i));
+    if (uniqueCollected.length === 0) {
+      E.showToast('まだ みつけて いないよ！');
+      return;
+    }
+    if (!els.warriorItemModal) return;
+
+    const current = state.warriorEquipped[slotName];
+    els.warriorItemPickerGrid.innerHTML = '';
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'avatar-picker-btn warrior-item-picker-remove' + (current === WARRIOR_SLOT_EMPTY ? ' selected' : '');
+    removeBtn.textContent = '✕';
+    removeBtn.setAttribute('aria-label', 'はずす');
+    removeBtn.title = 'はずす';
+    removeBtn.addEventListener('click', () => {
+      state.warriorEquipped[slotName] = WARRIOR_SLOT_EMPTY;
+      saveState();
+      renderCollection();
+      closeWarriorItemPicker();
+    });
+    els.warriorItemPickerGrid.appendChild(removeBtn);
+
+    uniqueCollected.forEach(idx => {
+      const item = D.ITEMS[idx];
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'avatar-picker-btn' + (current === idx ? ' selected' : '');
+      btn.textContent = item.icon || item.emoji;
+      btn.setAttribute('aria-label', item.name);
+      btn.title = item.name;
+      btn.addEventListener('click', () => {
+        state.warriorEquipped[slotName] = idx;
+        saveState();
+        renderCollection();
+        closeWarriorItemPicker();
+      });
+      els.warriorItemPickerGrid.appendChild(btn);
+    });
+
+    els.warriorItemModal.classList.add('visible');
+    els.warriorItemModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeWarriorItemPicker() {
+    els.warriorItemModal.classList.remove('visible');
+    els.warriorItemModal.setAttribute('aria-hidden', 'true');
   }
 
   /** Home-screen recap of the adventure so far: which pieces of the
@@ -619,7 +711,7 @@
     if (els.warriorShowcase) {
       const warrior = D.PRINCESSES.find(p => p.isWarrior);
       const unlocked = warrior && D.isPrincessUnlocked(state, warrior);
-      els.warriorShowcase.innerHTML = warriorAvatarHtml({ size: 'large' }) +
+      els.warriorShowcase.innerHTML = warriorAvatarHtml({ size: 'large', interactive: true }) +
         (unlocked ? '' : `<p class="warrior-showcase-lock">🔒 ${warrior.unlockStars}⭐で かいほう</p>`);
     }
 
@@ -2027,6 +2119,9 @@
     });
 
     els.avatarModalCancel.addEventListener('click', () => closeAvatarPicker(null));
+    if (els.warriorItemModalCancel) {
+      els.warriorItemModalCancel.addEventListener('click', closeWarriorItemPicker);
+    }
     els.avatarModal.addEventListener('click', (e) => {
       if (e.target === els.avatarModal) closeAvatarPicker(null);
     });
@@ -2035,6 +2130,14 @@
 
     if (els.btnLevelPrev) els.btnLevelPrev.addEventListener('click', () => stepLevel(-1));
     if (els.btnLevelNext) els.btnLevelNext.addEventListener('click', () => stepLevel(1));
+
+    if (els.warriorShowcase) {
+      els.warriorShowcase.addEventListener('click', (e) => {
+        const slotEl = e.target.closest('.warrior-item-slot[data-slot]');
+        if (!slotEl) return;
+        openWarriorItemPicker(slotEl.dataset.slot);
+      });
+    }
 
     els.btnReset.addEventListener('click', () => {
       if (confirm('いままでの きろくと ほしを ぜんぶ けしますか？')) {
