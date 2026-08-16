@@ -179,6 +179,7 @@
      to the emoji ones with no extra plumbing. */
   const STICKER_POOL = [
     '🦋', '🌸', '🍭', '🎈', '🦄', '🍬', '🧁', '🌟', '💫', '🎀', '🐬', '🌈', '🍓', '🐣',
+    '🍩', '🍪', '🍦', '🧸', '🎁', '🪄', '🔮', '🌺', '🍒', '🍇',
     Icons.starSticker, Icons.sunSticker, Icons.sparkleSticker,
   ];
   const CONFETTI_EMOJI = ['🎉', '✨', '💖', '⭐', '🌸', '👑', '🎊'];

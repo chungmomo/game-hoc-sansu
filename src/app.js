@@ -10,7 +10,12 @@
   const C = window.PM.Cloud;
   const I = window.PM.Icons;
 
-  const PROFILE_AVATARS = ['👧', '🧒', '👦', '🐣', '🌟', '🦄', '🐻', '🐰'];
+  const PROFILE_AVATARS = [
+    '👧', '🧒', '👦', '🐣', '🌟', '🦄', '🐻', '🐰',
+    '🐱', '🐶', '🦊', '🐼', '🐨', '🐯', '🦁', '🐸',
+    '🐵', '🐷', '🐙', '🦋', '🐝', '🌈', '⭐', '🌸',
+    '🍓', '🍭', '🎀', '👑', '💫', '🐬',
+  ];
 
   let state = D.defaultState();
   let game = null; // current 10-problem session, or null on the home/result screens
@@ -61,6 +66,10 @@
     els.promptError = document.getElementById('prompt-modal-error');
     els.promptCancel = document.getElementById('prompt-modal-cancel');
     els.promptConfirm = document.getElementById('prompt-modal-confirm');
+
+    els.avatarModal = document.getElementById('avatar-modal');
+    els.avatarPickerGrid = document.getElementById('avatar-picker-grid');
+    els.avatarModalCancel = document.getElementById('avatar-modal-cancel');
 
     els.starTotalText = document.getElementById('star-total-text');
     els.homeTabs = document.getElementById('home-tabs');
@@ -249,6 +258,33 @@
     closePrompt(val || null);
   }
 
+  /* ---------------- avatar picker modal ---------------- */
+  let avatarResolve = null;
+
+  function openAvatarPicker() {
+    return new Promise((resolve) => {
+      avatarResolve = resolve;
+      els.avatarPickerGrid.innerHTML = '';
+      PROFILE_AVATARS.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.className = 'avatar-picker-btn';
+        btn.type = 'button';
+        btn.textContent = emoji;
+        btn.setAttribute('aria-label', emoji);
+        btn.addEventListener('click', () => closeAvatarPicker(emoji));
+        els.avatarPickerGrid.appendChild(btn);
+      });
+      els.avatarModal.classList.add('visible');
+      els.avatarModal.setAttribute('aria-hidden', 'false');
+    });
+  }
+
+  function closeAvatarPicker(value) {
+    els.avatarModal.classList.remove('visible');
+    els.avatarModal.setAttribute('aria-hidden', 'true');
+    if (avatarResolve) { avatarResolve(value); avatarResolve = null; }
+  }
+
   /* ================= SCREEN: PROFILES ================= */
   async function renderProfilePicker() {
     els.profileGrid.innerHTML = '<div class="item-row-empty">よみこみちゅう…</div>';
@@ -309,7 +345,8 @@
       errorMsg: 'なまえを いれてね',
     });
     if (!name) return;
-    const avatarEmoji = M.pick(PROFILE_AVATARS);
+    const avatarEmoji = await openAvatarPicker();
+    if (!avatarEmoji) return;
     const id = await C.createProfile(name, avatarEmoji, D.defaultState());
     alert(`${name}の コード: ${id}\n\nべつの きき で つづきを あそぶときは、この コードを にゅうりょくしてね。`);
     await selectProfile(id);
@@ -791,12 +828,18 @@
      skip it entirely. Flip two cards; a match stays face-up, a mismatch
      flips back after a beat. */
   let memory = null;
-  const MEMORY_PAIR_COUNT = 10;
+  const MEMORY_PAIR_COUNT = 20;
 
   function startMinigame() {
-    const pool = M.shuffle(D.STICKER_POOL.filter(Boolean)).slice(0, MEMORY_PAIR_COUNT);
+    // Capped to the actual sticker pool size — each pair needs a
+    // distinct face, so asking for more pairs than there are stickers
+    // would otherwise leave the board short of MEMORY_PAIR_COUNT pairs
+    // while the completion check still waited for the full count,
+    // making the round unwinnable.
+    const pairCount = Math.min(MEMORY_PAIR_COUNT, D.STICKER_POOL.filter(Boolean).length);
+    const pool = M.shuffle(D.STICKER_POOL.filter(Boolean)).slice(0, pairCount);
     const cards = M.shuffle(pool.concat(pool)).map((face, i) => ({ id: i, face, matched: false }));
-    memory = { cards, flipped: [], matchesFound: 0, locked: false };
+    memory = { cards, flipped: [], matchesFound: 0, locked: false, pairCount };
     els.memoryStatus.textContent = 'おなじ カードを 2まい みつけてね！';
     renderMemoryGrid();
     showScreen('minigame');
@@ -832,7 +875,7 @@
       memory.flipped = [];
       memory.locked = false;
       renderMemoryGrid();
-      if (memory.matchesFound === MEMORY_PAIR_COUNT) {
+      if (memory.matchesFound === memory.pairCount) {
         els.memoryStatus.textContent = 'ぜんぶ そろった！やったね！🎉';
         E.spawnConfetti(24, D.getSelectedPrincess(state).rewardEmoji);
       }
@@ -850,7 +893,7 @@
      window; tap it before it ducks back down. Runs for a fixed number
      of appearances, then shows a final score. */
   const MOLE_HOLE_COUNT = 9;
-  const MOLE_ROUNDS = 30;
+  const MOLE_ROUNDS = 50;
   const MOLE_UP_MS = 850;
   const MOLE_GAP_MS = 450;
   let mole = null;
@@ -925,10 +968,11 @@
      add to 10. A correct pair locks in place; a wrong pair flashes red
      and un-selects after a beat — no hidden/flip state needed since the
      values are visible the whole time. */
-  // Each 1-9 sum-to-10 pair listed three times — since there are only 5
-  // distinct single-digit pairs, repeating is the only way to grow the
-  // board (30 cards, 15 matches) without changing what "sums to 10" means.
-  const PAIRS10_VALUES = [1, 9, 2, 8, 3, 7, 4, 6, 5, 5, 1, 9, 2, 8, 3, 7, 4, 6, 5, 5, 1, 9, 2, 8, 3, 7, 4, 6, 5, 5];
+  // Each 1-9 sum-to-10 pair repeated 5x — since there are only 5 distinct
+  // single-digit pairs, repeating is the only way to grow the board (50
+  // cards, 25 matches) without changing what "sums to 10" means.
+  const PAIRS10_BASE = [1, 9, 2, 8, 3, 7, 4, 6, 5, 5];
+  const PAIRS10_VALUES = Array(5).fill(PAIRS10_BASE).flat();
   let pairs10 = null;
 
   function startPairs10() {
@@ -991,7 +1035,7 @@
      6 shuffled 2-digit numbers; tap them in ascending order as fast as
      possible. Tapping out of turn just shakes (no penalty) — the goal
      is speed, not lives. */
-  const SORT_CARD_COUNT = 12;
+  const SORT_CARD_COUNT = 20;
   let sortGame = null;
 
   function startSort() {
@@ -1554,12 +1598,11 @@
     renderFingerCounters(step);
   }
 
-  /** Shows step.x fingers (pink) and step.y fingers (purple) next to
-      the active column, as a counting aid before the child does the
+  /** Shows step.x dots (pink) and step.y dots (purple) next to the
+      active column, as a counting aid before the child does the
       addition — skipped for the synthetic "write the carry down" step,
-      which has nothing to count. Fixed colors per addend (rather than
-      the old random-animal pool) since the point now is literally
-      counting fingers, not picking a fun creature. */
+      which has nothing to count. Fixed colors per addend so the two
+      counts stay visually distinct. */
   function renderFingerCounters(step) {
     if (!els.fingerCounters) return;
     if (step.synthetic || game.operation === 'mul' || game.operation === 'div') {
@@ -1570,8 +1613,8 @@
       return;
     }
     els.fingerCounters.innerHTML = `
-      <div class="finger-row">${I.fingerPink.repeat(step.x)}</div>
-      <div class="finger-row">${I.fingerPurple.repeat(step.y)}</div>
+      <div class="finger-row">${I.countDotPink.repeat(step.x)}</div>
+      <div class="finger-row">${I.countDotPurple.repeat(step.y)}</div>
     `;
   }
 
@@ -1924,6 +1967,11 @@
     els.promptInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { e.preventDefault(); confirmPrompt(); }
       else if (e.key === 'Escape') { e.preventDefault(); closePrompt(null); }
+    });
+
+    els.avatarModalCancel.addEventListener('click', () => closeAvatarPicker(null));
+    els.avatarModal.addEventListener('click', (e) => {
+      if (e.target === els.avatarModal) closeAvatarPicker(null);
     });
 
     els.btnStart.addEventListener('click', () => startGame(getSelectedLevel()));
