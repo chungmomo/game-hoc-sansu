@@ -295,6 +295,14 @@
       // つくろう" admin screen), scoped per operation like level
       // progress above. Each entry is a plain { a, b }.
       customProblems: { add: [], sub: [] },
+      // Which collected item the child has chosen to show in each of the
+      // warrior princess's equipment slots — freely chosen, not limited
+      // to that slot's original item mapping — see openWarriorItemPicker()
+      // in app.js. Keyed by slot name, value is an ITEMS index, or -1
+      // (WARRIOR_SLOT_EMPTY) if explicitly cleared. A slot with no entry
+      // here falls back to whichever collected item was originally
+      // mapped to it (WARRIOR_ITEM_SLOTS).
+      warriorEquipped: {},
     };
   }
 
