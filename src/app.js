@@ -33,7 +33,12 @@
     return state.selectedLevelByOp[state.selectedOperation];
   }
   function getMaxUnlockedLevel() {
-    return state.maxUnlockedLevelByOp[state.selectedOperation];
+    // Level/digit-tier browsing is unlocked entirely so the child can
+    // freely pick any operation's difficulty — state.maxUnlockedLevelByOp
+    // still tracks genuine progress separately (advancement after a
+    // finished set, badge "reached the top" checks), just not used to
+    // gate which levels are *selectable* any more.
+    return D.getMaxLevelIdForOp(state.selectedOperation);
   }
 
   const screens = {};
@@ -681,7 +686,7 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'avatar-picker-btn' + (current === idx ? ' selected' : '');
-      btn.textContent = item.icon || item.emoji;
+      btn.innerHTML = item.icon || item.emoji;
       btn.setAttribute('aria-label', item.name);
       btn.title = item.name;
       btn.addEventListener('click', () => {
