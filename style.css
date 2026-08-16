@@ -188,29 +188,40 @@ html,body{
 .princess-name{ font-size:.58rem; font-weight:700; color:var(--ink); line-height:1.15; }
 .princess-lock{ position:absolute; top:2px; right:4px; font-size:.65rem; }
 
-/* せんしの おひめさま: paper-doll avatar — base body + item overlays
+/* せんしの おひめさま: paper-doll avatar — base body + one equipment
+   slot per body position (see WARRIOR_ITEM_SLOTS in data.js), each
    positioned by percentage against Icons.warriorPrincessBody's own
-   viewBox (see WARRIOR_ITEM_SLOTS in data.js), so this stays purely
-   about sizing the doll, not per-item placement. */
+   viewBox. Every slot is always visible as a small badge: .filled
+   shows the collected item at full color in a solid frame, .empty
+   shows that slot's item as a grayed-out silhouette in a dashed frame
+   — so it reads as "a spot waiting for this" rather than nothing. */
 .warrior-avatar{
   position:relative;
   width:50px; height:70px;
   margin:0 auto .15rem;
 }
 .warrior-avatar-body{ width:100%; height:100%; }
-.warrior-item-icon{
+.warrior-item-slot{
   position:absolute; transform:translate(-50%,-50%);
-  font-size:.8rem; line-height:1;
-  filter: drop-shadow(0 1px 1px rgba(0,0,0,.25));
+  width:18px; height:18px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:6px;
+  font-size:.72rem; line-height:1;
 }
-.warrior-item-slot-empty{
-  position:absolute; transform:translate(-50%,-50%);
-  width:7px; height:7px; border-radius:50%;
-  border:1.5px dashed rgba(140,92,255,.4);
+.warrior-item-slot.filled{
+  background:#fff;
+  border:2px solid var(--gold);
+  box-shadow: 0 2px 5px rgba(0,0,0,.2);
+}
+.warrior-item-slot.empty{
+  background:rgba(255,255,255,.6);
+  border:2px dashed rgba(140,92,255,.45);
+  filter: grayscale(1);
+  opacity:.5;
 }
 
-/* きろく tab showcase — same paper-doll, just bigger, plus the item
-   icons/placeholders scale up to match via .warrior-avatar-large. */
+/* きろく tab showcase — same paper-doll, just bigger, plus the slot
+   badges scale up to match via .warrior-avatar-large. */
 .warrior-showcase{
   display:flex; flex-direction:column; align-items:center; gap:.3rem;
 }
@@ -218,8 +229,11 @@ html,body{
   width:120px; height:168px;
   margin:.3rem auto;
 }
-.warrior-avatar-large .warrior-item-icon{ font-size:1.9rem; }
-.warrior-avatar-large .warrior-item-slot-empty{ width:16px; height:16px; border-width:2px; }
+.warrior-avatar-large .warrior-item-slot{
+  width:34px; height:34px;
+  font-size:1.5rem;
+  border-radius:10px;
+}
 .warrior-showcase-lock{
   font-size:.68rem; font-weight:700; color:#9a86ab;
   margin:0;
