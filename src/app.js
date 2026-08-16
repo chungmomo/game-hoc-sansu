@@ -87,6 +87,7 @@
     els.btnLevelNext = document.getElementById('btn-level-next');
     els.puzzleGrid = document.getElementById('puzzle-grid');
     els.itemRow = document.getElementById('item-row');
+    els.warriorShowcase = document.getElementById('warrior-showcase');
     els.badgeGrid = document.getElementById('badge-grid');
     els.btnStart = document.getElementById('btn-start');
     els.btnReset = document.getElementById('btn-reset');
@@ -566,7 +567,8 @@
       slot's fixed position — an empty dashed marker shows where an
       item would go once collected. The "back" slot (cloak) renders
       before the body so it sits behind her instead of on top. */
-  function warriorAvatarHtml() {
+  function warriorAvatarHtml(opts) {
+    const sizeClass = opts && opts.size === 'large' ? ' warrior-avatar-large' : '';
     const collected = new Set(state.itemsCollected);
     const bySlot = {};
     Object.entries(D.WARRIOR_ITEM_SLOTS).forEach(([indexStr, info]) => {
@@ -586,7 +588,7 @@
       .join('');
 
     return `
-      <div class="warrior-avatar">
+      <div class="warrior-avatar${sizeClass}">
         ${back ? overlaySpan(back) : ''}
         <div class="warrior-avatar-body">${I.warriorPrincessBody}</div>
         ${frontHtml}
@@ -599,6 +601,13 @@
       monster, in a fixed order) and which items are in the bag. */
   function renderCollection() {
     if (!els.puzzleGrid || !els.itemRow) return;
+
+    if (els.warriorShowcase) {
+      const warrior = D.PRINCESSES.find(p => p.isWarrior);
+      const unlocked = warrior && D.isPrincessUnlocked(state, warrior);
+      els.warriorShowcase.innerHTML = warriorAvatarHtml({ size: 'large' }) +
+        (unlocked ? '' : `<p class="warrior-showcase-lock">🔒 ${warrior.unlockStars}⭐で かいほう</p>`);
+    }
 
     els.puzzleGrid.innerHTML = D.PUZZLE_PIECES.map((piece, i) => {
       const collected = i < state.puzzlePiecesCollected;
