@@ -570,26 +570,40 @@
   function warriorAvatarHtml(opts) {
     const sizeClass = opts && opts.size === 'large' ? ' warrior-avatar-large' : '';
     const collected = new Set(state.itemsCollected);
+
+    // One entry per slot: previewItem is always the first (base) item
+    // mapped there, used as a grayed-out silhouette until something
+    // fills the slot. filledItem checks *every* index mapped to that
+    // slot (not just the first) — a slot's variant item (e.g. the
+    // second wand) being collected still counts even if its base item
+    // wasn't.
     const bySlot = {};
     Object.entries(D.WARRIOR_ITEM_SLOTS).forEach(([indexStr, info]) => {
-      if (bySlot[info.slot]) return; // first (base) item mapped to a slot wins over its variant
-      const item = collected.has(Number(indexStr)) ? D.ITEMS[indexStr] : null;
-      bySlot[info.slot] = { left: info.left, top: info.top, item };
+      const idx = Number(indexStr);
+      if (!bySlot[info.slot]) {
+        bySlot[info.slot] = { left: info.left, top: info.top, previewItem: D.ITEMS[idx], filledItem: null };
+      }
+      if (collected.has(idx) && !bySlot[info.slot].filledItem) {
+        bySlot[info.slot].filledItem = D.ITEMS[idx];
+      }
     });
 
-    const overlaySpan = (info) => info.item
-      ? `<span class="warrior-item-icon" style="left:${info.left}%; top:${info.top}%;" title="${info.item.name}">${info.item.icon || info.item.emoji}</span>`
-      : `<span class="warrior-item-slot-empty" style="left:${info.left}%; top:${info.top}%;"></span>`;
+    const slotSpan = (info) => {
+      const filled = !!info.filledItem;
+      const item = info.filledItem || info.previewItem;
+      const title = filled ? item.name : 'みつけて そうびしよう';
+      return `<span class="warrior-item-slot${filled ? ' filled' : ' empty'}" style="left:${info.left}%; top:${info.top}%;" title="${title}">${item.icon || item.emoji}</span>`;
+    };
 
     const back = bySlot.back;
     const frontHtml = Object.entries(bySlot)
       .filter(([slotName]) => slotName !== 'back')
-      .map(([, info]) => overlaySpan(info))
+      .map(([, info]) => slotSpan(info))
       .join('');
 
     return `
       <div class="warrior-avatar${sizeClass}">
-        ${back ? overlaySpan(back) : ''}
+        ${back ? slotSpan(back) : ''}
         <div class="warrior-avatar-body">${I.warriorPrincessBody}</div>
         ${frontHtml}
       </div>
