@@ -441,7 +441,7 @@
       const unlocked = D.isPrincessUnlocked(state, p);
       const className = 'princess-card' + (p.id === state.selectedPrincessId ? ' selected' : '') + (unlocked ? '' : ' locked');
       const html = `
-        <div class="princess-avatar">${p.avatar}</div>
+        ${p.isWarrior ? warriorAvatarHtml() : `<div class="princess-avatar">${p.avatar}</div>`}
         <div class="princess-name">${p.name}</div>
         ${unlocked ? '' : `<div class="princess-lock">🔒 ${p.unlockStars}⭐</div>`}
       `;
@@ -558,6 +558,40 @@
           <div class="badge-name">${got ? b.name : '？？？'}</div>
         </div>`;
     }).join('');
+  }
+
+  /** Builds the せんしの おひめさま's paper-doll avatar: the base body
+      (Icons.warriorPrincessBody) with whichever collected items map to
+      each body slot (D.WARRIOR_ITEM_SLOTS) layered on top at that
+      slot's fixed position — an empty dashed marker shows where an
+      item would go once collected. The "back" slot (cloak) renders
+      before the body so it sits behind her instead of on top. */
+  function warriorAvatarHtml() {
+    const collected = new Set(state.itemsCollected);
+    const bySlot = {};
+    Object.entries(D.WARRIOR_ITEM_SLOTS).forEach(([indexStr, info]) => {
+      if (bySlot[info.slot]) return; // first (base) item mapped to a slot wins over its variant
+      const item = collected.has(Number(indexStr)) ? D.ITEMS[indexStr] : null;
+      bySlot[info.slot] = { left: info.left, top: info.top, item };
+    });
+
+    const overlaySpan = (info) => info.item
+      ? `<span class="warrior-item-icon" style="left:${info.left}%; top:${info.top}%;" title="${info.item.name}">${info.item.icon || info.item.emoji}</span>`
+      : `<span class="warrior-item-slot-empty" style="left:${info.left}%; top:${info.top}%;"></span>`;
+
+    const back = bySlot.back;
+    const frontHtml = Object.entries(bySlot)
+      .filter(([slotName]) => slotName !== 'back')
+      .map(([, info]) => overlaySpan(info))
+      .join('');
+
+    return `
+      <div class="warrior-avatar">
+        ${back ? overlaySpan(back) : ''}
+        <div class="warrior-avatar-body">${I.warriorPrincessBody}</div>
+        ${frontHtml}
+      </div>
+    `;
   }
 
   /** Home-screen recap of the adventure so far: which pieces of the
