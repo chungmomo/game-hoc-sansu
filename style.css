@@ -190,6 +190,7 @@ html,body{
 
 /* level selector */
 .level-row{ display:grid; grid-template-columns: repeat(3, 1fr); gap:.4rem; }
+.level-row.hidden{ display:none; }
 .level-card{
   background: var(--white);
   border-radius: 12px;
@@ -204,6 +205,31 @@ html,body{
 .level-emoji{ font-size:1.1rem; }
 .level-name{ font-weight:800; font-size:.68rem; margin:.1rem 0 0; }
 .level-desc{ font-size:.52rem; color:#7a6a86; line-height:1.2; }
+
+/* add/sub level picker: 25 sub-levels per digit-count tier is too many
+   to show as a card grid, so browse them one at a time instead — the
+   digit-group row above still jumps between tiers. */
+.level-stepper{
+  display:flex; align-items:center; justify-content:center; gap:.5rem;
+}
+.level-stepper.hidden{ display:none; }
+.level-step-btn{
+  flex:0 0 auto;
+  width:36px; height:36px; border-radius:50%; border:none;
+  background: var(--white); color:var(--purple-dark);
+  font-size:1rem; font-weight:800; cursor:pointer;
+  box-shadow: 0 3px 8px rgba(0,0,0,.12);
+}
+.level-step-btn:active{ transform: scale(.9); }
+.level-step-btn:disabled{ opacity:.35; cursor:default; }
+.level-stepper-info{
+  flex:1 1 auto; max-width:180px;
+  text-align:center;
+}
+.level-stepper-emoji{ font-size:1.4rem; line-height:1; }
+.level-stepper-name{ font-weight:800; font-size:.78rem; margin-top:.1rem; }
+.level-stepper-desc{ font-size:.56rem; color:#7a6a86; line-height:1.2; margin-top:.1rem; }
+.level-stepper-progress{ font-size:.6rem; color:var(--purple-dark); font-weight:700; margin-top:.15rem; }
 
 .btn-start{
   background: linear-gradient(135deg, var(--pink-dark), var(--purple-dark));
@@ -428,6 +454,7 @@ html,body{
    visuals, kept slim since it's just a jump-to-group filter above the
    full level list. */
 .digit-group-row{ display:flex; gap:.4rem; justify-content:center; margin-bottom:.5rem; }
+.digit-group-row.hidden{ display:none; }
 .digit-group-row .level-card{ flex:1; padding:.3rem .2rem; }
 
 /* achievement badges */
@@ -694,6 +721,7 @@ html,body{
   display:grid; grid-template-columns: repeat(2, 1fr);
   gap:.6rem; width:100%; max-width:420px; margin:0 auto;
 }
+.flashquiz-choices.hidden{ display:none; }
 .flashquiz-choice-btn{
   font-family:inherit; font-weight:800; font-size: clamp(1rem, 4.5vmin, 1.4rem);
   padding: .7rem .4rem;
@@ -831,16 +859,16 @@ html,body{
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:.4rem;
 }
-/* counting aid: N of one animal + M of another, shown under the column
-   table so a child can count the addends before calculating them. Always
-   stacked (not beside the table) so the card's height stays the same
-   regardless of how many columns or animals the current step has —
-   letting it wrap based on available width made the card visibly grow
-   and shrink between problems. */
-.animal-counters{
+/* counting aid: N fingers for one addend + M fingers for the other,
+   shown under the column table so a child can count before
+   calculating. Always stacked (not beside the table) so the card's
+   height stays the same regardless of how many columns or fingers the
+   current step has — letting it wrap based on available width made
+   the card visibly grow and shrink between problems. */
+.finger-counters{
   display:flex; flex-direction:column; align-items:center; gap:.3rem;
 }
-.animal-row{
+.finger-row{
   display:flex; flex-wrap:nowrap; gap:1px;
   font-size:.85rem;
   line-height:1.1;

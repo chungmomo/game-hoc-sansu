@@ -61,132 +61,96 @@
     return distractors;
   }
 
-  /** Retries `sample()` (which returns null when the pair it drew
-      doesn't satisfy the level's digit constraint) until it returns a
-      value, up to `maxAttempts` times. Used instead of deriving one
-      digit from another so every valid combination is equally likely
-      — the old nested-derivation style (pick tensA, then constrain
-      tensB's range from it) skewed results toward small leading
-      digits, since a big tensA left tensB almost no room. The
-      constraints here are all satisfied by at least ~20% of random
-      draws, so this converges in a handful of attempts. */
-  function sampleUntilValid(sample, maxAttempts) {
-    for (let i = 0; i < maxAttempts; i++) {
-      const result = sample();
-      if (result) return result;
-    }
-    return sample.fallback();
+  /* Add/sub levels are 1-100: 4 digit-count tiers (1-4 digits) of 25
+     sub-levels each — id = (digits-1)*25 + subLevel. Must stay in sync
+     with data.js's LEVELS_PER_GROUP (also 25); duplicated here rather
+     than imported so this file keeps loading standalone in Node for
+     the tests (see the file banner comment). */
+  const LEVELS_PER_GROUP = 25;
+
+  function digitGroupForLevel(level) {
+    const digits = Math.min(4, Math.max(1, Math.ceil(level / LEVELS_PER_GROUP)));
+    const subLevel = ((level - 1) % LEVELS_PER_GROUP) + 1;
+    return { digits, subLevel };
+  }
+
+  /** Sub-level 1 -> 0% chance (no carrying/borrowing anywhere), ramping
+      to 100% by sub-level 21 and staying there for the last few
+      "mastery" levels — a continuous difficulty ramp instead of a
+      handful of hand-tuned tiers. */
+  function chanceForSubLevel(subLevel) {
+    return Math.min(1, (subLevel - 1) / 20);
   }
 
   /**
-   * Generates an addition problem for the given level.
-   * Level 0: 1-digit + 1-digit warm-up (answer may carry into 2 digits).
-   * Level 1: 2-digit + 2-digit, no carrying anywhere.
-   * Level 2: 2-digit + 2-digit, carries the ones digit but the answer
-   * stays 2-digit. Level 3: 2-digit + 2-digit, unconstrained (answer may
-   * reach 198). Level 4: 3-digit + 2-digit, unconstrained. Level 5:
-   * 3-digit + 3-digit, unconstrained (answer may reach 1998). Level 6:
-   * 4-digit + 3-digit, unconstrained. Level 7: 4-digit + 4-digit,
-   * unconstrained (answer may reach 19998).
+   * Generates an addition problem for the given level (1-100, see
+   * digitGroupForLevel). Both operands have the tier's digit count;
+   * each column independently has `carryChance` probability of
+   * requiring a carry (that column's digits summing to >= 10).
    */
   function generateProblem(level) {
-    let a, b;
-    if (level === 0) {
-      a = randInt(1, 9);
-      b = randInt(1, 9);
-    } else if (level === 1) {
-      const sample = () => {
-        const x = randInt(10, 99);
-        const y = randInt(10, 99);
-        const noCarry = (Math.floor(x / 10) + Math.floor(y / 10) < 10) && (x % 10 + y % 10 < 10);
-        return noCarry ? [x, y] : null;
-      };
-      sample.fallback = () => [12, 13];
-      [a, b] = sampleUntilValid(sample, 200);
-    } else if (level === 2) {
-      const sample = () => {
-        const x = randInt(10, 99);
-        const y = randInt(10, 99);
-        // < 9, not < 10 — the +1 carried in from the ones column still
-        // needs to fit without pushing the tens sum to 10 (which would
-        // carry again into the hundreds, breaking "answer stays 2-digit").
-        const tensOk = Math.floor(x / 10) + Math.floor(y / 10) < 9;
-        const onesCarries = (x % 10) + (y % 10) >= 10;
-        return (tensOk && onesCarries) ? [x, y] : null;
-      };
-      sample.fallback = () => [19, 15];
-      [a, b] = sampleUntilValid(sample, 200);
-    } else if (level === 3) {
-      a = randInt(10, 99);
-      b = randInt(10, 99);
-    } else if (level === 4) {
-      a = randInt(100, 999);
-      b = randInt(10, 99);
-    } else if (level === 5) {
-      a = randInt(100, 999);
-      b = randInt(100, 999);
-    } else if (level === 6) {
-      a = randInt(1000, 9999);
-      b = randInt(100, 999);
-    } else {
-      a = randInt(1000, 9999);
-      b = randInt(1000, 9999);
+    const { digits, subLevel } = digitGroupForLevel(level);
+    const carryChance = chanceForSubLevel(subLevel);
+    const da = [];
+    const db = [];
+    for (let i = 0; i < digits; i++) {
+      const minDigit = i === digits - 1 ? 1 : 0; // no leading zero
+      if (Math.random() < carryChance) {
+        const x = randInt(Math.max(minDigit, 1), 9);
+        const y = randInt(10 - x, 9);
+        da.push(x); db.push(y);
+      } else {
+        // x capped at 9-minDigit so there's always room left for y to
+        // satisfy its own no-leading-zero floor (matters when this is
+        // the top column of both operands, minDigit=1 for x and y alike).
+        const x = randInt(minDigit, 9 - minDigit);
+        const y = randInt(minDigit, 9 - x);
+        da.push(x); db.push(y);
+      }
     }
+    const a = Number(da.slice().reverse().join(''));
+    const b = Number(db.slice().reverse().join(''));
     return { a, b, answer: a + b };
   }
 
   /**
-   * Generates a subtraction problem (a - b, always a >= b so the answer
-   * is never negative) for the given level. Mirrors generateProblem's
-   * difficulty tiers: level 0 free 1-digit warm-up, level 1 no borrowing,
-   * level 2 borrows the ones digit only, level 3 free 2-digit, level 4
-   * 3-digit - 2-digit, level 5 free 3-digit - 3-digit, level 6 4-digit -
-   * 3-digit, level 7 free 4-digit - 4-digit.
+   * Generates a subtraction problem (a - b, always a >= b) for the
+   * given level, same digit-tier/sub-level scheme as generateProblem
+   * but ramping borrow chance instead of carry chance. Columns build
+   * bottom-up (ones first); once any lower column has been forced to
+   * need a borrow (x < y there), the top column is built with a
+   * *strict* x > y instead of just x >= y — a tie at the top would let
+   * that lower borrow decide the overall magnitude instead, which could
+   * flip a >= b (and silently cancel the very borrow the sub-level was
+   * trying to create). The final swap is just a defensive backstop.
    */
   function generateSubtractionProblem(level) {
-    let a, b;
-    if (level === 0) {
-      a = randInt(1, 9);
-      b = randInt(1, 9);
-      if (a < b) { const t = a; a = b; b = t; }
-    } else if (level === 1) {
-      const sample = () => {
-        const x = randInt(10, 99);
-        const y = randInt(10, 99);
-        const noBorrow = (Math.floor(x / 10) >= Math.floor(y / 10)) && (x % 10 >= y % 10);
-        return noBorrow ? [x, y] : null;
-      };
-      sample.fallback = () => [38, 25];
-      [a, b] = sampleUntilValid(sample, 200);
-    } else if (level === 2) {
-      const sample = () => {
-        const x = randInt(10, 99);
-        const y = randInt(10, 99);
-        const tensOk = Math.floor(x / 10) > Math.floor(y / 10);
-        const onesBorrows = (x % 10) < (y % 10);
-        return (tensOk && onesBorrows) ? [x, y] : null;
-      };
-      sample.fallback = () => [42, 27];
-      [a, b] = sampleUntilValid(sample, 200);
-    } else if (level === 3) {
-      a = randInt(10, 99);
-      b = randInt(10, 99);
-      if (a < b) { const t = a; a = b; b = t; }
-    } else if (level === 4) {
-      a = randInt(100, 999);
-      b = randInt(10, 99);
-    } else if (level === 5) {
-      a = randInt(100, 999);
-      b = randInt(100, 999);
-      if (a < b) { const t = a; a = b; b = t; }
-    } else if (level === 6) {
-      a = randInt(1000, 9999);
-      b = randInt(100, 999);
-    } else {
-      a = randInt(1000, 9999);
-      b = randInt(1000, 9999);
-      if (a < b) { const t = a; a = b; b = t; }
+    const { digits, subLevel } = digitGroupForLevel(level);
+    const borrowChance = chanceForSubLevel(subLevel);
+    const da = [];
+    const db = [];
+    let hadForcedBorrow = false;
+    for (let i = 0; i < digits; i++) {
+      const minDigit = i === digits - 1 ? 1 : 0;
+      const isTopColumn = i === digits - 1;
+      if (!isTopColumn && Math.random() < borrowChance) {
+        const y = randInt(minDigit + 1, 9);
+        const x = randInt(minDigit, y - 1);
+        da.push(x); db.push(y);
+        hadForcedBorrow = true;
+      } else if (isTopColumn && hadForcedBorrow) {
+        const y = randInt(minDigit, 8);
+        const x = randInt(y + 1, 9);
+        da.push(x); db.push(y);
+      } else {
+        const y = randInt(minDigit, 9);
+        const x = randInt(Math.max(minDigit, y), 9);
+        da.push(x); db.push(y);
+      }
     }
+    let a = Number(da.slice().reverse().join(''));
+    let b = Number(db.slice().reverse().join(''));
+    if (a < b) { const t = a; a = b; b = t; }
     return { a, b, answer: a - b };
   }
 

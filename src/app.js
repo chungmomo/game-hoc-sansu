@@ -69,6 +69,13 @@
     els.princessRow = document.getElementById('princess-row');
     els.digitGroupRow = document.getElementById('digit-group-row');
     els.levelRow = document.getElementById('level-row');
+    els.levelStepper = document.getElementById('level-stepper');
+    els.levelStepperEmoji = document.getElementById('level-stepper-emoji');
+    els.levelStepperName = document.getElementById('level-stepper-name');
+    els.levelStepperDesc = document.getElementById('level-stepper-desc');
+    els.levelStepperProgress = document.getElementById('level-stepper-progress');
+    els.btnLevelPrev = document.getElementById('btn-level-prev');
+    els.btnLevelNext = document.getElementById('btn-level-next');
     els.puzzleGrid = document.getElementById('puzzle-grid');
     els.itemRow = document.getElementById('item-row');
     els.badgeGrid = document.getElementById('badge-grid');
@@ -107,7 +114,7 @@
     els.problemCard = document.querySelector('.problem-card');
     els.problemOverview = document.getElementById('problem-overview');
     els.columnTable = document.getElementById('column-table');
-    els.animalCounters = document.getElementById('animal-counters');
+    els.fingerCounters = document.getElementById('finger-counters');
     els.stepPrompt = document.getElementById('step-prompt');
     els.keypad = document.getElementById('keypad');
 
@@ -118,7 +125,6 @@
     els.resultStory = document.getElementById('result-story');
     els.btnPlayAgain = document.getElementById('btn-play-again');
     els.btnNextLevel = document.getElementById('btn-next-level');
-    els.btnPlayMinigame = document.getElementById('btn-play-minigame');
     els.btnGoHome = document.getElementById('btn-go-home');
 
     els.btnStartQuiz = document.getElementById('btn-start-quiz');
@@ -439,27 +445,66 @@
       });
     }
 
-    els.levelRow.innerHTML = '';
-    D.getLevelsForOp(state.selectedOperation).forEach(lv => {
-      const unlocked = lv.id <= maxUnlocked;
-      const className = 'level-card' + (lv.id === getSelectedLevel() ? ' selected' : '');
-      const html = `
-        <div class="level-emoji">${lv.emoji}</div>
-        <div class="level-name">${lv.name}${unlocked ? '' : ' 🔒'}</div>
-        <div class="level-desc">${lv.desc}</div>
-      `;
-      const card = makeSelectableCard(className, html, unlocked, 'まえの むずかしさを おわらせてから えらんでね！', () => {
-        state.selectedLevelByOp[state.selectedOperation] = lv.id;
-        saveState();
-        renderHome();
+    // add/sub have 25 sub-levels per digit tier (100 total) — too many
+    // for a card grid, so browse them one at a time via the stepper
+    // instead. mul/div still only have 3 levels each, so their small
+    // grid stays as-is.
+    els.levelRow.classList.toggle('hidden', isDigitBasedOp);
+    els.levelStepper.classList.toggle('hidden', !isDigitBasedOp);
+    if (isDigitBasedOp) {
+      renderLevelStepper();
+    } else {
+      els.levelRow.innerHTML = '';
+      D.getLevelsForOp(state.selectedOperation).forEach(lv => {
+        const unlocked = lv.id <= maxUnlocked;
+        const className = 'level-card' + (lv.id === getSelectedLevel() ? ' selected' : '');
+        const html = `
+          <div class="level-emoji">${lv.emoji}</div>
+          <div class="level-name">${lv.name}${unlocked ? '' : ' 🔒'}</div>
+          <div class="level-desc">${lv.desc}</div>
+        `;
+        const card = makeSelectableCard(className, html, unlocked, 'まえの むずかしさを おわらせてから えらんでね！', () => {
+          state.selectedLevelByOp[state.selectedOperation] = lv.id;
+          saveState();
+          renderHome();
+        });
+        card.style.opacity = unlocked ? '1' : '.55';
+        els.levelRow.appendChild(card);
       });
-      card.style.opacity = unlocked ? '1' : '.55';
-      els.levelRow.appendChild(card);
-    });
+    }
 
     renderCollection();
     renderBadges();
     renderCustomProblemSummary();
+  }
+
+  /** Shows the currently selected add/sub level (within its digit-count
+      tier) one at a time, with ◀/▶ to move through that tier's 25
+      sub-levels. Next is disabled at both the tier boundary and the
+      unlock ceiling — state.selectedLevelByOp can therefore never end
+      up pointing past maxUnlockedLevelByOp, the same invariant the old
+      "locked cards are unclickable" grid enforced. */
+  function renderLevelStepper() {
+    if (!els.levelStepper) return;
+    const current = D.LEVELS.find(lv => lv.id === getSelectedLevel()) || D.LEVELS[0];
+    const groupLevels = D.LEVELS.filter(lv => lv.digits === current.digits);
+    const minId = groupLevels[0].id;
+    const maxId = groupLevels[groupLevels.length - 1].id;
+    const maxUnlocked = getMaxUnlockedLevel();
+
+    els.levelStepperEmoji.textContent = current.emoji;
+    els.levelStepperName.textContent = current.name;
+    els.levelStepperDesc.textContent = current.desc;
+    els.levelStepperProgress.textContent = `${current.subLevel} / 25`;
+    els.btnLevelPrev.disabled = current.id <= minId;
+    els.btnLevelNext.disabled = current.id >= maxId || current.id >= maxUnlocked;
+  }
+
+  function stepLevel(delta) {
+    const nextId = getSelectedLevel() + delta;
+    state.selectedLevelByOp[state.selectedOperation] = nextId;
+    saveState();
+    renderHome();
   }
 
   /** Achievement badges — each one's "earned" state is derived purely
@@ -1506,34 +1551,27 @@
     if (game.operation === 'add') els.stepPrompt.textContent = M.stepPromptText(step);
     else if (game.operation === 'sub') els.stepPrompt.textContent = M.subtractionStepPromptText(step);
     else els.stepPrompt.textContent = `${step.x} ${game.operation === 'mul' ? '×' : '÷'} ${step.y} = ?`;
-    renderAnimalCounters(step);
+    renderFingerCounters(step);
   }
 
-  function pickTwoDistinctAnimals() {
-    const pool = D.ANIMAL_POOL;
-    const i = M.randInt(0, pool.length - 1);
-    let j = M.randInt(0, pool.length - 1);
-    while (j === i) j = M.randInt(0, pool.length - 1);
-    return [pool[i], pool[j]];
-  }
-
-  /** Shows step.x copies of one animal and step.y copies of another
-      next to the active column, as a counting aid before the child
-      does the addition — skipped for the synthetic "write the carry
-      down" step, which has nothing to count. */
-  function renderAnimalCounters(step) {
-    if (!els.animalCounters) return;
+  /** Shows step.x fingers (pink) and step.y fingers (purple) next to
+      the active column, as a counting aid before the child does the
+      addition — skipped for the synthetic "write the carry down" step,
+      which has nothing to count. Fixed colors per addend (rather than
+      the old random-animal pool) since the point now is literally
+      counting fingers, not picking a fun creature. */
+  function renderFingerCounters(step) {
+    if (!els.fingerCounters) return;
     if (step.synthetic || game.operation === 'mul' || game.operation === 'div') {
-      els.animalCounters.innerHTML = `
-        <div class="animal-row">&nbsp;</div>
-        <div class="animal-row">&nbsp;</div>
+      els.fingerCounters.innerHTML = `
+        <div class="finger-row">&nbsp;</div>
+        <div class="finger-row">&nbsp;</div>
       `;
       return;
     }
-    const [animalA, animalB] = pickTwoDistinctAnimals();
-    els.animalCounters.innerHTML = `
-      <div class="animal-row">${animalA.repeat(step.x)}</div>
-      <div class="animal-row">${animalB.repeat(step.y)}</div>
+    els.fingerCounters.innerHTML = `
+      <div class="finger-row">${I.fingerPink.repeat(step.x)}</div>
+      <div class="finger-row">${I.fingerPurple.repeat(step.y)}</div>
     `;
   }
 
@@ -1890,6 +1928,9 @@
 
     els.btnStart.addEventListener('click', () => startGame(getSelectedLevel()));
 
+    if (els.btnLevelPrev) els.btnLevelPrev.addEventListener('click', () => stepLevel(-1));
+    if (els.btnLevelNext) els.btnLevelNext.addEventListener('click', () => stepLevel(1));
+
     els.btnReset.addEventListener('click', () => {
       if (confirm('いままでの きろくと ほしを ぜんぶ けしますか？')) {
         const keepSound = state.soundOn;
@@ -1988,12 +2029,6 @@
 
     if (els.btnOpenMinigames) {
       els.btnOpenMinigames.addEventListener('click', () => {
-        showScreen('minigamePicker');
-        renderMinigamePicker();
-      });
-    }
-    if (els.btnPlayMinigame) {
-      els.btnPlayMinigame.addEventListener('click', () => {
         showScreen('minigamePicker');
         renderMinigamePicker();
       });
