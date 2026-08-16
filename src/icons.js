@@ -65,19 +65,17 @@
       <circle cx="14.5" cy="9" r="0.8" fill="#f0abfc"/>
     </svg>`,
 
-    // ---- Counting fingers (the per-column counting aid shows step.x/
-    // step.y as a row of these instead of animals, one color per
-    // addend so the two counts stay visually distinct) ----
-    fingerPink: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="8" y="4" width="8" height="18" rx="4" fill="#ff8fc7"/>
-      <path d="M8.3 15.5 L15.7 15.5" stroke="#ff5fa8" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
-      <ellipse cx="10.3" cy="8" rx="1.5" ry="2.1" fill="#fff" opacity="0.55"/>
+    // ---- Counting dots (the per-column counting aid shows step.x/
+    // step.y as a row of these, one color per addend so the two counts
+    // stay visually distinct) ----
+    countDotPink: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" fill="#ff8fc7"/>
+      <ellipse cx="9" cy="9" rx="2.4" ry="1.8" fill="#fff" opacity="0.5"/>
     </svg>`,
 
-    fingerPurple: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="8" y="4" width="8" height="18" rx="4" fill="#b388ff"/>
-      <path d="M8.3 15.5 L15.7 15.5" stroke="#8c5cff" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
-      <ellipse cx="10.3" cy="8" rx="1.5" ry="2.1" fill="#fff" opacity="0.55"/>
+    countDotPurple: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" fill="#b388ff"/>
+      <ellipse cx="9" cy="9" rx="2.4" ry="1.8" fill="#fff" opacity="0.5"/>
     </svg>`,
 
     // ---- Reward stickers ----
