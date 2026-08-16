@@ -188,6 +188,27 @@ html,body{
 .princess-name{ font-size:.58rem; font-weight:700; color:var(--ink); line-height:1.15; }
 .princess-lock{ position:absolute; top:2px; right:4px; font-size:.65rem; }
 
+/* せんしの おひめさま: paper-doll avatar — base body + item overlays
+   positioned by percentage against Icons.warriorPrincessBody's own
+   viewBox (see WARRIOR_ITEM_SLOTS in data.js), so this stays purely
+   about sizing the doll, not per-item placement. */
+.warrior-avatar{
+  position:relative;
+  width:50px; height:70px;
+  margin:0 auto .15rem;
+}
+.warrior-avatar-body{ width:100%; height:100%; }
+.warrior-item-icon{
+  position:absolute; transform:translate(-50%,-50%);
+  font-size:.8rem; line-height:1;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.25));
+}
+.warrior-item-slot-empty{
+  position:absolute; transform:translate(-50%,-50%);
+  width:7px; height:7px; border-radius:50%;
+  border:1.5px dashed rgba(140,92,255,.4);
+}
+
 /* level selector */
 .level-row{ display:grid; grid-template-columns: repeat(3, 1fr); gap:.4rem; }
 .level-row.hidden{ display:none; }

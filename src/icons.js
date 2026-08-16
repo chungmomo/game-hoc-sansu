@@ -259,6 +259,30 @@
       <circle cx="14.9" cy="7.9" r=".35" fill="#fff"/>
       <path d="M9.3 11.3q2.7 2 5.4 0" fill="none" stroke="#831843" stroke-width="1" stroke-linecap="round"/>
     </svg>`,
+    // ---- Warrior princess base body (items layer on top as a
+    // paper-doll — see renderWarriorAvatar() in app.js). Standing pose
+    // with hands held out to the sides at a fixed spot each, so item
+    // overlays (weapon/shield/etc.) always land in the right place
+    // regardless of which items happen to be collected. ----
+    warriorPrincessBody: `<svg width="100%" height="100%" viewBox="0 0 100 140" aria-hidden="true">
+      <ellipse cx="50" cy="132" rx="22" ry="5" fill="#8c5cff" opacity=".15"/>
+      <rect x="40" y="98" width="8" height="30" rx="4" fill="#6a3fce"/>
+      <rect x="52" y="98" width="8" height="30" rx="4" fill="#6a3fce"/>
+      <path d="M32 58 Q50 50 68 58 L64 100 Q50 106 36 100 Z" fill="#b388ff"/>
+      <path d="M36 60 Q50 66 64 60 L61 78 Q50 83 39 78 Z" fill="#ffd54f"/>
+      <rect x="27" y="60" width="10" height="9" rx="4" fill="#b388ff" transform="rotate(-25 32 64)"/>
+      <circle cx="18" cy="72" r="6.5" fill="#ffd6b8"/>
+      <rect x="63" y="60" width="10" height="9" rx="4" fill="#b388ff" transform="rotate(25 68 64)"/>
+      <circle cx="82" cy="72" r="6.5" fill="#ffd6b8"/>
+      <circle cx="50" cy="30" r="16" fill="#ffd6b8"/>
+      <path d="M32 26 Q34 6 50 8 Q66 6 68 26 Q66 16 50 15 Q34 16 32 26 Z" fill="#5b3a29"/>
+      <circle cx="24" cy="30" r="6" fill="#5b3a29"/>
+      <circle cx="76" cy="30" r="6" fill="#5b3a29"/>
+      <circle cx="44" cy="30" r="1.8" fill="#3b2a1f"/>
+      <circle cx="56" cy="30" r="1.8" fill="#3b2a1f"/>
+      <path d="M44 37 Q50 41 56 37" fill="none" stroke="#3b2a1f" stroke-width="1.4" stroke-linecap="round"/>
+      <path d="M40 15 Q50 6 60 15 Q52 12 50 12 Q48 12 40 15 Z" fill="#ffd54f"/>
+    </svg>`,
   };
 
   root.PM.Icons = ICONS;

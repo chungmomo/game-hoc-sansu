@@ -22,6 +22,15 @@
       rewardEmoji: ['🐚', '🐬', '🌊', '🫧', '🦪', '💙'] },
     { id: 'forest',  name: 'もりの おひめさま',    avatar: '🧝‍♀️', mascot: '🌿', unlockStars: 45,
       rewardEmoji: ['🌿', '🍃', '🦋', '🐿️', '🌼', '🍄'] },
+    /* isWarrior: her avatar isn't a fixed emoji — renderWarriorAvatar()
+       in app.js draws Icons.warriorPrincessBody and layers whichever
+       collected items (state.itemsCollected, see WARRIOR_ITEM_SLOTS
+       below) she has onto fixed body positions, paper-doll style. She
+       still needs a plain emoji for contexts that can't render that
+       (browser tab icon, plain-text messages), hence avatar/mascot
+       stay set to something reasonable as a fallback. */
+    { id: 'warrior', name: 'せんしの おひめさま',  avatar: '⚔️', mascot: '🗡️', unlockStars: 60, isWarrior: true,
+      rewardEmoji: ['⚔️', '🛡️', '🔥', '💪', '⭐', '👑'] },
     { id: 'star',    name: 'ほしの おひめさま',    avatar: '🧚‍♀️', mascot: '🌟', unlockStars: 70,
       rewardEmoji: ['🌟', '💫', '⭐', '🌠', '✨', '🔭'] },
     { id: 'rainbow', name: 'にじの じょおう',      avatar: '🦄',   mascot: '🌈', unlockStars: 100,
@@ -228,6 +237,26 @@
     { name: 'くすくす ポーション', emoji: '🧪', icon: Icons.potionItem },
   ];
 
+  /* Maps each ITEMS index to a fixed spot on the warrior princess's
+     body (renderWarriorAvatar() in app.js) — the two wand entries (0,
+     8) and two potion entries (7, 9) are flavor variants of the same
+     equipment, so they share a slot; whichever one was collected first
+     is what displays there. left/top are percentages against
+     Icons.warriorPrincessBody's own 100x140 viewBox, so they track the
+     art directly instead of needing separate upkeep. */
+  const WARRIOR_ITEM_SLOTS = {
+    0: { slot: 'weapon', left: 82, top: 51 },
+    1: { slot: 'shield', left: 18, top: 51 },
+    2: { slot: 'feet', left: 50, top: 91 },
+    3: { slot: 'head', left: 50, top: 4 },
+    4: { slot: 'ring', left: 18, top: 60 },
+    5: { slot: 'back', left: 50, top: 40 },
+    6: { slot: 'waistLeft', left: 38, top: 65 },
+    7: { slot: 'waistRight', left: 62, top: 65 },
+    8: { slot: 'weapon', left: 82, top: 51 },
+    9: { slot: 'waistRight', left: 62, top: 65 },
+  };
+
   /* Awarded one at a time, in order, on every defeated monster — once
      all are collected the escape-journey "album" is complete. */
   const PUZZLE_PIECES = ['🌳', '🏰', '🌙', '⭐', '🦋', '🌸', '🍄', '🌈', '🔑'];
@@ -318,6 +347,7 @@
     MONSTER_APPEAR_MESSAGE,
     MONSTER_DEFEATED_MESSAGE,
     ITEMS,
+    WARRIOR_ITEM_SLOTS,
     PUZZLE_PIECES,
     getCurrentMonster,
     isAlbumComplete,
