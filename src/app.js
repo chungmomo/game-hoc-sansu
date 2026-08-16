@@ -1830,19 +1830,20 @@
       // text (see subtractionStepPromptText) rather than a separate
       // carry-style indicator, so the carry-slot stays empty for it.
       const carryHtml = (isAdd && known && step.carryIn > 0) ? `${step.carryIn}` : '&nbsp;';
-      // Subtraction: show the classic "borrow mark" a child would
-      // scribble by hand — the printed minuend digit crossed out with
-      // the post-borrow working value (step.effectiveX, which already
-      // folds any borrow-in reduction and +10 wrap into one number)
-      // written small above it, whenever this column actually needed
-      // borrowing (either receiving one or having to wrap for its own
-      // subtraction). Cascades naturally through zero columns since
-      // effectiveX comes straight from buildSubtractionColumnPlan.
+      // Subtraction: whenever a column actually needed borrowing (either
+      // receiving one or having to wrap for its own subtraction), replace
+      // the printed minuend digit outright with the post-borrow working
+      // value (step.effectiveX, which already folds any borrow-in
+      // reduction and +10 wrap into one number) instead of showing both —
+      // simpler than classic crossed-out-plus-superscript notation and
+      // easier to read at this size. Cascades naturally through zero
+      // columns since effectiveX comes straight from
+      // buildSubtractionColumnPlan.
       const needsBorrowMark = !isAdd && !step.synthetic && step.effectiveX !== step.x;
       const digitA = step.synthetic
         ? '&nbsp;'
         : needsBorrowMark
-          ? `<span class="digit-a-crossed">${step.x}</span><span class="digit-a-correction">${step.effectiveX}</span>`
+          ? `<span class="digit-a-borrowed">${step.effectiveX}</span>`
           : step.x;
       const digitB = step.synthetic ? '&nbsp;' : step.y;
 
