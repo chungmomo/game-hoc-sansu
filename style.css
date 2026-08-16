@@ -906,8 +906,8 @@ html,body{
   display:flex; flex-direction:column; align-items:center; gap:.3rem;
 }
 .finger-row{
-  display:flex; flex-wrap:nowrap; gap:1px;
-  font-size:.85rem;
+  display:flex; flex-wrap:nowrap; gap:2px;
+  font-size:1.7rem;
   line-height:1.1;
   min-height:1.1em;
   white-space:nowrap;
