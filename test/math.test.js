@@ -31,78 +31,49 @@ test('randInt stays within the requested bounds', () => {
   }
 });
 
-test('level 0 problems: 1-digit inputs, correct sum', () => {
-  for (let i = 0; i < 1000; i++) {
-    const p = generateProblem(0);
-    assert.ok(p.a >= 1 && p.a <= 9, `a=${p.a} is not 1-digit`);
-    assert.ok(p.b >= 1 && p.b <= 9, `b=${p.b} is not 1-digit`);
-    assert.strictEqual(p.a + p.b, p.answer, `${p.a}+${p.b} should equal ${p.answer}`);
-  }
+/* Add/sub levels are 1-100: 4 digit-count tiers (1-4 digits) of 25
+   sub-levels each (id = (digits-1)*25 + subLevel). digitBounds(digits)
+   mirrors that scheme for the assertions below. */
+function digitBounds(digits) {
+  if (digits === 1) return [1, 9];
+  const lo = Math.pow(10, digits - 1);
+  const hi = Math.pow(10, digits) - 1;
+  return [lo, hi];
+}
+
+test('addition levels 1-100: correct digit count and sum for every tier/sub-level boundary', () => {
+  // id 1/25/26/50/51/75/76/100 covers every tier's first and last sub-level
+  [1, 13, 25, 26, 50, 51, 75, 76, 88, 100].forEach(level => {
+    const digits = Math.min(4, Math.ceil(level / 25));
+    const [lo, hi] = digitBounds(digits);
+    for (let i = 0; i < 500; i++) {
+      const p = generateProblem(level);
+      assert.ok(p.a >= lo && p.a <= hi, `level ${level}: a=${p.a} should be ${digits}-digit`);
+      assert.ok(p.b >= lo && p.b <= hi, `level ${level}: b=${p.b} should be ${digits}-digit`);
+      assert.strictEqual(p.a + p.b, p.answer, `${p.a}+${p.b} should equal ${p.answer}`);
+    }
+  });
 });
 
-test('level 1 problems: 2-digit inputs, correct sum, no carrying', () => {
-  for (let i = 0; i < 1000; i++) {
-    const p = generateProblem(1);
-    assert.ok(p.a >= 10 && p.a <= 99, `a=${p.a} is not 2-digit`);
-    assert.ok(p.b >= 10 && p.b <= 99, `b=${p.b} is not 2-digit`);
-    assert.strictEqual(p.a + p.b, p.answer, `${p.a}+${p.b} should equal ${p.answer}`);
-    buildColumnPlan(p.a, p.b).forEach(step => {
-      assert.strictEqual(step.carryOut, 0, `level 1 problem ${p.a}+${p.b} produced a carry at column ${step.index}`);
-    });
-  }
+test('addition sub-level 1 of every tier never carries', () => {
+  [1, 26, 51, 76].forEach(level => {
+    for (let i = 0; i < 500; i++) {
+      const p = generateProblem(level);
+      buildColumnPlan(p.a, p.b).forEach(step => {
+        assert.strictEqual(step.carryOut, 0, `level ${level} (sub-level 1): ${p.a}+${p.b} produced a carry at column ${step.index}`);
+      });
+    }
+  });
 });
 
-test('level 2 problems: carry the ones digit, answer stays under 100', () => {
-  for (let i = 0; i < 1000; i++) {
-    const p = generateProblem(2);
-    assert.ok(p.a >= 10 && p.a <= 99 && p.b >= 10 && p.b <= 99, `${p.a}+${p.b} inputs must both be 2-digit`);
-    assert.strictEqual(p.a + p.b, p.answer);
-    assert.ok(p.answer < 100, `${p.a}+${p.b}=${p.answer} should stay under 100`);
-    const plan = buildColumnPlan(p.a, p.b);
-    assert.ok(plan[0].carryOut > 0, `${p.a}+${p.b} should carry out of the ones column`);
-  }
-});
-
-test('level 3 problems: any 2-digit + 2-digit combination', () => {
-  for (let i = 0; i < 1000; i++) {
-    const p = generateProblem(3);
-    assert.ok(p.a >= 10 && p.a <= 99 && p.b >= 10 && p.b <= 99);
-    assert.strictEqual(p.a + p.b, p.answer);
-  }
-});
-
-test('level 4 problems: 3-digit + 2-digit combination', () => {
-  for (let i = 0; i < 1000; i++) {
-    const p = generateProblem(4);
-    assert.ok(p.a >= 100 && p.a <= 999, `a=${p.a} is not 3-digit`);
-    assert.ok(p.b >= 10 && p.b <= 99, `b=${p.b} is not 2-digit`);
-    assert.strictEqual(p.a + p.b, p.answer, `${p.a}+${p.b} should equal ${p.answer}`);
-  }
-});
-
-test('level 5 problems: 3-digit + 3-digit combination', () => {
-  for (let i = 0; i < 1000; i++) {
-    const p = generateProblem(5);
-    assert.ok(p.a >= 100 && p.a <= 999 && p.b >= 100 && p.b <= 999, `${p.a}+${p.b} inputs must both be 3-digit`);
-    assert.strictEqual(p.a + p.b, p.answer, `${p.a}+${p.b} should equal ${p.answer}`);
-  }
-});
-
-test('level 6 problems: 4-digit + 3-digit combination', () => {
-  for (let i = 0; i < 1000; i++) {
-    const p = generateProblem(6);
-    assert.ok(p.a >= 1000 && p.a <= 9999, `a=${p.a} is not 4-digit`);
-    assert.ok(p.b >= 100 && p.b <= 999, `b=${p.b} is not 3-digit`);
-    assert.strictEqual(p.a + p.b, p.answer, `${p.a}+${p.b} should equal ${p.answer}`);
-  }
-});
-
-test('level 7 problems: 4-digit + 4-digit combination', () => {
-  for (let i = 0; i < 1000; i++) {
-    const p = generateProblem(7);
-    assert.ok(p.a >= 1000 && p.a <= 9999 && p.b >= 1000 && p.b <= 9999, `${p.a}+${p.b} inputs must both be 4-digit`);
-    assert.strictEqual(p.a + p.b, p.answer, `${p.a}+${p.b} should equal ${p.answer}`);
-  }
+test('addition sub-level 25 (mastery) of every tier always carries somewhere', () => {
+  [25, 50, 75, 100].forEach(level => {
+    for (let i = 0; i < 500; i++) {
+      const p = generateProblem(level);
+      const plan = buildColumnPlan(p.a, p.b);
+      assert.ok(plan.some(step => step.carryOut > 0), `level ${level} (sub-level 25): ${p.a}+${p.b} should carry at least once`);
+    }
+  });
 });
 
 test('buildColumnPlan reconstructs the exact sum for known edge cases', () => {
@@ -153,37 +124,40 @@ test('buildColumnPlan reconstructs the exact sum for 4-digit pairs, including te
   }
 });
 
-test('subtraction levels 0-7: a >= b always, answer is correct, and per-level constraints hold', () => {
-  for (let level = 0; level <= 7; level++) {
-    for (let i = 0; i < 2000; i++) {
+test('subtraction levels 1-100: a >= b always, correct digit count and difference for every tier/sub-level boundary', () => {
+  [1, 13, 25, 26, 50, 51, 75, 76, 88, 100].forEach(level => {
+    const digits = Math.min(4, Math.ceil(level / 25));
+    const [lo, hi] = digitBounds(digits);
+    for (let i = 0; i < 500; i++) {
       const p = generateSubtractionProblem(level);
       assert.ok(p.a >= p.b, `level ${level}: ${p.a}-${p.b} should never be negative`);
       assert.strictEqual(p.a - p.b, p.answer, `${p.a}-${p.b} should equal ${p.answer}`);
-      if (level === 0) {
-        assert.ok(p.a >= 1 && p.a <= 9 && p.b >= 1 && p.b <= 9, `level 0: ${p.a}-${p.b} inputs must both be 1-digit`);
-      } else if (level <= 3) {
-        assert.ok(p.a >= 10 && p.a <= 99 && p.b >= 10 && p.b <= 99, `level ${level}: ${p.a}-${p.b} inputs must both be 2-digit`);
-      } else if (level === 4) {
-        assert.ok(p.a >= 100 && p.a <= 999, `level 4: a=${p.a} is not 3-digit`);
-        assert.ok(p.b >= 10 && p.b <= 99, `level 4: b=${p.b} is not 2-digit`);
-      } else if (level === 5) {
-        assert.ok(p.a >= 100 && p.a <= 999 && p.b >= 100 && p.b <= 999, `level 5: ${p.a}-${p.b} inputs must both be 3-digit`);
-      } else if (level === 6) {
-        assert.ok(p.a >= 1000 && p.a <= 9999, `level 6: a=${p.a} is not 4-digit`);
-        assert.ok(p.b >= 100 && p.b <= 999, `level 6: b=${p.b} is not 3-digit`);
-      } else {
-        assert.ok(p.a >= 1000 && p.a <= 9999 && p.b >= 1000 && p.b <= 9999, `level 7: ${p.a}-${p.b} inputs must both be 4-digit`);
-      }
-      const plan = buildSubtractionColumnPlan(p.a, p.b);
-      if (level === 1) {
-        assert.ok(plan.every(s => s.borrowOut === 0), `level 1: ${p.a}-${p.b} should never borrow`);
-      }
-      if (level === 2) {
-        assert.strictEqual(plan[0].borrowOut, 1, `level 2: ${p.a}-${p.b} should borrow the ones column`);
-        assert.strictEqual(plan[1].borrowOut, 0, `level 2: ${p.a}-${p.b} should not need a second borrow`);
-      }
+      assert.ok(p.a >= lo && p.a <= hi, `level ${level}: a=${p.a} should be ${digits}-digit`);
+      assert.ok(p.b >= lo && p.b <= hi, `level ${level}: b=${p.b} should be ${digits}-digit`);
     }
-  }
+  });
+});
+
+test('subtraction sub-level 1 of every tier never borrows', () => {
+  [1, 26, 51, 76].forEach(level => {
+    for (let i = 0; i < 500; i++) {
+      const p = generateSubtractionProblem(level);
+      const plan = buildSubtractionColumnPlan(p.a, p.b);
+      assert.ok(plan.every(s => s.borrowOut === 0), `level ${level} (sub-level 1): ${p.a}-${p.b} should never borrow`);
+    }
+  });
+});
+
+test('subtraction sub-level 25 (mastery) borrows somewhere, for tiers with a column to borrow from (2+ digits)', () => {
+  // the 1-digit tier (level 25) is excluded — a single column can never
+  // borrow, regardless of how "hard" that tier's difficulty ramp gets.
+  [50, 75, 100].forEach(level => {
+    for (let i = 0; i < 500; i++) {
+      const p = generateSubtractionProblem(level);
+      const plan = buildSubtractionColumnPlan(p.a, p.b);
+      assert.ok(plan.some(s => s.borrowOut > 0), `level ${level} (sub-level 25): ${p.a}-${p.b} should borrow at least once`);
+    }
+  });
 });
 
 test('buildSubtractionColumnPlan reconstructs the exact difference for known borrow-chain edge cases', () => {
@@ -218,7 +192,7 @@ test('subtractionStepPromptText shows the already-borrowed value for 500 - 258',
 });
 
 test('buildProblemSet avoids back-to-back duplicate problems (addition and subtraction)', () => {
-  for (let level = 0; level <= 7; level++) {
+  [1, 25, 26, 50, 51, 75, 76, 100].forEach(level => {
     for (let trial = 0; trial < 50; trial++) {
       const set = buildProblemSet(level, 10);
       for (let i = 1; i < set.length; i++) {
@@ -235,7 +209,7 @@ test('buildProblemSet avoids back-to-back duplicate problems (addition and subtr
         );
       }
     }
-  }
+  });
 });
 
 test('placeLabel returns the right Japanese place-value name', () => {

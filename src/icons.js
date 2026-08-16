@@ -65,44 +65,19 @@
       <circle cx="14.5" cy="9" r="0.8" fill="#f0abfc"/>
     </svg>`,
 
-    // ---- Counting animals ----
-    monkeyAnimal: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="6" cy="10" r="3" fill="#92400e"/>
-      <circle cx="18" cy="10" r="3" fill="#92400e"/>
-      <circle cx="6" cy="10" r="1.6" fill="#fed7aa"/>
-      <circle cx="18" cy="10" r="1.6" fill="#fed7aa"/>
-      <circle cx="12" cy="12" r="8" fill="#b45309"/>
-      <ellipse cx="12" cy="15" rx="5" ry="4.2" fill="#fed7aa"/>
-      <path d="M8.5 12 q1.3 -1.4 2.7 0" fill="none" stroke="#3b1d0a" stroke-width="1.2" stroke-linecap="round"/>
-      <circle cx="15.3" cy="12" r="1.4" fill="#3b1d0a"/>
-      <circle cx="15.6" cy="11.6" r="0.4" fill="#fff"/>
-      <ellipse cx="10.5" cy="16" rx="0.9" ry="0.7" fill="#78350f"/>
-      <ellipse cx="13.5" cy="16" rx="0.9" ry="0.7" fill="#78350f"/>
-      <path d="M10 18 q2 1.6 4 0" fill="none" stroke="#3b1d0a" stroke-width="1" stroke-linecap="round"/>
+    // ---- Counting fingers (the per-column counting aid shows step.x/
+    // step.y as a row of these instead of animals, one color per
+    // addend so the two counts stay visually distinct) ----
+    fingerPink: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="8" y="4" width="8" height="18" rx="4" fill="#ff8fc7"/>
+      <path d="M8.3 15.5 L15.7 15.5" stroke="#ff5fa8" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+      <ellipse cx="10.3" cy="8" rx="1.5" ry="2.1" fill="#fff" opacity="0.55"/>
     </svg>`,
 
-    penguinAnimal: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
-      <ellipse cx="12" cy="13" rx="7" ry="9" fill="#1f2937"/>
-      <ellipse cx="12" cy="15" rx="4.2" ry="6" fill="#f9fafb"/>
-      <path d="M10 10.5 q1.3 -1.3 2.6 0" fill="none" stroke="#f9fafb" stroke-width="1.2" stroke-linecap="round"/>
-      <circle cx="14.6" cy="10.5" r="1.3" fill="#f9fafb"/>
-      <circle cx="14.9" cy="10.1" r="0.4" fill="#1f2937"/>
-      <path d="M10.8 12 l2.6 0.9 l-2.6 0.9 Z" fill="#f97316"/>
-      <path d="M8 20 l2 -1.4 l0 1.8 Z" fill="#f97316"/>
-      <path d="M16 20 l-2 -1.4 l0 1.8 Z" fill="#f97316"/>
-    </svg>`,
-
-    bunnyAnimal: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
-      <ellipse cx="8.5" cy="6" rx="1.8" ry="4.6" fill="#fbcfe8"/>
-      <ellipse cx="15.5" cy="6" rx="1.8" ry="4.6" fill="#fbcfe8"/>
-      <ellipse cx="8.5" cy="6.3" rx="0.9" ry="3.2" fill="#fda4af"/>
-      <ellipse cx="15.5" cy="6.3" rx="0.9" ry="3.2" fill="#fda4af"/>
-      <circle cx="12" cy="14" r="7.5" fill="#fff" stroke="#f3d4e4" stroke-width="0.6"/>
-      <path d="M9 13 q1.2 -1.3 2.5 0" fill="none" stroke="#3b0764" stroke-width="1.2" stroke-linecap="round"/>
-      <circle cx="14.8" cy="13" r="1.4" fill="#3b0764"/>
-      <circle cx="15.1" cy="12.6" r="0.4" fill="#fff"/>
-      <ellipse cx="12" cy="15.6" rx="0.8" ry="0.6" fill="#fb7185"/>
-      <path d="M11 18 q1.5 2 3.2 0.6 q-0.7 -1.8 -3.2 -0.6 Z" fill="#fb7185"/>
+    fingerPurple: `<svg ${S} width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="8" y="4" width="8" height="18" rx="4" fill="#b388ff"/>
+      <path d="M8.3 15.5 L15.7 15.5" stroke="#8c5cff" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+      <ellipse cx="10.3" cy="8" rx="1.5" ry="2.1" fill="#fff" opacity="0.55"/>
     </svg>`,
 
     // ---- Reward stickers ----

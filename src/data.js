@@ -38,37 +38,66 @@
       rewardEmoji: ['👑', '💎', '🏆', '✨', '🌟', '💫'] },
   ];
 
-  /* id 0 is a 1-digit "warm-up" tier, always unlocked (0 <= the default
-     maxUnlockedLevelByOp of 1) — it sits outside the normal 1-7
-     progression so adding it never shifts what an existing player's
-     saved level ids mean. See MAX_LEVEL_ID below for why the unlock
-     ceiling can't just be LEVELS.length anymore. */
-  const LEVELS = [
-    { id: 0, name: 'にゅうもん', emoji: '🔰', desc: '1けたどうしの けいさん' },
-    { id: 1, name: 'やさしい',   emoji: '🌸', desc: 'くりあがりなし・ちいさいかず' },
-    { id: 2, name: 'ふつう',     emoji: '🌟', desc: 'いちのくらいで くりあがりあり' },
-    { id: 3, name: 'むずかしい', emoji: '🔥', desc: 'くりあがりあり・おおきいかず' },
-    { id: 4, name: 'とくべつ',   emoji: '💎', desc: '3けた + 2けたの けいさん' },
-    { id: 5, name: 'たつじん',   emoji: '👑', desc: '3けた + 3けたの けいさん' },
-    { id: 6, name: 'だいたつじん', emoji: '🏆', desc: '4けた + 3けたの けいさん' },
-    { id: 7, name: 'でんせつ',   emoji: '🐉', desc: '4けた + 4けたの けいさん' },
+  /* 100 add/sub levels: 4 digit-count tiers (1-4 digits) of 25 sub-levels
+     each, id = (digits-1)*25 + subLevel, so id 1 is "1-digit, sub-level
+     1" and id 100 is "4-digit, sub-level 25". Within a tier, difficulty
+     no longer comes from a handful of hand-written levels — it ramps
+     smoothly via carry/borrow chance (see math.js's chanceForSubLevel,
+     which must stay in sync with LEVELS_PER_GROUP below). desc always
+     talks about "くりあがり／くりさがり" generically since add and sub
+     share this same list (only the generator differs); tierForSubLevel
+     buckets the 25 sub-levels into 5 named/emoji bands purely for
+     flavor on the level-stepper display. */
+  const LEVELS_PER_GROUP = 25;
+  const DIGIT_TIERS = [
+    { digits: 1, label: '1けた' },
+    { digits: 2, label: '2けた' },
+    { digits: 3, label: '3けた' },
+    { digits: 4, label: '4けた' },
   ];
 
-  /* Highest level id reachable through normal progression — kept separate
-     from LEVELS.length so the always-unlocked id-0 warm-up tier doesn't
-     shift the "how many levels can you climb" ceiling used for unlocking
-     the next level and the add/sub-master badges. */
+  function tierForSubLevel(subLevel) {
+    if (subLevel <= 5) return { name: 'にゅうもん', emoji: '🔰' };
+    if (subLevel <= 10) return { name: 'やさしい', emoji: '🌸' };
+    if (subLevel <= 15) return { name: 'ふつう', emoji: '🌟' };
+    if (subLevel <= 20) return { name: 'むずかしい', emoji: '🔥' };
+    return { name: 'たつじん', emoji: '👑' };
+  }
+
+  function difficultyDesc(subLevel) {
+    if (subLevel <= 5) return 'くりあがり／くりさがり なし';
+    if (subLevel <= 20) return 'くりあがり／くりさがり ときどき';
+    return 'くりあがり／くりさがり おおい';
+  }
+
+  const LEVELS = [];
+  DIGIT_TIERS.forEach((tier, tierIndex) => {
+    for (let subLevel = 1; subLevel <= LEVELS_PER_GROUP; subLevel++) {
+      const band = tierForSubLevel(subLevel);
+      LEVELS.push({
+        id: tierIndex * LEVELS_PER_GROUP + subLevel,
+        digits: tier.digits,
+        subLevel,
+        name: `${band.name} ${subLevel}`,
+        emoji: band.emoji,
+        desc: `${tier.label}どうし・${difficultyDesc(subLevel)}`,
+      });
+    }
+  });
+
+  /* Highest level id reachable through normal progression — just
+     LEVELS.length now that there's no separate warm-up tier sitting
+     outside the numbering. */
   const MAX_LEVEL_ID = Math.max(...LEVELS.map(lv => lv.id));
 
-  /* Groups the LEVELS above by operand digit count, for the digit-count
-     shortcut row on the home screen — purely a navigation convenience,
-     it doesn't change how levels unlock. */
-  const DIGIT_GROUPS = [
-    { digits: 1, label: '1けた', levelIds: [0] },
-    { digits: 2, label: '2けた', levelIds: [1, 2, 3] },
-    { digits: 3, label: '3けた', levelIds: [4, 5] },
-    { digits: 4, label: '4けた', levelIds: [6, 7] },
-  ];
+  /* Groups LEVELS by operand digit count, for the digit-count shortcut
+     row on the home screen — purely a navigation convenience, it
+     doesn't change how levels unlock. */
+  const DIGIT_GROUPS = DIGIT_TIERS.map(tier => ({
+    digits: tier.digits,
+    label: tier.label,
+    levelIds: LEVELS.filter(lv => lv.digits === tier.digits).map(lv => lv.id),
+  }));
 
   /* Same digit-count level tiers apply to both add and sub — only the
      underlying number generator (carry vs. borrow) differs, so LEVELS is
@@ -145,21 +174,14 @@
   const LUCKY_PROBLEM_MESSAGE = '✨ラッキーもんだい！せいかいで ほしが 2こ もらえるよ！✨';
   const Icons = root.PM.Icons || {};
 
-  /* STICKER_POOL/ANIMAL_POOL entries are plain strings dropped straight
-     into innerHTML, so a hand-drawn SVG icon (see icons.js) slots in
-     next to the emoji ones with no extra plumbing. */
+  /* STICKER_POOL entries are plain strings dropped straight into
+     innerHTML, so a hand-drawn SVG icon (see icons.js) slots in next
+     to the emoji ones with no extra plumbing. */
   const STICKER_POOL = [
     '🦋', '🌸', '🍭', '🎈', '🦄', '🍬', '🧁', '🌟', '💫', '🎀', '🐬', '🌈', '🍓', '🐣',
     Icons.starSticker, Icons.sunSticker, Icons.sparkleSticker,
   ];
   const CONFETTI_EMOJI = ['🎉', '✨', '💖', '⭐', '🌸', '👑', '🎊'];
-  /* Two of these (never the same one twice at once) are shown as a
-     counting aid next to the active column — e.g. 7 cows + 3 monkeys
-     for "7 + 3" — so the child can visually count before calculating. */
-  const ANIMAL_POOL = [
-    '🐮', '🐒', '🐰', '🐶', '🐱', '🐭', '🐹', '🐷', '🐸', '🦁', '🐯', '🐻', '🐼', '🐨', '🦊', '🐔', '🐧', '🐤',
-    Icons.monkeyAnimal, Icons.penguinAnimal, Icons.bunnyAnimal,
-  ];
 
   /* A small mischievous familiar shown next to the mascot's HP bar
      during battle — see icons.js. Not tied to any one princess, so it
@@ -290,7 +312,6 @@
     LUCKY_PROBLEM_MESSAGE,
     STICKER_POOL,
     CONFETTI_EMOJI,
-    ANIMAL_POOL,
     COMPANION_SPRITE,
     MONSTERS,
     MONSTER_APPEAR_MESSAGE,
