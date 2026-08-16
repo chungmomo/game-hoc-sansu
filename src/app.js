@@ -651,6 +651,20 @@
     `;
   }
 
+  /** Battle-screen mascot content for a princess: the warrior princess
+      shows her actual illustrated character instead of a plain sword
+      emoji (her `mascot` field, '🗡️', otherwise unused once she has a
+      real avatar) so she reads as "the princess fighting" rather than
+      a random weapon icon. Every other princess keeps her fairy-style
+      mascot emoji as before. */
+  function renderMascotContent(el, princess) {
+    if (princess.isWarrior) {
+      el.innerHTML = warriorAvatarHtml();
+    } else {
+      el.textContent = princess.mascot;
+    }
+  }
+
   /** Opens a picker letting the child freely choose ANY collected item
       to show in one of the warrior princess's equipment slots (not
       restricted to that slot's original item mapping — the point is
@@ -885,7 +899,7 @@
       streak: 0, peakStreak: 0, livesIcons: ['💖', '💖', '💖'], locked: false,
     };
     const p = D.getSelectedPrincess(state);
-    els.quizMascot.textContent = p.mascot;
+    renderMascotContent(els.quizMascot, p);
     els.quizMonsterDisplay.textContent = D.getCurrentMonster(state).emoji;
     els.quizLives.textContent = quiz.livesIcons.join('');
     els.quizDone.classList.add('hidden');
@@ -1570,7 +1584,7 @@
 
   function renderMascotHeader() {
     const p = D.getSelectedPrincess(state);
-    els.mascot.textContent = p.mascot;
+    renderMascotContent(els.mascot, p);
     els.lives.textContent = game.livesIcons.join('');
     // Shared mischievous familiar, not tied to any one princess — same
     // sprite regardless of who's selected, just a bit of extra flair.
