@@ -204,6 +204,8 @@
     els.btnFlashquizGoHome = document.getElementById('btn-flashquiz-go-home');
 
     els.soundToggles = Array.from(document.querySelectorAll('.sound-toggle'));
+    els.musicToggles = Array.from(document.querySelectorAll('.music-toggle'));
+    els.bgMusic = document.getElementById('bg-music');
   }
 
   function showScreen(name) {
@@ -225,6 +227,38 @@
     state.soundOn = !state.soundOn;
     saveState();
     syncSoundButtons();
+  }
+
+  /* ---------------- background music toggle ----------------
+     Separate from the WebAudio sound effects above (soundOn) — a child
+     might want the tune off but keypad/correct-answer sounds on, or
+     vice versa. Autoplay is blocked by the browser until a real user
+     gesture happens (see the one-time listener in bindEvents), so
+     applyMusicState() is safe to call any time and just no-ops the
+     play() attempt until then. */
+  function applyMusicState() {
+    if (!els.bgMusic) return;
+    els.bgMusic.volume = 0.35;
+    if (state.musicOn) {
+      els.bgMusic.play().catch(() => { /* blocked until a user gesture — retried below */ });
+    } else {
+      els.bgMusic.pause();
+    }
+  }
+
+  function syncMusicButtons() {
+    els.musicToggles.forEach(btn => {
+      btn.textContent = state.musicOn ? '🎵' : '🔕';
+      btn.setAttribute('aria-pressed', String(state.musicOn));
+      btn.setAttribute('aria-label', state.musicOn ? 'おんがくを けす' : 'おんがくを だす');
+    });
+    applyMusicState();
+  }
+
+  function toggleMusic() {
+    state.musicOn = !state.musicOn;
+    saveState();
+    syncMusicButtons();
   }
 
   /* ---------------- text prompt modal (in-app replacement for
@@ -342,6 +376,7 @@
     state = await C.loadProfileState(id, D.defaultState());
     currentProfileId = id;
     syncSoundButtons();
+    syncMusicButtons();
     syncTimerButton();
     renderHome();
     showScreen('home');
@@ -2325,12 +2360,22 @@
     }
 
     els.soundToggles.forEach(btn => btn.addEventListener('click', toggleSound));
+    els.musicToggles.forEach(btn => btn.addEventListener('click', toggleMusic));
+    // Browsers block audio.play() until a real user gesture happens —
+    // retry once on the very first tap/click anywhere so music actually
+    // starts as soon as the child begins interacting, without needing a
+    // dedicated "start" button of its own.
+    document.addEventListener('click', function firstGestureUnlock() {
+      applyMusicState();
+      document.removeEventListener('click', firstGestureUnlock);
+    }, { once: true });
     if (els.btnToggleTimer) els.btnToggleTimer.addEventListener('click', toggleTimer);
   }
 
   async function init() {
     cacheDom();
     bindEvents();
+    syncMusicButtons();
     showScreen('loading');
     try {
       await C.init();

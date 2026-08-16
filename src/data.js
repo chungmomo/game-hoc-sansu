@@ -286,6 +286,7 @@
       selectedLevelByOp: { add: 1, sub: 1, mul: 1, div: 1 },
       maxUnlockedLevelByOp: { add: 1, sub: 1, mul: 1, div: 1 },
       soundOn: true,
+      musicOn: true,
       timerEnabled: true,
       monstersDefeated: 0,
       itemsCollected: [],

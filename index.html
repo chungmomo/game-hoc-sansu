@@ -35,6 +35,7 @@
     <div class="profile-grid" id="profile-grid"></div>
     <button class="btn-start" id="btn-add-profile">＋ あたらしい こを つくる</button>
     <button class="btn-mini" id="btn-link-profile">🔑 べつの きき の コードで つづける</button>
+    <p class="music-credit">🎵 "Jaunty Gumption" by Kevin MacLeod (incompetech.com), CC BY 4.0</p>
   </div>
 </section>
 
@@ -54,6 +55,7 @@
         <span class="star-ico">⭐</span> <span id="star-total-text">0</span> こ
       </div>
       <button class="sound-toggle" aria-label="おとを けす" aria-pressed="true">🔊</button>
+      <button class="music-toggle" aria-label="おんがくを けす" aria-pressed="true">🎵</button>
       <button class="icon-btn" id="btn-switch-profile" aria-label="こを かえる">🧒</button>
     </div>
   </div>
@@ -175,6 +177,7 @@
     </div>
     <div class="lives" id="quiz-lives" aria-hidden="true">💖💖💖</div>
     <button class="sound-toggle" aria-label="おとを けす" aria-pressed="true">🔊</button>
+    <button class="music-toggle" aria-label="おんがくを けす" aria-pressed="true">🎵</button>
   </div>
 
   <div class="mascot-zone">
@@ -351,6 +354,7 @@
     <div class="lives" id="lives" aria-hidden="true">💖💖💖</div>
     <button class="icon-btn" id="btn-toggle-timer" aria-label="タイマーを けす" aria-pressed="true">⏱️</button>
     <button class="sound-toggle" aria-label="おとを けす" aria-pressed="true">🔊</button>
+    <button class="music-toggle" aria-label="おんがくを けす" aria-pressed="true">🎵</button>
   </div>
 
   <div class="mascot-zone">
@@ -453,6 +457,11 @@
     </div>
   </div>
 </div>
+
+<!-- Background music: "Jaunty Gumption" by Kevin MacLeod (incompetech.com),
+     licensed under Creative Commons: By Attribution 4.0 (see the credit
+     line on the profile-picker screen above). -->
+<audio id="bg-music" src="assets/audio/jaunty-gumption.mp3" loop preload="auto"></audio>
 
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>

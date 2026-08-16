@@ -114,6 +114,19 @@ html,body{
 }
 .sound-toggle:active{ transform: scale(.92); }
 
+.music-toggle{
+  background: var(--white); border:none; border-radius:50%;
+  width:36px; height:36px; font-size:1.05rem; cursor:pointer;
+  box-shadow: 0 3px 8px rgba(0,0,0,.12);
+  flex:0 0 auto;
+}
+.music-toggle:active{ transform: scale(.92); }
+
+.music-credit{
+  font-size:.6rem; color:#b3a4c4; text-align:center;
+  margin-top:.6rem;
+}
+
 /* home screen: groups the practice setup, other play modes, and
    records/badges panels into tabs instead of one long stacked list */
 .home-tabs{
