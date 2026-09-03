@@ -1532,6 +1532,919 @@
         };
       },
     },
+
+    /* ============ 50 additional flash-quiz mini-games ============ */
+
+    add3: {
+      title: '３つの かずを たしざん',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const a = M.randInt(1, 9), b = M.randInt(1, 9), c = M.randInt(1, 9);
+        const answer = a + b + c;
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-3, -2, -1, 1, 2, 3]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${a} ＋ ${b} ＋ ${c} = ?</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    doubles: {
+      title: 'にばい けいさん',
+      subtitle: 'おなじ かずを ２かい たすと？',
+      rounds: 20,
+      buildRound() {
+        const n = M.randInt(1, 12);
+        const answer = n * 2;
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-4, -2, -1, 1, 2, 4]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${n} の にばいは？</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    halves: {
+      title: 'はんぶん けいさん',
+      subtitle: 'かずを はんぶんに すると？',
+      rounds: 20,
+      buildRound() {
+        const half = M.randInt(1, 12);
+        const n = half * 2;
+        const wrongs = distinctWrongValues(half, 3, () => half + M.pick([-3, -2, -1, 1, 2, 3]));
+        const options = M.shuffle([half, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${n} の はんぶんは？</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === half })),
+        };
+      },
+    },
+
+    neardoubles: {
+      title: 'ちかい にばい',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const n = M.randInt(1, 10);
+        const answer = n + (n + 1);
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-3, -2, -1, 1, 2, 3]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${n} ＋ ${n + 1} = ?</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    missingaddend: {
+      title: 'かくれた かず（たし）',
+      subtitle: '？に はいる かずは なにかな？',
+      rounds: 20,
+      buildRound() {
+        const a = M.randInt(1, 15);
+        const missing = M.randInt(1, 15);
+        const c = a + missing;
+        const wrongs = distinctWrongValues(missing, 3, () => missing + M.pick([-3, -2, -1, 1, 2, 3]));
+        const options = M.shuffle([missing, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${a} ＋ ？ = ${c}</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === missing })),
+        };
+      },
+    },
+
+    missingsubtrahend: {
+      title: 'かくれた かず（ひき）',
+      subtitle: '？に はいる かずは なにかな？',
+      rounds: 20,
+      buildRound() {
+        const c = M.randInt(1, 15);
+        const missing = M.randInt(1, 15);
+        const a = c + missing;
+        const wrongs = distinctWrongValues(missing, 3, () => missing + M.pick([-3, -2, -1, 1, 2, 3]));
+        const options = M.shuffle([missing, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${a} － ？ = ${c}</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === missing })),
+        };
+      },
+    },
+
+    oddeven: {
+      title: 'きすう・ぐうすう',
+      subtitle: 'この かずは きすう？ ぐうすう？',
+      rounds: 20,
+      buildRound() {
+        const n = M.randInt(1, 50);
+        const isEven = n % 2 === 0;
+        return {
+          promptHtml: `<div class="flashquiz-equation">${n}</div>`,
+          choices: [
+            { html: 'ぐうすう', correct: isEven },
+            { html: 'きすう', correct: !isEven },
+          ],
+        };
+      },
+    },
+
+    greaterless: {
+      title: 'おおきいのは どっち？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        let a = M.randInt(1, 99), b = M.randInt(1, 99);
+        while (a === b) b = M.randInt(1, 99);
+        const askBigger = Math.random() < 0.5;
+        const correctIsA = askBigger ? a > b : a < b;
+        return {
+          promptHtml: `<div class="flashquiz-subprompt">${askBigger ? 'おおきい ほうを タップしてね！' : 'ちいさい ほうを タップしてね！'}</div>`,
+          choices: [
+            { html: String(a), correct: correctIsA },
+            { html: String(b), correct: !correctIsA },
+          ],
+        };
+      },
+    },
+
+    numberline: {
+      title: 'どちらに ちかい？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const lo = M.randInt(0, 40);
+        const hi = lo + M.randInt(6, 12);
+        let n = M.randInt(lo + 1, hi - 1);
+        if ((n - lo) === (hi - n)) n += (Math.random() < 0.5 ? 1 : -1);
+        const closerToLo = (n - lo) < (hi - n);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${n}</div><div class="flashquiz-subprompt">${lo} と ${hi}、どちらに ちかい？</div>`,
+          choices: [
+            { html: String(lo), correct: closerToLo },
+            { html: String(hi), correct: !closerToLo },
+          ],
+        };
+      },
+    },
+
+    roundto10: {
+      title: 'がい すう（１０の くらい）',
+      subtitle: '１０に ちかい かずに しよう',
+      rounds: 20,
+      buildRound() {
+        const n = M.randInt(11, 89);
+        const answer = Math.round(n / 10) * 10;
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-20, -10, 10, 20]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${n}</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    placevaluetens: {
+      title: 'じゅうの くらいは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const n = M.randInt(10, 99);
+        const tens = Math.floor(n / 10);
+        const wrongs = distinctWrongValues(tens, 3, () => M.randInt(0, 9));
+        const options = M.shuffle([tens, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${n}</div><div class="flashquiz-subprompt">じゅうの くらいの すうじは？</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === tens })),
+        };
+      },
+    },
+
+    placevalueones: {
+      title: 'いちの くらいは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const n = M.randInt(10, 99);
+        const ones = n % 10;
+        const wrongs = distinctWrongValues(ones, 3, () => M.randInt(0, 9));
+        const options = M.shuffle([ones, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${n}</div><div class="flashquiz-subprompt">いちの くらいの すうじは？</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === ones })),
+        };
+      },
+    },
+
+    multiplyfact: {
+      title: 'かけざん フラッシュ',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const a = M.randInt(1, 9), b = M.randInt(1, 9);
+        const answer = a * b;
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-a, -b, a, b, 1, -1]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${a} × ${b} = ?</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    dividefact: {
+      title: 'わりざん フラッシュ',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const divisor = M.randInt(2, 9);
+        const quotient = M.randInt(1, 9);
+        const dividend = divisor * quotient;
+        const wrongs = distinctWrongValues(quotient, 3, () => quotient + M.pick([-2, -1, 1, 2]));
+        const options = M.shuffle([quotient, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${dividend} ÷ ${divisor} = ?</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === quotient })),
+        };
+      },
+    },
+
+    arraycount: {
+      title: 'れつの かずを かぞえよう',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const rows = M.randInt(2, 5);
+        const cols = M.randInt(2, 5);
+        const answer = rows * cols;
+        const gridHtml = Array.from({ length: rows }, () => `<div class="array-row">${'🟣'.repeat(cols)}</div>`).join('');
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-3, -2, -1, 1, 2, 3]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="array-grid">${gridHtml}</div><div class="flashquiz-subprompt">ぜんぶで いくつ？</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    repeatedaddition: {
+      title: 'たしざんは なんかい？',
+      subtitle: 'おなじ かずを たすと なんばいの かけざんに なるかな？',
+      rounds: 20,
+      buildRound() {
+        const n = M.randInt(2, 9);
+        const times = M.randInt(2, 5);
+        const equationText = Array(times).fill(n).join(' ＋ ');
+        const answer = n * times;
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-n, -1, 1, n]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${equationText} = ?</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    remainder: {
+      title: 'あまりは いくつ？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const divisor = M.randInt(2, 9);
+        const quotient = M.randInt(1, 8);
+        const remainder = M.randInt(1, divisor - 1);
+        const dividend = divisor * quotient + remainder;
+        const wrongs = distinctWrongValues(remainder, 3, () => M.randInt(0, divisor - 1));
+        const options = M.shuffle([remainder, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${dividend} ÷ ${divisor} = ${quotient} あまり ?</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === remainder })),
+        };
+      },
+    },
+
+    halfquarter: {
+      title: 'なんぶん シェアだ',
+      subtitle: 'いろが ついてるのは どれだけ？',
+      rounds: 20,
+      buildRound() {
+        const shaded = M.pick([1, 2, 4]);
+        const blocksHtml = Array.from({ length: 4 }, (_, i) => `<span class="fraction-block${i < shaded ? ' filled' : ''}"></span>`).join('');
+        const LABELS = { 1: 'よんぶんの いち', 2: 'はんぶん', 4: 'ぜんぶ' };
+        const answer = LABELS[shaded];
+        const allLabels = Object.values(LABELS);
+        return {
+          promptHtml: `<div class="fraction-bar">${blocksHtml}</div>`,
+          choices: allLabels.map(label => ({ html: label, correct: label === answer })),
+        };
+      },
+    },
+
+    weightbar: {
+      title: 'どっちが おもい？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const askHeavier = Math.random() < 0.5;
+        let w1 = M.randInt(1, 50), w2 = M.randInt(1, 50);
+        while (w1 === w2) w2 = M.randInt(1, 50);
+        const heavierIdx = w1 > w2 ? 0 : 1;
+        const correctIdx = askHeavier ? heavierIdx : 1 - heavierIdx;
+        const weights = [w1, w2];
+        return {
+          promptHtml: `<div class="flashquiz-subprompt">${askHeavier ? 'おもい ほうを タップしてね！' : 'かるい ほうを タップしてね！'}</div>`,
+          choices: weights.map((w, i) => ({ html: `⚖️ ${w}kg`, correct: i === correctIdx })),
+        };
+      },
+    },
+
+    moredots: {
+      title: 'どちらが おおい？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        let n1 = M.randInt(2, 15), n2 = M.randInt(2, 15);
+        while (n1 === n2) n2 = M.randInt(2, 15);
+        const askMore = Math.random() < 0.5;
+        const moreIdx = n1 > n2 ? 0 : 1;
+        const correctIdx = askMore ? moreIdx : 1 - moreIdx;
+        const groups = [n1, n2];
+        return {
+          promptHtml: `<div class="flashquiz-subprompt">${askMore ? 'おおい ほうを タップしてね！' : 'すくない ほうを タップしてね！'}</div>`,
+          choices: groups.map((n, i) => ({ html: `<div class="dot-cluster">${'🟢'.repeat(n)}</div>`, correct: i === correctIdx })),
+        };
+      },
+    },
+
+    tallerbar: {
+      title: 'せが たかいのは どっち？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const askTaller = Math.random() < 0.5;
+        let h1 = M.randInt(40, 140), h2 = M.randInt(40, 140);
+        while (Math.abs(h1 - h2) < 25) h2 = M.randInt(40, 140);
+        const heights = [h1, h2];
+        const tallerIdx = h1 > h2 ? 0 : 1;
+        const correctIdx = askTaller ? tallerIdx : 1 - tallerIdx;
+        return {
+          promptHtml: `<div class="flashquiz-subprompt">${askTaller ? 'たかい ほうを タップしてね！' : 'ひくい ほうを タップしてね！'}</div>`,
+          choices: heights.map((h, i) => ({ html: `<div class="height-bar" style="height:${h}px"></div>`, correct: i === correctIdx })),
+        };
+      },
+    },
+
+    biggestof3: {
+      title: 'いちばん おおきい かずは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const nums = new Set();
+        while (nums.size < 3) nums.add(M.randInt(1, 99));
+        const arr = Array.from(nums);
+        const answer = Math.max(...arr);
+        const options = M.shuffle(arr);
+        return {
+          promptHtml: `<div class="flashquiz-subprompt">いちばん おおきいのを えらぼう！</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    smallestof3: {
+      title: 'いちばん ちいさい かずは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const nums = new Set();
+        while (nums.size < 3) nums.add(M.randInt(1, 99));
+        const arr = Array.from(nums);
+        const answer = Math.min(...arr);
+        const options = M.shuffle(arr);
+        return {
+          promptHtml: `<div class="flashquiz-subprompt">いちばん ちいさいのを えらぼう！</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    estimatecount: {
+      title: 'だいたい いくつ？',
+      subtitle: 'かぞえなくても だいじょうぶ、ちかい かずを えらぼう！',
+      rounds: 20,
+      buildRound() {
+        const actual = M.randInt(12, 40);
+        const dotsHtml = '🔵'.repeat(actual);
+        const answer = Math.round(actual / 5) * 5;
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-10, -5, 5, 10]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="estimate-dots">${dotsHtml}</div>`,
+          choices: options.map(v => ({ html: `やく ${v}`, correct: v === answer })),
+        };
+      },
+    },
+
+    digitalword: {
+      title: 'なんじ かな？（デジタル）',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const hour = M.randInt(1, 12);
+        const minute = M.pick([0, 30]);
+        const label = h => `${h}じ${minute === 0 ? '' : minute + 'ふん'}`;
+        const wrongHours = M.shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter(h => h !== hour)).slice(0, 3);
+        const options = M.shuffle([hour, ...wrongHours]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${hour}：${String(minute).padStart(2, '0')}</div>`,
+          choices: options.map(h => ({ html: label(h), correct: h === hour })),
+        };
+      },
+    },
+
+    daysofweek: {
+      title: 'つぎの ようびは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const DAYS = ['げつようび', 'かようび', 'すいようび', 'もくようび', 'きんようび', 'どようび', 'にちようび'];
+        const idx = M.randInt(0, 6);
+        const answer = DAYS[(idx + 1) % 7];
+        const wrongs = M.shuffle(DAYS.filter(d => d !== answer && d !== DAYS[idx])).slice(0, 3);
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${DAYS[idx]}</div>`,
+          choices: options.map(d => ({ html: d, correct: d === answer })),
+        };
+      },
+    },
+
+    monthsorder: {
+      title: 'つぎの つきは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const idx = M.randInt(1, 12);
+        const answer = idx === 12 ? 1 : idx + 1;
+        const wrongs = distinctWrongValues(answer, 3, () => M.randInt(1, 12));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${idx}がつ</div>`,
+          choices: options.map(v => ({ html: `${v}がつ`, correct: v === answer })),
+        };
+      },
+    },
+
+    elapsedtime: {
+      title: 'なんじに なるかな？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const startHour = M.randInt(1, 11);
+        const startMinute = M.pick([0, 15, 30, 45]);
+        const deltaMinute = M.pick([15, 30]);
+        let endMinute = startMinute + deltaMinute;
+        let endHour = startHour;
+        if (endMinute >= 60) { endMinute -= 60; endHour = startHour === 12 ? 1 : startHour + 1; }
+        const label = (h, m) => `${h}じ${m === 0 ? '' : m + 'ふん'}`;
+        const answer = label(endHour, endMinute);
+        const wrongHours = M.shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter(h => h !== endHour)).slice(0, 3);
+        const wrongOptions = wrongHours.map(h => label(h, endMinute));
+        const options = M.shuffle([answer, ...wrongOptions]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${label(startHour, startMinute)} から ${deltaMinute}ふん たつと？</div>`,
+          choices: options.map(o => ({ html: o, correct: o === answer })),
+        };
+      },
+    },
+
+    coinvalue: {
+      title: 'コインの ねだんは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const COINS = [
+          { name: '１えんだま', value: 1 }, { name: '５えんだま', value: 5 },
+          { name: '１０えんだま', value: 10 }, { name: '５０えんだま', value: 50 },
+          { name: '１００えんだま', value: 100 }, { name: '５００えんだま', value: 500 },
+        ];
+        const coin = M.pick(COINS);
+        const wrongs = distinctWrongValues(coin.value, 3, () => M.pick(COINS).value);
+        const options = M.shuffle([coin.value, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">🪙 ${coin.name}</div><div class="flashquiz-subprompt">いくら？</div>`,
+          choices: options.map(v => ({ html: `${v}えん`, correct: v === coin.value })),
+        };
+      },
+    },
+
+    makingchange: {
+      title: 'おつりは いくら？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const price = M.randInt(10, 480);
+        const roundedPrice = Math.round(price / 10) * 10;
+        const paymentOptions = [100, 500, 1000].filter(p => p > roundedPrice);
+        const payment = M.pick(paymentOptions.length ? paymentOptions : [1000]);
+        const change = payment - roundedPrice;
+        const wrongs = distinctWrongValues(change, 3, () => change + M.pick([-50, -20, -10, 10, 20, 50]));
+        const options = M.shuffle([change, ...wrongs]);
+        return {
+          promptHtml: `<div class="shop-items"><span>💰 ${payment}えん</span><span>－</span><span>🏷️ ${roundedPrice}えん</span></div><div class="flashquiz-subprompt">おつりは いくら？</div>`,
+          choices: options.map(v => ({ html: `${v}えん`, correct: v === change })),
+        };
+      },
+    },
+
+    countcoins: {
+      title: 'こうかを ぜんぶで いくら？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const VALUES = [1, 5, 10, 50, 100];
+        const count = M.randInt(2, 4);
+        const picked = Array.from({ length: count }, () => M.pick(VALUES));
+        const total = picked.reduce((s, v) => s + v, 0);
+        const wrongs = distinctWrongValues(total, 3, () => total + M.pick([-20, -10, -5, 5, 10, 20]));
+        const options = M.shuffle([total, ...wrongs]);
+        return {
+          promptHtml: `<div class="shop-items">${picked.map(v => `<span>🪙${v}</span>`).join('')}</div><div class="flashquiz-subprompt">ぜんぶで いくら？</div>`,
+          choices: options.map(v => ({ html: `${v}えん`, correct: v === total })),
+        };
+      },
+    },
+
+    shapename: {
+      title: 'かたちの なまえは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const SHAPES = [
+          { emoji: '🔺', name: 'さんかく' }, { emoji: '⬜', name: 'しかく' },
+          { emoji: '⚪', name: 'まる' }, { emoji: '⭐', name: 'ほし' },
+          { emoji: '💠', name: 'ひしがた' },
+        ];
+        const shape = M.pick(SHAPES);
+        const wrongs = M.shuffle(SHAPES.filter(s => s !== shape)).slice(0, 3).map(s => s.name);
+        const options = M.shuffle([shape.name, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${shape.emoji}</div>`,
+          choices: options.map(n => ({ html: n, correct: n === shape.name })),
+        };
+      },
+    },
+
+    shapesides: {
+      title: 'へんの かずは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const SHAPES = [
+          { emoji: '🔺', sides: 3 }, { emoji: '⬜', sides: 4 },
+          { emoji: '🛑', sides: 8 }, { emoji: '🔷', sides: 4 },
+        ];
+        const shape = M.pick(SHAPES);
+        const wrongs = distinctWrongValues(shape.sides, 3, () => M.randInt(2, 9));
+        const options = M.shuffle([shape.sides, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${shape.emoji}</div><div class="flashquiz-subprompt">へんは いくつ？</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === shape.sides })),
+        };
+      },
+    },
+
+    shapecorners: {
+      title: 'かどの かずは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const SHAPES = [
+          { emoji: '🔺', corners: 3 }, { emoji: '⬜', corners: 4 },
+          { emoji: '🛑', corners: 8 }, { emoji: '🔷', corners: 4 },
+        ];
+        const shape = M.pick(SHAPES);
+        const wrongs = distinctWrongValues(shape.corners, 3, () => M.randInt(2, 9));
+        const options = M.shuffle([shape.corners, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${shape.emoji}</div><div class="flashquiz-subprompt">かどは いくつ？</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === shape.corners })),
+        };
+      },
+    },
+
+    shape3d: {
+      title: 'りったいの かたちは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const SHAPES3D = [
+          { emoji: '🎲', name: 'りっぽうたい' }, { emoji: '⚽', name: 'きゅう' },
+          { emoji: '🥫', name: 'えんちゅう' }, { emoji: '🍦', name: 'えんすい' },
+        ];
+        const shape = M.pick(SHAPES3D);
+        const wrongs = M.shuffle(SHAPES3D.filter(s => s !== shape)).slice(0, 3).map(s => s.name);
+        const options = M.shuffle([shape.name, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${shape.emoji}</div>`,
+          choices: options.map(n => ({ html: n, correct: n === shape.name })),
+        };
+      },
+    },
+
+    oddoneout: {
+      title: 'なかまはずれは どれ？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const CATEGORIES = [
+          ['🍎', '🍌', '🍇', '🍊', '🍓', '🍑'],
+          ['🐶', '🐱', '🐰', '🐻', '🐵', '🐼'],
+          ['🚗', '🚕', '🚙', '🚌', '🚓', '🚑'],
+          ['⚽', '🏀', '🏈', '🎾', '🏐', '🏉'],
+          ['🔺', '⬜', '⚪', '⭐', '💠'],
+        ];
+        const [catA, catB] = M.shuffle(CATEGORIES).slice(0, 2);
+        const sameItems = M.shuffle(catA).slice(0, 3);
+        const oddItem = M.pick(catB);
+        const items = M.shuffle([...sameItems, oddItem]);
+        return {
+          promptHtml: `<div class="oddoneout-row">${items.map(i => `<span>${i}</span>`).join('')}</div>`,
+          choices: items.map(i => ({ html: i, correct: i === oddItem })),
+        };
+      },
+    },
+
+    patterncomplete: {
+      title: 'つぎに くるのは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const SYMBOL_SETS = [
+          ['🔴', '🔵'], ['🔺', '⬜', '⚪'], ['🍎', '🍌'], ['⭐', '🌙', '☀️'],
+        ];
+        const symbols = M.pick(SYMBOL_SETS);
+        const repeats = 3;
+        const sequence = [];
+        for (let i = 0; i < symbols.length * repeats; i++) sequence.push(symbols[i % symbols.length]);
+        const answer = symbols[sequence.length % symbols.length];
+        const otherSymbols = SYMBOL_SETS.flat().filter(s => !symbols.includes(s));
+        const pool = [...symbols.filter(s => s !== answer), ...otherSymbols];
+        const finalWrongs = M.shuffle(pool).slice(0, 3);
+        const options = M.shuffle([answer, ...finalWrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${sequence.join(' ')} ？</div>`,
+          choices: options.map(s => ({ html: s, correct: s === answer })),
+        };
+      },
+    },
+
+    missingoperator: {
+      title: '？に はいる きごうは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const OPS = [
+          { sym: '＋', fn: (a, b) => a + b },
+          { sym: '－', fn: (a, b) => a - b },
+          { sym: '×', fn: (a, b) => a * b },
+        ];
+        let op, a, b, c;
+        let attempts = 0;
+        do {
+          op = M.pick(OPS);
+          if (op.sym === '－') { a = M.randInt(5, 20); b = M.randInt(1, a); }
+          else if (op.sym === '×') { a = M.randInt(2, 9); b = M.randInt(2, 9); }
+          else { a = M.randInt(1, 20); b = M.randInt(1, 20); }
+          c = op.fn(a, b);
+          attempts++;
+        } while (OPS.filter(o => o.fn(a, b) === c).length > 1 && attempts < 50);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${a} ？ ${b} = ${c}</div>`,
+          choices: OPS.map(o => ({ html: o.sym, correct: o.sym === op.sym })),
+        };
+      },
+    },
+
+    equationbalance: {
+      title: 'てんびんを つりあわせよう',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const a = M.randInt(1, 15), b = M.randInt(1, 15);
+        const left = a + b;
+        const c = M.randInt(1, left - 1);
+        const missing = left - c;
+        const wrongs = distinctWrongValues(missing, 3, () => missing + M.pick([-3, -2, -1, 1, 2, 3]));
+        const options = M.shuffle([missing, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${a} ＋ ${b} = ${c} ＋ ？</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === missing })),
+        };
+      },
+    },
+
+    sortmiddle: {
+      title: 'まんなかの おおきさは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const nums = new Set();
+        while (nums.size < 3) nums.add(M.randInt(1, 99));
+        const arr = Array.from(nums);
+        const sorted = [...arr].sort((x, y) => x - y);
+        const answer = sorted[1];
+        const options = M.shuffle(arr);
+        return {
+          promptHtml: `<div class="flashquiz-subprompt">まんなかの おおきさの かずを えらぼう！</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    countgroups: {
+      title: 'グループで かぞえよう',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const groups = M.randInt(2, 5);
+        const perGroup = M.randInt(2, 5);
+        const answer = groups * perGroup;
+        const groupsHtml = Array.from({ length: groups }, () => `<div class="fruit-basket">${'🍎'.repeat(perGroup)}</div>`).join('');
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-perGroup, -1, 1, perGroup]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="basket-row">${groupsHtml}</div><div class="flashquiz-subprompt">ぜんぶで いくつ？</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    wordproblemadd: {
+      title: 'もんだい（たしざん）',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const SCENES = [{ emoji: '🍎' }, { emoji: '🎈' }, { emoji: '⭐' }, { emoji: '🐦' }];
+        const scene = M.pick(SCENES);
+        const a = M.randInt(2, 12), b = M.randInt(2, 12);
+        const answer = a + b;
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-3, -2, -1, 1, 2, 3]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-subprompt">${scene.emoji} が ${a}こ ありました。 あとから ${b}こ ふえました。</div><div class="flashquiz-equation">ぜんぶで なんこ？</div>`,
+          choices: options.map(v => ({ html: `${v}こ`, correct: v === answer })),
+        };
+      },
+    },
+
+    wordproblemsub: {
+      title: 'もんだい（ひきざん）',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const SCENES = [{ emoji: '🍬' }, { emoji: '🎈' }, { emoji: '🍪' }, { emoji: '🐦' }];
+        const scene = M.pick(SCENES);
+        const start = M.randInt(6, 18);
+        const taken = M.randInt(1, start - 1);
+        const answer = start - taken;
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-3, -2, -1, 1, 2, 3]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-subprompt">${scene.emoji} が ${start}こ ありました。 ${taken}こ つかいました。</div><div class="flashquiz-equation">のこりは なんこ？</div>`,
+          choices: options.map(v => ({ html: `${v}こ`, correct: v === answer })),
+        };
+      },
+    },
+
+    animallegs: {
+      title: 'あしの かずは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const ANIMALS = [
+          { emoji: '🐦', legs: 2 }, { emoji: '🐔', legs: 2 },
+          { emoji: '🐶', legs: 4 }, { emoji: '🐱', legs: 4 }, { emoji: '🐘', legs: 4 },
+        ];
+        const animal = M.pick(ANIMALS);
+        const count = M.randInt(2, 6);
+        const answer = animal.legs * count;
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-animal.legs, -2, 2, animal.legs]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${animal.emoji.repeat(count)}</div><div class="flashquiz-subprompt">あしは ぜんぶで いくつ？</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    fruitshare: {
+      title: 'わけっこ しよう',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const kids = M.randInt(2, 5);
+        const perKid = M.randInt(1, 6);
+        const total = kids * perKid;
+        const wrongs = distinctWrongValues(perKid, 3, () => perKid + M.pick([-2, -1, 1, 2]));
+        const options = M.shuffle([perKid, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-subprompt">🍊 が ${total}こ あります。 ${kids}にんで おなじ かずずつ わけると？</div>`,
+          choices: options.map(v => ({ html: `${v}こずつ`, correct: v === perKid })),
+        };
+      },
+    },
+
+    temperature: {
+      title: 'あつい？ さむい？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const temp = M.randInt(-5, 40);
+        let answer;
+        if (temp >= 25) answer = 'あつい';
+        else if (temp <= 10) answer = 'さむい';
+        else answer = 'ちょうどいい';
+        return {
+          promptHtml: `<div class="flashquiz-equation">🌡️ ${temp}℃</div>`,
+          choices: [
+            { html: 'あつい', correct: answer === 'あつい' },
+            { html: 'ちょうどいい', correct: answer === 'ちょうどいい' },
+            { html: 'さむい', correct: answer === 'さむい' },
+          ],
+        };
+      },
+    },
+
+    speedaddition: {
+      title: 'たしざん とっきゅう',
+      subtitle: 'できるだけ はやく こたえよう！',
+      rounds: 20,
+      buildRound() {
+        const a = M.randInt(1, 9), b = M.randInt(1, 9);
+        const answer = a + b;
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-2, -1, 1, 2]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${a} ＋ ${b} = ?</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    speedsubtraction: {
+      title: 'ひきざん とっきゅう',
+      subtitle: 'できるだけ はやく こたえよう！',
+      rounds: 20,
+      buildRound() {
+        const b = M.randInt(1, 9);
+        const a = M.randInt(b, 9 + b);
+        const answer = a - b;
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-2, -1, 1, 2]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${a} － ${b} = ?</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    numberbonds10: {
+      title: '１０の ともだち',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const a = M.randInt(1, 9);
+        const answer = 10 - a;
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-3, -2, -1, 1, 2, 3]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${a} ＋ ？ = １０</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    dayordinal: {
+      title: 'なんばんめ？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const ANIMALS = ['🐶', '🐱', '🐰', '🐻', '🐵', '🦊', '🐼', '🐸'];
+        const rowLen = M.randInt(4, 6);
+        const row = M.shuffle(ANIMALS).slice(0, rowLen);
+        const targetIdx = M.randInt(0, rowLen - 1);
+        const ORDINALS = ['１ばんめ', '２ばんめ', '３ばんめ', '４ばんめ', '５ばんめ', '６ばんめ'];
+        const answer = ORDINALS[targetIdx];
+        const wrongs = M.shuffle(ORDINALS.filter((_, i) => i !== targetIdx)).slice(0, 3);
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="ordinal-row">${row.map(a => `<span>${a}</span>`).join('')}</div><div class="flashquiz-subprompt">${row[targetIdx]} は ひだりから なんばんめ？</div>`,
+          choices: options.map(o => ({ html: o, correct: o === answer })),
+        };
+      },
+    },
   };
 
   /* ================= MINIGAME PICKER ================= */
@@ -1546,6 +2459,57 @@
     { id: 'shapes', emoji: '🔺', icon: I.shapesIcon, name: 'かたちの かず', start: () => startFlashRound(FLASHQUIZ_CONFIGS.shapes) },
     { id: 'compare', emoji: '📏', icon: I.compareIcon, name: 'どっちが ながい？', start: () => startFlashRound(FLASHQUIZ_CONFIGS.compare) },
     { id: 'shopping', emoji: '💰', icon: I.shoppingIcon, name: 'おかいもの けいさん', start: () => startFlashRound(FLASHQUIZ_CONFIGS.shopping) },
+
+    { id: 'add3', emoji: '➕', name: FLASHQUIZ_CONFIGS.add3.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.add3) },
+    { id: 'doubles', emoji: '2️⃣', name: FLASHQUIZ_CONFIGS.doubles.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.doubles) },
+    { id: 'halves', emoji: '➗', name: FLASHQUIZ_CONFIGS.halves.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.halves) },
+    { id: 'neardoubles', emoji: '🔀', name: FLASHQUIZ_CONFIGS.neardoubles.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.neardoubles) },
+    { id: 'missingaddend', emoji: '❓', name: FLASHQUIZ_CONFIGS.missingaddend.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.missingaddend) },
+    { id: 'missingsubtrahend', emoji: '❔', name: FLASHQUIZ_CONFIGS.missingsubtrahend.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.missingsubtrahend) },
+    { id: 'oddeven', emoji: '🔢', name: FLASHQUIZ_CONFIGS.oddeven.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.oddeven) },
+    { id: 'greaterless', emoji: '⚖️', name: FLASHQUIZ_CONFIGS.greaterless.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.greaterless) },
+    { id: 'numberline', emoji: '📏', name: FLASHQUIZ_CONFIGS.numberline.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.numberline) },
+    { id: 'roundto10', emoji: '🔟', name: FLASHQUIZ_CONFIGS.roundto10.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.roundto10) },
+    { id: 'placevaluetens', emoji: '🏛️', name: FLASHQUIZ_CONFIGS.placevaluetens.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.placevaluetens) },
+    { id: 'placevalueones', emoji: '🏠', name: FLASHQUIZ_CONFIGS.placevalueones.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.placevalueones) },
+    { id: 'multiplyfact', emoji: '✖️', name: FLASHQUIZ_CONFIGS.multiplyfact.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.multiplyfact) },
+    { id: 'dividefact', emoji: '➗', name: FLASHQUIZ_CONFIGS.dividefact.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.dividefact) },
+    { id: 'arraycount', emoji: '🟣', name: FLASHQUIZ_CONFIGS.arraycount.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.arraycount) },
+    { id: 'repeatedaddition', emoji: '🔁', name: FLASHQUIZ_CONFIGS.repeatedaddition.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.repeatedaddition) },
+    { id: 'remainder', emoji: '🍰', name: FLASHQUIZ_CONFIGS.remainder.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.remainder) },
+    { id: 'halfquarter', emoji: '🍕', name: FLASHQUIZ_CONFIGS.halfquarter.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.halfquarter) },
+    { id: 'weightbar', emoji: '⚖️', name: FLASHQUIZ_CONFIGS.weightbar.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.weightbar) },
+    { id: 'moredots', emoji: '🟢', name: FLASHQUIZ_CONFIGS.moredots.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.moredots) },
+    { id: 'tallerbar', emoji: '📶', name: FLASHQUIZ_CONFIGS.tallerbar.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.tallerbar) },
+    { id: 'biggestof3', emoji: '📈', name: FLASHQUIZ_CONFIGS.biggestof3.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.biggestof3) },
+    { id: 'smallestof3', emoji: '📉', name: FLASHQUIZ_CONFIGS.smallestof3.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.smallestof3) },
+    { id: 'estimatecount', emoji: '🎯', name: FLASHQUIZ_CONFIGS.estimatecount.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.estimatecount) },
+    { id: 'digitalword', emoji: '⏰', name: FLASHQUIZ_CONFIGS.digitalword.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.digitalword) },
+    { id: 'daysofweek', emoji: '📅', name: FLASHQUIZ_CONFIGS.daysofweek.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.daysofweek) },
+    { id: 'monthsorder', emoji: '🗓️', name: FLASHQUIZ_CONFIGS.monthsorder.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.monthsorder) },
+    { id: 'elapsedtime', emoji: '⏳', name: FLASHQUIZ_CONFIGS.elapsedtime.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.elapsedtime) },
+    { id: 'coinvalue', emoji: '🪙', name: FLASHQUIZ_CONFIGS.coinvalue.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.coinvalue) },
+    { id: 'makingchange', emoji: '💴', name: FLASHQUIZ_CONFIGS.makingchange.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.makingchange) },
+    { id: 'countcoins', emoji: '💰', name: FLASHQUIZ_CONFIGS.countcoins.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.countcoins) },
+    { id: 'shapename', emoji: '🔷', name: FLASHQUIZ_CONFIGS.shapename.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.shapename) },
+    { id: 'shapesides', emoji: '🔺', name: FLASHQUIZ_CONFIGS.shapesides.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.shapesides) },
+    { id: 'shapecorners', emoji: '📐', name: FLASHQUIZ_CONFIGS.shapecorners.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.shapecorners) },
+    { id: 'shape3d', emoji: '🎲', name: FLASHQUIZ_CONFIGS.shape3d.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.shape3d) },
+    { id: 'oddoneout', emoji: '🔍', name: FLASHQUIZ_CONFIGS.oddoneout.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.oddoneout) },
+    { id: 'patterncomplete', emoji: '🧩', name: FLASHQUIZ_CONFIGS.patterncomplete.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.patterncomplete) },
+    { id: 'missingoperator', emoji: '🔣', name: FLASHQUIZ_CONFIGS.missingoperator.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.missingoperator) },
+    { id: 'equationbalance', emoji: '⚖️', name: FLASHQUIZ_CONFIGS.equationbalance.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.equationbalance) },
+    { id: 'sortmiddle', emoji: '📊', name: FLASHQUIZ_CONFIGS.sortmiddle.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.sortmiddle) },
+    { id: 'countgroups', emoji: '🧺', name: FLASHQUIZ_CONFIGS.countgroups.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.countgroups) },
+    { id: 'wordproblemadd', emoji: '📝', name: FLASHQUIZ_CONFIGS.wordproblemadd.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.wordproblemadd) },
+    { id: 'wordproblemsub', emoji: '📝', name: FLASHQUIZ_CONFIGS.wordproblemsub.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.wordproblemsub) },
+    { id: 'animallegs', emoji: '🐾', name: FLASHQUIZ_CONFIGS.animallegs.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.animallegs) },
+    { id: 'fruitshare', emoji: '🍊', name: FLASHQUIZ_CONFIGS.fruitshare.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.fruitshare) },
+    { id: 'temperature', emoji: '🌡️', name: FLASHQUIZ_CONFIGS.temperature.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.temperature) },
+    { id: 'speedaddition', emoji: '⚡', name: FLASHQUIZ_CONFIGS.speedaddition.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.speedaddition) },
+    { id: 'speedsubtraction', emoji: '⚡', name: FLASHQUIZ_CONFIGS.speedsubtraction.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.speedsubtraction) },
+    { id: 'numberbonds10', emoji: '🔟', name: FLASHQUIZ_CONFIGS.numberbonds10.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.numberbonds10) },
+    { id: 'dayordinal', emoji: '🔢', name: FLASHQUIZ_CONFIGS.dayordinal.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.dayordinal) },
   ];
 
   function renderMinigamePicker() {
