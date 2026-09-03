@@ -55,6 +55,7 @@
     screens.minigamePicker = document.getElementById('screen-minigame-picker');
     screens.minigame = document.getElementById('screen-minigame');
     screens.mole = document.getElementById('screen-mole');
+    screens.balloon = document.getElementById('screen-balloon');
     screens.pairs10 = document.getElementById('screen-pairs10');
     screens.sort = document.getElementById('screen-sort');
     screens.flashquiz = document.getElementById('screen-flashquiz');
@@ -176,6 +177,15 @@
     els.btnMoleAgain = document.getElementById('btn-mole-again');
     els.btnMoleGoHome = document.getElementById('btn-mole-go-home');
     els.btnMoleSkip = document.getElementById('btn-mole-skip');
+
+    els.balloonStatus = document.getElementById('balloon-status');
+    els.balloonScore = document.getElementById('balloon-score');
+    els.balloonEquation = document.getElementById('balloon-equation');
+    els.balloonField = document.getElementById('balloon-field');
+    els.balloonDone = document.getElementById('balloon-done');
+    els.btnBalloonAgain = document.getElementById('btn-balloon-again');
+    els.btnBalloonGoHome = document.getElementById('btn-balloon-go-home');
+    els.btnBalloonSkip = document.getElementById('btn-balloon-skip');
 
     els.pairs10Status = document.getElementById('pairs10-status');
     els.pairs10Grid = document.getElementById('pairs10-grid');
@@ -1161,6 +1171,90 @@
     els.btnMoleSkip.classList.add('hidden');
     els.moleDone.classList.remove('hidden');
     if (mole.score >= Math.ceil(MOLE_ROUNDS * 0.7)) {
+      E.spawnConfetti(24, D.getSelectedPrincess(state).rewardEmoji);
+    }
+  }
+
+  /* ================= MINIGAME: balloon pop =================
+     A math fact is shown; 4 balloons carrying candidate answers rise
+     from the bottom of the field on a CSS animation. Tap the one
+     matching the answer before any of them float off the top — the
+     first genuinely *moving*-target minigame (mole's holes are a
+     static grid that just appear/disappear in place), for real
+     interaction variety rather than another multiple-choice screen. */
+  const BALLOON_ROUNDS = 15;
+  const BALLOON_COUNT = 4;
+  const BALLOON_RISE_MS = 5200;
+  const BALLOON_COLORS = ['balloon-red', 'balloon-blue', 'balloon-yellow', 'balloon-green'];
+  let balloon = null;
+
+  function startBalloonPop() {
+    balloon = { round: 0, score: 0, locked: false, roundTimer: null };
+    els.balloonScore.textContent = 'スコア：0';
+    els.balloonStatus.textContent = 'こたえの ふうせんを タップしよう！';
+    els.balloonDone.classList.add('hidden');
+    els.btnBalloonSkip.classList.remove('hidden');
+    showScreen('balloon');
+    scheduleBalloonRound();
+  }
+
+  function stopBalloonTimer() {
+    if (!balloon) return;
+    clearTimeout(balloon.roundTimer);
+  }
+
+  function scheduleBalloonRound() {
+    stopBalloonTimer();
+    if (!balloon || balloon.round >= BALLOON_ROUNDS) { finishBalloonPop(); return; }
+    balloon.locked = false;
+    const level = Math.min(state.selectedLevelByOp.add || 1, 3);
+    const p = M.generateProblem(level);
+    const wrongs = distinctWrongValues(p.answer, BALLOON_COUNT - 1, () => p.answer + M.pick([-4, -3, -2, -1, 1, 2, 3, 4]));
+    const values = M.shuffle([p.answer, ...wrongs]);
+    const positions = M.shuffle([10, 37, 64, 88]).slice(0, BALLOON_COUNT);
+    els.balloonEquation.textContent = `${p.a} ＋ ${p.b} = ?`;
+    els.balloonField.innerHTML = values.map((v, i) => {
+      const dur = (4.4 + Math.random() * 1.6).toFixed(2);
+      const delay = (Math.random() * 0.5).toFixed(2);
+      return `<button class="balloon ${BALLOON_COLORS[i % BALLOON_COLORS.length]}" data-value="${v}" data-correct="${v === p.answer}" style="left:${positions[i]}%; animation-duration:${dur}s; animation-delay:${delay}s;">${v}</button>`;
+    }).join('');
+    balloon.roundTimer = setTimeout(() => {
+      if (balloon.locked) return;
+      balloon.locked = true;
+      balloon.round++;
+      scheduleBalloonRound();
+    }, BALLOON_RISE_MS + 800);
+  }
+
+  function popBalloon(el) {
+    if (!balloon || balloon.locked || !el) return;
+    balloon.locked = true;
+    stopBalloonTimer();
+    const isCorrect = el.dataset.correct === 'true';
+    el.classList.add('popped');
+    if (isCorrect) {
+      balloon.score++;
+      els.balloonScore.textContent = `スコア：${balloon.score}`;
+      A.playCorrectSound();
+    } else {
+      A.playWrongSound();
+      const correctEl = els.balloonField.querySelector('[data-correct="true"]');
+      if (correctEl) correctEl.classList.add('reveal-correct');
+    }
+    setTimeout(() => {
+      if (!balloon) return;
+      balloon.round++;
+      scheduleBalloonRound();
+    }, 700);
+  }
+
+  function finishBalloonPop() {
+    stopBalloonTimer();
+    els.balloonField.innerHTML = '';
+    els.balloonStatus.textContent = `おわり！ ${balloon.score} / ${BALLOON_ROUNDS} かい とれたよ！`;
+    els.btnBalloonSkip.classList.add('hidden');
+    els.balloonDone.classList.remove('hidden');
+    if (balloon.score >= Math.ceil(BALLOON_ROUNDS * 0.7)) {
       E.spawnConfetti(24, D.getSelectedPrincess(state).rewardEmoji);
     }
   }
@@ -2445,6 +2539,274 @@
         };
       },
     },
+
+    /* ============ 14 more flash-quiz mini-games (quality batch) ============ */
+
+    beforeafter: {
+      title: 'まえの かず・つぎの かず',
+      subtitle: '？に はいる かずは なにかな？',
+      rounds: 20,
+      buildRound() {
+        const n = M.randInt(2, 98);
+        const askNext = Math.random() < 0.5;
+        const answer = askNext ? n + 1 : n - 1;
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-3, -2, 2, 3]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${askNext ? `${n} の つぎ` : `${n} の まえ`}</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    tallymarks: {
+      title: 'せいの じの かず',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const count = M.randInt(3, 19);
+        const groups = [];
+        let remaining = count;
+        while (remaining > 0) {
+          const take = Math.min(5, remaining);
+          groups.push(take);
+          remaining -= take;
+        }
+        const groupHtml = groups.map(take => {
+          const bars = Array.from({ length: Math.min(take, 4) }, () => '<span class="tally-bar"></span>').join('');
+          const cross = take === 5 ? '<span class="tally-bar tally-cross"></span>' : '';
+          return `<span class="tally-group">${bars}${cross}</span>`;
+        }).join('');
+        const wrongs = distinctWrongValues(count, 3, () => M.randInt(Math.max(1, count - 4), count + 4));
+        const options = M.shuffle([count, ...wrongs]);
+        return {
+          promptHtml: `<div class="tally-row">${groupHtml}</div><div class="flashquiz-subprompt">ぜんぶで いくつ？</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === count })),
+        };
+      },
+    },
+
+    fractionshaded: {
+      title: 'ぬられているのは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const total = M.pick([2, 3, 4]);
+        const shaded = M.randInt(1, total - 1);
+        const FRACTION_NAMES = { '1/2': '２ぶんの１', '1/3': '３ぶんの１', '2/3': '３ぶんの２', '1/4': '４ぶんの１', '2/4': '４ぶんの２', '3/4': '４ぶんの３' };
+        const key = `${shaded}/${total}`;
+        const answer = FRACTION_NAMES[key];
+        const wrongPool = Object.values(FRACTION_NAMES).filter(f => f !== answer);
+        const wrongs = M.shuffle(wrongPool).slice(0, 3);
+        const options = M.shuffle([answer, ...wrongs]);
+        const boxes = Array.from({ length: total }, (_, i) => `<span class="fraction-block${i < shaded ? ' filled' : ''}"></span>`).join('');
+        return {
+          promptHtml: `<div class="fraction-bar">${boxes}</div>`,
+          choices: options.map(f => ({ html: f, correct: f === answer })),
+        };
+      },
+    },
+
+    numberwords: {
+      title: 'かずの よみかたは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const WORDS = ['いち', 'に', 'さん', 'よん', 'ご', 'ろく', 'なな', 'はち', 'きゅう', 'じゅう'];
+        const n = M.randInt(1, 10);
+        const answer = WORDS[n - 1];
+        const wrongs = M.shuffle(WORDS.filter(w => w !== answer)).slice(0, 3);
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${n}</div>`,
+          choices: options.map(w => ({ html: w, correct: w === answer })),
+        };
+      },
+    },
+
+    measurementunit: {
+      title: 'どちらの たんい？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const ITEMS = [
+          { emoji: '✏️', small: true }, { emoji: '🐜', small: true }, { emoji: '📱', small: true }, { emoji: '🔑', small: true },
+          { emoji: '🏫', small: false }, { emoji: '🚌', small: false }, { emoji: '🏊', small: false }, { emoji: '🌳', small: false },
+        ];
+        const item = M.pick(ITEMS);
+        const answer = item.small ? 'センチメートル' : 'メートル';
+        return {
+          promptHtml: `<div class="flashquiz-equation">${item.emoji}</div><div class="flashquiz-subprompt">ながさの たんいは？</div>`,
+          choices: [
+            { html: 'センチメートル', correct: answer === 'センチメートル' },
+            { html: 'メートル', correct: answer === 'メートル' },
+          ],
+        };
+      },
+    },
+
+    symmetrycheck: {
+      title: 'かがみみたい？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const SHAPES = ['🔺', '⚪', '🟦', '⭐', '💚', '🔷'];
+        const rowLen = M.randInt(3, 4);
+        const left = Array.from({ length: rowLen }, () => M.pick(SHAPES));
+        const isMirror = Math.random() < 0.5;
+        let right = [...left].reverse();
+        if (!isMirror) {
+          const i = M.randInt(0, rowLen - 1);
+          let swap = M.pick(SHAPES);
+          while (swap === right[i]) swap = M.pick(SHAPES);
+          right[i] = swap;
+        }
+        return {
+          promptHtml: `
+            <div class="symmetry-row">${left.map(s => `<span>${s}</span>`).join('')}</div>
+            <div class="symmetry-divider"></div>
+            <div class="symmetry-row">${right.map(s => `<span>${s}</span>`).join('')}</div>`,
+          choices: [
+            { html: '⭕ かがみみたい', correct: isMirror },
+            { html: '❌ ちがう', correct: !isMirror },
+          ],
+        };
+      },
+    },
+
+    moneybills: {
+      title: 'おさつと こうかで いくら？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const bill = M.pick([1000, 5000, 10000]);
+        const coin = M.pick([10, 50, 100, 500]);
+        const total = bill + coin;
+        const wrongs = distinctWrongValues(total, 3, () => total + M.pick([-500, -100, -50, 50, 100, 500]));
+        const options = M.shuffle([total, ...wrongs]);
+        return {
+          promptHtml: `<div class="shop-items"><span>💴 ${bill}えん</span><span>＋</span><span>🪙 ${coin}えん</span></div><div class="flashquiz-subprompt">ぜんぶで いくら？</div>`,
+          choices: options.map(v => ({ html: `${v}えん`, correct: v === total })),
+        };
+      },
+    },
+
+    divisionarray: {
+      title: 'なんグループに わけられる？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const groupSize = M.randInt(2, 5);
+        const groupCount = M.randInt(2, 5);
+        const total = groupSize * groupCount;
+        const wrongs = distinctWrongValues(groupCount, 3, () => M.randInt(2, 8));
+        const options = M.shuffle([groupCount, ...wrongs]);
+        return {
+          promptHtml: `<div class="array-dots">${'🟣'.repeat(total)}</div><div class="flashquiz-subprompt">${groupSize}こずつ わけると、なんグループ？</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === groupCount })),
+        };
+      },
+    },
+
+    weekdaybefore: {
+      title: 'まえの ようびは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const DAYS = ['げつようび', 'かようび', 'すいようび', 'もくようび', 'きんようび', 'どようび', 'にちようび'];
+        const idx = M.randInt(0, 6);
+        const answer = DAYS[(idx + 6) % 7];
+        const wrongs = M.shuffle(DAYS.filter(d => d !== answer && d !== DAYS[idx])).slice(0, 3);
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${DAYS[idx]}</div>`,
+          choices: options.map(d => ({ html: d, correct: d === answer })),
+        };
+      },
+    },
+
+    numberbetween: {
+      title: 'あいだの かずは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const lo = M.randInt(1, 40);
+        const hi = lo + M.randInt(4, 10);
+        const answer = M.randInt(lo + 1, hi - 1);
+        const wrongs = distinctWrongValues(answer, 3, () => M.pick([lo - M.randInt(1, 3), hi + M.randInt(1, 3), answer + M.pick([-1, 1])]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-subprompt">${lo} と ${hi} の あいだの かずは どれ？</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    multiplybyten: {
+      title: '１０を かける',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const n = M.randInt(1, 9);
+        const answer = n * 10;
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-20, -10, 10, 20]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${n} × １０ = ?</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    subtractfrom20: {
+      title: 'はやびき（２０まで）',
+      subtitle: 'できるだけ はやく こたえよう！',
+      rounds: 20,
+      buildRound() {
+        const a = M.randInt(5, 20);
+        const b = M.randInt(1, a);
+        const answer = a - b;
+        const wrongs = distinctWrongValues(answer, 3, () => answer + M.pick([-3, -2, -1, 1, 2, 3]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${a} － ${b} = ?</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
+
+    coinexchange: {
+      title: '１０えんだまで なんまい？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const count = M.randInt(2, 9);
+        const total = count * 10;
+        const wrongs = distinctWrongValues(count, 3, () => M.randInt(2, 10));
+        const options = M.shuffle([count, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-equation">${total}えん</div><div class="flashquiz-subprompt">🪙１０えんだま なんまい ぶん？</div>`,
+          choices: options.map(v => ({ html: `${v}まい`, correct: v === count })),
+        };
+      },
+    },
+
+    guessnumber: {
+      title: 'なぞの かずは？',
+      subtitle: '',
+      rounds: 20,
+      buildRound() {
+        const lo = M.randInt(1, 30);
+        const hi = lo + M.randInt(2, 6);
+        const answer = M.randInt(lo + 1, hi - 1);
+        const wrongs = distinctWrongValues(answer, 3, () => M.pick([lo, hi, lo - 1, hi + 1]));
+        const options = M.shuffle([answer, ...wrongs]);
+        return {
+          promptHtml: `<div class="flashquiz-subprompt">${lo} より おおきくて、${hi} より ちいさい かずは？</div>`,
+          choices: options.map(v => ({ html: String(v), correct: v === answer })),
+        };
+      },
+    },
   };
 
   /* ================= MINIGAME PICKER ================= */
@@ -2453,6 +2815,7 @@
     { id: 'pairs10', emoji: '🔟', icon: I.pairs10Icon, name: 'たしざんペア', start: () => startPairs10() },
     { id: 'sort', emoji: '🔢', icon: I.sortIcon, name: 'じゅんばん クイズ', start: () => startSort() },
     { id: 'mole', emoji: '🎯', icon: I.moleIcon, name: 'もぐらたたき', start: () => startMole() },
+    { id: 'balloon', emoji: '🎈', name: 'ふうせん われ', start: () => startBalloonPop() },
     { id: 'truefalse', emoji: '✅', icon: I.truefalseIcon, name: 'まるばつ けいさん', start: () => startFlashRound(FLASHQUIZ_CONFIGS.truefalse) },
     { id: 'clock', emoji: '🕐', icon: I.clockIcon, name: 'とけいを よもう', start: () => startFlashRound(FLASHQUIZ_CONFIGS.clock) },
     { id: 'sequence', emoji: '🔢', icon: I.sequenceIcon, name: 'かずの ならび', start: () => startFlashRound(FLASHQUIZ_CONFIGS.sequence) },
@@ -2510,6 +2873,21 @@
     { id: 'speedsubtraction', emoji: '⚡', name: FLASHQUIZ_CONFIGS.speedsubtraction.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.speedsubtraction) },
     { id: 'numberbonds10', emoji: '🔟', name: FLASHQUIZ_CONFIGS.numberbonds10.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.numberbonds10) },
     { id: 'dayordinal', emoji: '🔢', name: FLASHQUIZ_CONFIGS.dayordinal.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.dayordinal) },
+
+    { id: 'beforeafter', emoji: '↔️', name: FLASHQUIZ_CONFIGS.beforeafter.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.beforeafter) },
+    { id: 'tallymarks', emoji: '📏', name: FLASHQUIZ_CONFIGS.tallymarks.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.tallymarks) },
+    { id: 'fractionshaded', emoji: '🟪', name: FLASHQUIZ_CONFIGS.fractionshaded.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.fractionshaded) },
+    { id: 'numberwords', emoji: '🔤', name: FLASHQUIZ_CONFIGS.numberwords.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.numberwords) },
+    { id: 'measurementunit', emoji: '📐', name: FLASHQUIZ_CONFIGS.measurementunit.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.measurementunit) },
+    { id: 'symmetrycheck', emoji: '🪞', name: FLASHQUIZ_CONFIGS.symmetrycheck.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.symmetrycheck) },
+    { id: 'moneybills', emoji: '💴', name: FLASHQUIZ_CONFIGS.moneybills.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.moneybills) },
+    { id: 'divisionarray', emoji: '🟣', name: FLASHQUIZ_CONFIGS.divisionarray.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.divisionarray) },
+    { id: 'weekdaybefore', emoji: '📅', name: FLASHQUIZ_CONFIGS.weekdaybefore.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.weekdaybefore) },
+    { id: 'numberbetween', emoji: '🔢', name: FLASHQUIZ_CONFIGS.numberbetween.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.numberbetween) },
+    { id: 'multiplybyten', emoji: '✖️', name: FLASHQUIZ_CONFIGS.multiplybyten.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.multiplybyten) },
+    { id: 'subtractfrom20', emoji: '⚡', name: FLASHQUIZ_CONFIGS.subtractfrom20.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.subtractfrom20) },
+    { id: 'coinexchange', emoji: '🪙', name: FLASHQUIZ_CONFIGS.coinexchange.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.coinexchange) },
+    { id: 'guessnumber', emoji: '🔍', name: FLASHQUIZ_CONFIGS.guessnumber.title, start: () => startFlashRound(FLASHQUIZ_CONFIGS.guessnumber) },
   ];
 
   function renderMinigamePicker() {
@@ -3287,6 +3665,16 @@
     if (els.btnMoleSkip) els.btnMoleSkip.addEventListener('click', () => { stopMoleTimers(); goHome(); });
     if (els.btnMoleGoHome) els.btnMoleGoHome.addEventListener('click', goHome);
     if (els.btnMoleAgain) els.btnMoleAgain.addEventListener('click', startMole);
+
+    if (els.btnBalloonSkip) els.btnBalloonSkip.addEventListener('click', () => { stopBalloonTimer(); goHome(); });
+    if (els.btnBalloonGoHome) els.btnBalloonGoHome.addEventListener('click', goHome);
+    if (els.btnBalloonAgain) els.btnBalloonAgain.addEventListener('click', startBalloonPop);
+    if (els.balloonField) {
+      els.balloonField.addEventListener('click', (e) => {
+        const el = e.target.closest('.balloon');
+        if (el) popBalloon(el);
+      });
+    }
     if (els.moleGrid) {
       els.moleGrid.addEventListener('click', (e) => {
         const btn = e.target.closest('.mole-hole');
